@@ -1,0 +1,8 @@
+{
+    "database": {
+        "destination": "localhost:3001",
+        "name": "cms",
+        "username": "root",
+        "password": "HardPass"
+    }
+}
