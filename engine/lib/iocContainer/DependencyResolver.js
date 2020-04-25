@@ -10,36 +10,34 @@ class DependencyResolver {
 	/**
 	 * Registers callee (this) type as a dependency
 	 *
+	 * @param {Function} dependency - constructor of the dependency
 	 * @param {string} name - name of a dependency (define another way to get dependency)
 	 * @param {boolean} singleton - if true, all dependent objects will get only one instance of a dependency
+	 * @param {...any} args - arguments that will be passed to the dependency constructor
 	 */
-	static registerDependency(singleton = false, name = null) {
-		if (Object.is(this, DependencyResolver)) {
+	static registerDependency(dependency, singleton = false, name = null, ...args) {
+		if (Object.is(dependency, DependencyResolver)) {
 			throw new Error("DependencyResolver can't be registered as dependency");
 		}
-		if (!(this.prototype instanceof DependencyResolver)) {
-			throw new Error(
-				"Dependency that is being registered has to be a subclass of DependencyResolver"
-			);
-		}
-		if (this.isRegisteredDependency(this, name)) {
+		if (this.isRegisteredDependency(dependency, name)) {
 			throw new Error("The dependency's already been registered");
 		}
 
-		name = !name ? this.name : name;
+		name = !name ? dependency.name : name;
 
-		const key = { name, type: this };
+		const key = { name, type: dependency };
 		let value;
 
 		if (singleton) {
-			value = new this();
+			value = new dependency(...args);
 		} else {
-			value = this;
+			value = dependency;
 		}
 
 		const dep = {
 			value: value,
 			isSingleton: singleton,
+			args,
 		};
 
 		DependencyResolver._registeredDependencies.set(key, dep);
@@ -82,9 +80,6 @@ class DependencyResolver {
 	requireDependency(type = null, name = null, injectionName = null) {
 		if (!(this instanceof DependencyResolver)) {
 			throw new Error("A Callee has to be a subclass of the DependencyResolver");
-		}
-		if (type && !(type.prototype instanceof DependencyResolver)) {
-			throw new Error("A required type has to be a subclass of the DependencyResolver");
 		}
 
 		const dep = DependencyResolver._getRegisteredDependency(type, name);
@@ -145,7 +140,7 @@ class DependencyResolver {
 				});
 			} else {
 				Object.defineProperty(this, name, {
-					value: new data.value(),
+					value: new data.value(...data.args),
 				});
 			}
 		}
@@ -153,16 +148,15 @@ class DependencyResolver {
 }
 
 module.exports = DependencyResolver;
-// class Service1 extends DependencyResolver {
+// class Service1 {
 // 	doSomething() {
 // 		console.log("Service1");
 // 	}
 // }
-// Service1.registerDependency(false, "service");
+// DependencyResolver.registerDependency(Service1, false, "service");
 
-// class Service2 extends DependencyResolver {
+// class Service2 {
 // 	constructor() {
-// 		super();
 // 		this.counter = 0;
 // 	}
 
@@ -171,19 +165,19 @@ module.exports = DependencyResolver;
 // 		this.counter++;
 // 	}
 // }
-// Service2.registerDependency(false, "service");
+// DependencyResolver.registerDependency(Service2, false, "service");
 
 // class Service3 extends Service2 {
 // 	doSomething() {
 // 		console.log("Service3");
 // 	}
 // }
-// Service3.registerDependency(false, "service2");
+// DependencyResolver.registerDependency(Service3, false, "service2");
 
 // class Client extends DependencyResolver {
 // 	constructor() {
 // 		super();
-// 		this.requireDependency(Service2, "service2", "service");
+// 		this.requireDependency(Service2, null, "service");
 // 		this.resolveDependencies();
 // 	}
 
