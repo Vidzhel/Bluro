@@ -2,6 +2,7 @@ class ConfigsManager {
 	constructor(rootDir) {
 		this._configFilePath = rootDir + "\\config.json";
 		this.loadConfigFile();
+		this.setEntryIfNotExist("root", rootDir);
 	}
 
 	loadConfigFile() {
@@ -12,8 +13,22 @@ class ConfigsManager {
 		}
 	}
 
+	/**
+	 * @param {string} key
+	 * @returns {*|null}
+	 */
 	getEntry(key) {
 		return this._data[key] || null;
+	}
+
+	setEntry(key, value) {
+		this._data[key] = value;
+	}
+
+	setEntryIfNotExist(key, value) {
+		if (this._data[key] !== void 0 && this._data[key] !== null) {
+			this._data[key] = value;
+		}
 	}
 }
 

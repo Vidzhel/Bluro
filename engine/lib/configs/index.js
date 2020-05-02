@@ -1,5 +1,15 @@
 const manager = require("./ConfigsManager");
 
 module.exports = function initConfigManager(options) {
-	options.dependencyResolver.registerDependency(manager, true, "ConfigManager", options.root);
+	options.dependencyResolver.registerDependency(
+		{
+			dependency: manager,
+			singleton: true,
+			setAsGlobal: true,
+			name: "ConfigsManager",
+		},
+		options.root
+	);
+
+	return manager;
 };
