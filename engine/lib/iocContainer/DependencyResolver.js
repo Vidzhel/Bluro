@@ -10,26 +10,38 @@ class DependencyResolver {
 	/**
 	 * Registers callee (this) type as a dependency
 	 *
-	 * @param {Function} dependency - constructor of the dependency
-	 * @param {string} name - name of a dependency (define another way to get dependency)
-	 * @param {boolean} singleton - if true, all dependent objects will get only one instance of a dependency
+	 *
+	 * @param {{dependency: any, name: string}} configs
+	 * @param {Function} configs.dependency - constructor of the dependency
+	 * @param {string} configs.name - name of a dependency (define another way to get dependency)
+	 * @param {string} configs.setAsGlobal - if true than the dependency will be set as a global variable as vel as registered as dependency
+	 * @param {boolean} configs.singleton - if true, all dependent objects will get only one instance of a dependency
 	 * @param {...any} args - arguments that will be passed to the dependency constructor
 	 */
-	static registerDependency(dependency, singleton = false, name = null, ...args) {
+	static registerDependency(configs, ...args) {
+		let {dependency, singleton = false, setAsGlobal = false, name = null} = configs;
+
 		if (Object.is(dependency, DependencyResolver)) {
 			throw new Error("DependencyResolver can't be registered as dependency");
 		}
 		if (this.isRegisteredDependency(dependency, name)) {
 			throw new Error("The dependency's already been registered");
 		}
+		if (singleton !== setAsGlobal) {
+			throw new Error("Global variable have to be singleton");
+		}
 
 		name = !name ? dependency.name : name;
 
-		const key = { name, type: dependency };
+		const key = {name, type: dependency};
 		let value;
 
 		if (singleton) {
 			value = new dependency(...args);
+
+			if (setAsGlobal) {
+				this.registerGlobalDependency(value, name);
+			}
 		} else {
 			value = dependency;
 		}
@@ -43,8 +55,20 @@ class DependencyResolver {
 		DependencyResolver._registeredDependencies.set(key, dep);
 	}
 
+	/**
+	 * Set's a dependency as a global variable
+	 * You really shouldn't do it without strong need
+	 * The variable will be in memory throughout the whole app life
+	 *
+	 * @param {*} dependency - the dependency to be set as a variable variable
+	 * @param {string} name - name of the global variable
+	 */
+	static registerGlobalDependency(dependency, name) {
+		global[name] = dependency;
+	}
+
 	static isRegisteredDependency(type = null, name = null) {
-		for (const [key, value] of DependencyResolver._registeredDependencies) {
+		for (const [key, _] of DependencyResolver._registeredDependencies) {
 			if (
 				key.name === name &&
 				typeof type === "function" &&
@@ -88,10 +112,10 @@ class DependencyResolver {
 		}
 
 		let depName, depData;
-		[{ name: depName }, depData] = dep;
+		[{name: depName}, depData] = dep;
 		injectionName = injectionName || depName;
 
-		this.dependencies.push({ type, name: injectionName, data: depData });
+		this.dependencies.push({type, name: injectionName, data: depData});
 	}
 
 	static _getRegisteredDependency(type = null, name = null) {
@@ -133,7 +157,7 @@ class DependencyResolver {
 		const deps = this.dependencies;
 		this.dependencies = [];
 
-		for (const { name, data } of deps) {
+		for (const {name, data} of deps) {
 			if (data.isSingleton) {
 				Object.defineProperty(this, name, {
 					value: data.value,
