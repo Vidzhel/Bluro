@@ -1,5 +1,6 @@
 # Mine
 .vscode
+.idea
 
 # Logs
 logs
@@ -116,3 +117,23 @@ dist
 .yarn/unplugged
 .yarn/build-state.yml
 .pnp.*
+.idea/.gitignore
+.idea/cms.iml
+.idea/codeStyles/
+.idea/inspectionProfiles/
+.idea/jsLibraryMappings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/saveactions_settings.xml
+.idea/vcs.xml
+apps/
+components/
+engine/lib/controller/
+engine/lib/database/dialects/base/connectionManager.js
+engine/lib/database/dialects/mysql/connectionManager.js
+engine/lib/database/model/column.js
+engine/lib/database/model/transaction.js
+engine/lib/models/
+engine/lib/serviceAstraction/
+modules/
+engine/services/
