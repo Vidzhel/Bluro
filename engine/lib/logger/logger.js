@@ -2,22 +2,34 @@ const colors = require("colors");
 const fs = require("fs");
 const PATH_REGEXP = /^[a-z]:((\\|\/)[a-z0-9]+)+\.[a-z0-9]+$/i;
 
-const loggingLevels = { debug: "debug", info: "info", warn: "warn", error: "error", crit: "crit" };
-const loggingIds = {
-	[loggingLevels.debug]: 0,
-	[loggingLevels.info]: 1,
-	[loggingLevels.warn]: 2,
-	[loggingLevels.error]: 3,
-	[loggingLevels.crit]: 4,
+const _loggingLevels = {
+	debugInfo: "DEBUG_INFO",
+	debugError: "DEBUG_ERROR",
+	debugSuccess: "DEBUG_SUCCESS",
+	info: "INFO",
+	success: "SUCCESS",
+	warn: "WARN",
+	error: "ERROR",
+	critical: "CRITICAL",
 };
-const COLORS = {
-	[loggingLevels.debug]: colors.green,
-	[loggingLevels.info]: colors.cyan,
-	[loggingLevels.warn]: colors.yellow,
-	[loggingLevels.error]: colors.red,
-	[loggingLevels.crit]: colors.red,
+
+const _loggingIds = {};
+for (const [idx, level] of Object.entries(Object.keys(_loggingLevels))) {
+	_loggingIds[idx] = level;
+}
+
+const _colors = {
+	[_loggingLevels.debugInfo]: colors.cyan,
+	[_loggingLevels.debugError]: colors.red,
+	[_loggingLevels.debugSuccess]: colors.green,
+	[_loggingLevels.success]: colors.green,
+	[_loggingLevels.info]: colors.cyan,
+	[_loggingLevels.warn]: colors.yellow,
+	[_loggingLevels.error]: colors.red,
+	[_loggingLevels.critical]: colors.red,
 };
-const defaultFormatters = {
+
+const _defaultFormatters = {
 	time: (info) => `[${info.date.getHours()}:${info.date.getMinutes()}:${info.date.getSeconds()}]`,
 	date: (info) => `[${info.date.getFullYear()}:${info.date.getMonth()}:${info.date.getDate()}]`,
 	dateTime: (info) =>
@@ -25,21 +37,57 @@ const defaultFormatters = {
 	message: (info) => `[${info.message}]`,
 	level: (info) => `[${info.level}]`,
 	location: (info) => `[${info.location}]`,
-	newLine: (info) => `\n`,
+	prefix: (info) => `[${info.prefix ? info.prefix : "NO PREFIX"}]`,
+	newLine: () => `\n`,
 };
 
+const DEFAULT_CONFIGS = [
+	{
+		level: "CRITICAL",
+		formatters: [
+			_defaultFormatters.level,
+			_defaultFormatters.dateTime,
+			_defaultFormatters.message,
+		],
+		targets: {
+			console: true,
+			files: {path: ConfigsManager.getEntry("root") + "/logs/db.log", verbose: "db"},
+		},
+	},
+	{
+		level: "CRITICAL",
+		formatters: [
+			_defaultFormatters.level,
+			_defaultFormatters.dateTime,
+			_defaultFormatters.prefix,
+			_defaultFormatters.message,
+			_defaultFormatters.newLine,
+			_defaultFormatters.newLine,
+			_defaultFormatters.location,
+		],
+		targets: {
+			console: true,
+			files: {path: ConfigManager.getEntry("root") + "/logs/errors.log", verbose: "errors"},
+		},
+	},
+];
+
 class Logger {
-	static levels = loggingLevels;
-	levels = loggingLevels;
+	static levels = _loggingLevels;
+	levels = _loggingLevels;
 
-	static formatters = defaultFormatters;
-	formatters = defaultFormatters;
+	static formatters = _defaultFormatters;
+	formatters = _defaultFormatters;
 
-	constructor() {
+	constructor(useDefaultConfigs = true) {
 		this._configs = [];
+
+		if (useDefaultConfigs) {
+			this.addConfigs(DEFAULT_CONFIGS);
+		}
 	}
 
-	addConfig(configs) {
+	addConfigs(configs) {
 		if (typeof config[Symbol.iterator] === "function" && typeof configs !== "string") {
 			for (const config of configs) {
 				this._configs.push(_processConfig(config));
@@ -49,22 +97,22 @@ class Logger {
 		} else {
 			throw new Error(
 				"Wrong config format specified, expected object or array of objects, got " +
-					typeof configs
+				typeof configs
 			);
 		}
 	}
 
 	_processConfig(config) {
 		const processedConfig = {};
-		if (!Object.values(loggingLevels).includes(config.level)) {
+		if (!Object.values(_loggingLevels).includes(config.level)) {
 			throw new Error(
 				"Wrong logging level specified, expected one of " +
-					Object.keys(loggingLevels) +
-					", got " +
-					config.level
+				Object.keys(_loggingLevels) +
+				", got " +
+				config.level
 			);
 		}
-		processedConfig.levelId = loggingIds[config.level];
+		processedConfig.levelId = _loggingIds[config.level];
 		_extractFormatters(processedConfig, config);
 		_extractDestination(processedConfig, config);
 	}
@@ -96,24 +144,38 @@ class Logger {
 			processedConfig.console = true;
 		}
 
-		const paths = targets.files;
-		if (paths && typeof paths !== "string" && typeof paths[Symbol.iterator] === "function") {
-			for (const path of paths) {
-				if (!PATH_REGEXP.test(path)) {
-					throw new Error("Invalid path, " + path);
+		const files = targets.files;
+		if (
+			files &&
+			typeof files !== "object" &&
+			typeof files !== "string" &&
+			typeof files[Symbol.iterator] === "function"
+		) {
+			for (const file of files) {
+				if (!PATH_REGEXP.test(file.path)) {
+					throw new Error("Invalid path, " + file.path);
+				}
+				if (typeof file.verbose !== "string") {
+					throw new Error(
+						"Expected file verbose to be a string, got " + typeof file.verbose
+					);
 				}
 			}
-			processedConfig.files = paths;
-		} else if (paths && typeof paths === "string") {
-			if (!PATH_REGEXP.test(paths)) {
-				throw new Error("Invalid path, " + path);
+			processedConfig.files = files;
+		} else if (files && typeof files === "object") {
+			if (!PATH_REGEXP.test(files.path)) {
+				throw new Error("Invalid path, " + path.path);
 			}
-			processedConfig.files = [paths];
+			if (typeof files.verbose !== "string") {
+				throw new Error("Expected file verbose to be a string, got " + typeof file.verbose);
+			}
+
+			processedConfig.files = [files];
 		}
 	}
 
-	log(message, level) {
-		const levelId = loggingIds[level];
+	log(message, level, fileToLog = null, prefix = null) {
+		const levelId = _loggingIds[level];
 		const info = {
 			message,
 			level,
@@ -128,11 +190,15 @@ class Logger {
 			const msg = config.format(info);
 
 			if (config.console) {
-				console.log(COLORS[level](msg));
+				console.log(_colors[level](msg));
 			}
 			if (config.files) {
-				for (const filePath of config.files) {
-					_logFile(filePath, msg);
+				for (const file of config.files) {
+					if (fileToLog && file.verbose !== fileToLog) {
+						continue;
+					}
+
+					_logFile(file.path, msg);
 				}
 			}
 		}
@@ -187,12 +253,12 @@ class Logger {
 	}
 }
 
-for (const level of Object.values(loggingLevels)) {
+for (const level of Object.keys(_loggingLevels)) {
 	const name = "log" + level.charAt(0).toUpperCase() + level.substring(1);
 
 	Object.defineProperty(Logger.prototype, name, {
-		value: function (message) {
-			Logger.prototype.log(message, level);
+		value: function (message, fileToLog = null, prefix = null) {
+			Logger.prototype.log(message, level, fileToLog, prefix);
 		},
 	});
 }
