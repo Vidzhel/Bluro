@@ -21,4 +21,8 @@ module.exports = function initDialect(options, dialect = "mySql") {
 		dependency: require(base + "/statementBuilder"),
 		name: "_sqlStatementBuilder",
 	});
+	options.dependencyResolver.registerDependency({
+		dependency: require(base + "/statement"),
+		name: "_sqlStatement",
+	});
 };

@@ -6,6 +6,7 @@ const _loggingLevels = {
 	debugInfo: "DEBUG_INFO",
 	debugError: "DEBUG_ERROR",
 	debugSuccess: "DEBUG_SUCCESS",
+	debug: "DEBUG",
 	info: "INFO",
 	success: "SUCCESS",
 	warn: "WARN",
@@ -39,6 +40,7 @@ const _defaultFormatters = {
 	location: (info) => `[${info.location}]`,
 	prefix: (info) => `[${info.prefix ? info.prefix : "NO PREFIX"}]`,
 	newLine: () => `\n`,
+	objToString: (info) => info.obj ? JSON.stringify(info.obj) : "",
 };
 
 const DEFAULT_CONFIGS = [
@@ -69,6 +71,22 @@ const DEFAULT_CONFIGS = [
 			console: true,
 			files: {path: ConfigManager.getEntry("root") + "/logs/errors.log", verbose: "errors"},
 		},
+	}, {
+		level: "DEBUG",
+		formatters: [
+			_defaultFormatters.level,
+			_defaultFormatters.dateTime,
+			_defaultFormatters.prefix,
+			_defaultFormatters.message,
+			_defaultFormatters.newLine,
+			_defaultFormatters.objToString,
+			_defaultFormatters.newLine,
+			_defaultFormatters.newLine,
+			_defaultFormatters.location,
+		],
+		targets: {
+			console: true,
+		},
 	},
 ];
 
@@ -88,12 +106,12 @@ class Logger {
 	}
 
 	addConfigs(configs) {
-		if (typeof config[Symbol.iterator] === "function" && typeof configs !== "string") {
+		if (typeof configs[Symbol.iterator] === "function" && typeof configs !== "string") {
 			for (const config of configs) {
-				this._configs.push(_processConfig(config));
+				this._configs.push(this._processConfig(config));
 			}
 		} else if (typeof configs === "object") {
-			this._configs.push(_processConfig(configs));
+			this._configs.push(this._processConfig(configs));
 		} else {
 			throw new Error(
 				"Wrong config format specified, expected object or array of objects, got " +
@@ -113,8 +131,8 @@ class Logger {
 			);
 		}
 		processedConfig.levelId = _loggingIds[config.level];
-		_extractFormatters(processedConfig, config);
-		_extractDestination(processedConfig, config);
+		this._extractFormatters(processedConfig, config);
+		this._extractDestination(processedConfig, config);
 	}
 
 	_extractFormatters(processedConfig, config) {
@@ -174,7 +192,15 @@ class Logger {
 		}
 	}
 
-	log(message, level, fileToLog = null, prefix = null) {
+	/**
+	 *
+	 * @param message
+	 * @param level
+	 * @param fileToLog
+	 * @param {object} options
+	 * @property {string} options.prefix
+	 */
+	log(message, level, fileToLog = null, options = {}) {
 		const levelId = _loggingIds[level];
 		const info = {
 			message,
@@ -182,7 +208,7 @@ class Logger {
 			levelId,
 			date: new Date(),
 			location: this._getLocation(),
-			prefix,
+			...options,
 		};
 
 		const configs = this._findConfigs(levelId);
@@ -198,7 +224,7 @@ class Logger {
 						continue;
 					}
 
-					_logFile(file.path, msg);
+					this._logFile(file.path, msg);
 				}
 			}
 		}
@@ -257,8 +283,8 @@ for (const level of Object.keys(_loggingLevels)) {
 	const name = "log" + level.charAt(0).toUpperCase() + level.substring(1);
 
 	Object.defineProperty(Logger.prototype, name, {
-		value: function (message, fileToLog = null, prefix = null) {
-			Logger.prototype.log(message, level, fileToLog, prefix);
+		value: function (message, options = {}) {
+			Logger.prototype.log(message, level, options.file, options);
 		},
 	});
 }

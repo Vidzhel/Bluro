@@ -8,8 +8,6 @@ const {DEFINITIONS: Op} = require("../base/operatorsDefinition");
 const ORDER = ["DESC", "ASC"];
 
 class StatementBuilder extends baseStatementBuilder {
-	TYPES = dataTypesDefinition;
-
 	constructor() {
 		super();
 	}
@@ -35,12 +33,17 @@ class StatementBuilder extends baseStatementBuilder {
 	/**
 	 * @param {string} tableName
 	 * @param {object} columnsDefinition
-	 * @property {string} columnDefinition.columnName
-	 * @property {string} columnDefinition.type
-	 * @property {object} columnDefinition.columnDefinition
-	 * @property {any} columnDefinition.columnDefinition.default - default value
-	 * @property {boolean} columns.columnDefinition.nullable - are null value permitted
-	 * @property {boolean} columns.columnDefinition.unique - is unique constraint have to be
+	 * @param {string} columnsDefinition.columnName
+	 * @param {string} columnsDefinition.type
+	 * @param {object} columnsDefinition.columnDefinition
+	 * @param {object} columnsDefinition.autoincrement
+	 * @param {object} columnsDefinition.primaryKey
+	 * @param {object} columnsDefinition.foreignKey
+	 * @param {string} columnsDefinition.foreignKey.table
+	 * @param {string} columnsDefinition.foreignKey.columnName
+	 * @param {any} columnsDefinition.columnDefinition.default - default value
+	 * @param {boolean} columnsDefinition.columnDefinition.nullable - are null value permitted
+	 * @param {boolean} columnsDefinition.columnDefinition.unique - is unique constraint have to be
 	 *     specified
 	 * @returns {StatementBuilder}
 	 */
@@ -49,22 +52,27 @@ class StatementBuilder extends baseStatementBuilder {
 			throw new TypeError("String was expected, got " + typeof tableName);
 		}
 
-		const columnsDeclaration = this._groupValues(columnsDefinition.map((column) => this._declareColumn(column) + "\n"))
-		this.addClause(`CREATE TABLE IF NOT EXISTS ${tableName} (${columnsDeclaration})`);
+		const columnsDeclaration = this._declareColumns(columnsDefinition);
+		const constraintDeclaration = this._declareConstraints(columnsDefinition);
+		this.addClause(`CREATE TABLE IF NOT EXISTS ${tableName} (${columnsDeclaration}\n\n${constraintDeclaration})`);
 		return this;
 	}
 
+	_declareColumns(columnsDefinition) {
+		return this._groupValues(columnsDefinition.map((column) => this._declareColumn(column) + "\n"));
+	}
+
 	_declareColumn(columnDefinition) {
-		if (typeof columnName !== "string") {
-			throw new TypeError("Column name string was expected, got " + typeof tableName);
+		if (typeof columnDefinition.columnName !== "string") {
+			throw new TypeError("Column name string was expected, got " + typeof columnDefinition.tableName);
 		}
 		if (typeof columnDefinition !== "object") {
 			throw new TypeError("Options object was expected, got " + typeof columnDefinition);
 		}
-		let clause = `${this._escapeIdentifiers(columnName)} `;
+		let clause = `${this._escapeIdentifiers(columnDefinition.columnName)} `;
 
 		if (!columnDefinition.type) {
-			throw new Error("The column type have to be specified")
+			throw new Error("The column type have to be specified");
 		}
 		const dataType = dataTypesDefinition[columnDefinition.type];
 		if (!dataType) {
@@ -73,21 +81,41 @@ class StatementBuilder extends baseStatementBuilder {
 
 		clause += dataType;
 
+
 		if (columnDefinition.nullable) {
 			clause += " NULL";
 		} else {
 			clause += " NOT NULL";
 		}
 
+		if (columnDefinition.autoincrement) {
+			clause += " AUTO_INCREMENT";
+		}
+
 		if (columnDefinition.default) {
 			clause += ` DEFAULT ${columnDefinition.default}`;
 		}
 
-		if (columnDefinition.unique) {
+		if (columnDefinition.primaryKey) {
+			clause += " PRIMARY KEY";
+		} else if (columnDefinition.unique) {
 			clause += " UNIQUE";
 		}
 
+		if (columnDefinition.primaryKey && columnDefinition.foreignKey) {
+			throw new Error("Column cannot have the primary key and the foreign key constraint" +
+				" in the same time");
+		}
+
 		return clause;
+	}
+
+	_declareConstraints(columnsDefinition) {
+		return this._groupValues(columnsDefinition.map((column) => this._declareForeignKey(column) + "\n"));
+	}
+
+	_declareForeignKey([columnName, {table, columnName: foreignColumn}]) {
+		return `FOREIGN KEY ${columnName} REFERENCES ${table}(${foreignColumn})`;
 	}
 
 	dropTable(tableName) {
@@ -148,7 +176,8 @@ class StatementBuilder extends baseStatementBuilder {
 		for (const value of values) {
 			clause += " (";
 			for (const column of columnsOrder) {
-				clause += `${this._escapeIdentifiers(column)} = ${this._escapeValue(value[column])}`;
+				clause +=
+					`${this._escapeIdentifiers(column)} = ${this._escapeValue(value[column])}`;
 			}
 			clause += ")";
 		}
@@ -236,13 +265,13 @@ class StatementBuilder extends baseStatementBuilder {
 		if (cond.secondValue && typeof cond.innerCondition === "object") {
 			throw new Error("Condition value and inner condition can not be specified at once");
 		}
+		const operator = Op[cond.operator];
 
 		if (
 			cond.firstValue &&
-			(cond.secondValue || cond.innerCondition) &&
-			Object.keys(Op).includes(cond.operator)
+			(cond.secondValue || cond.innerCondition) && operator
 		) {
-			return ` ${this._escapeIdentifiers(cond.firstValue)} ${cond.operator} ${
+			return ` ${this._escapeIdentifiers(cond.firstValue)} ${operator} ${
 				cond.secondValue || "(" + this._whereCondition(cond.innerCondition) + ")"
 			}`;
 		} else {

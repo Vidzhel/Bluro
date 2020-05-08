@@ -37,6 +37,7 @@ class Statement extends DependencyResolver {
 		this.requireDependency(null, "_ConnectionManager", "connectionManager");
 
 		this.TYPES = this.builder.TYPES;
+		this.OP = this.builder.OP;
 		this.cachedStatement = null;
 		this.cachedAction = null;
 	}
@@ -67,10 +68,10 @@ class Statement extends DependencyResolver {
 			}, error no: ${error.errno || "none"}, is fatal${
 				error.fatal === undefined ? "none" : error.fatal
 			} in \n\n"${error.sql || "none"}"`;
-			Logger.logError(msg, "db");
+			Logger.logError(msg, {file: "db"});
 		} else {
 			const msg = `"${this.statement}" was successfully executed`;
-			Logger.debugSuccess(msg, "db");
+			Logger.debugSuccess(msg, {file: "db", obj: {result, fields}});
 		}
 	}
 
@@ -82,7 +83,7 @@ class Statement extends DependencyResolver {
 		let statement;
 
 		if (this.cachedStatement && action === this.cachedAction) {
-			statement = this.cachedStatement
+			statement = this.cachedStatement;
 		} else {
 			switch (action) {
 				case this.BUILD_ACTIONS.SELECT: {
@@ -231,7 +232,7 @@ class Statement extends DependencyResolver {
 
 	_clear() {
 		this._tables = [];
-		this._columnsDefinition = []
+		this._columnsDefinition = [];
 		this._selectClause = [];
 		this._valuesClause = [];
 		this._whereClause = [];
@@ -249,10 +250,10 @@ class Statement extends DependencyResolver {
 
 	/**
 	 * Overrides the previous database name
-	 * @param name
+	 * @param {string} name
 	 * @returns {Statement}
 	 */
-	createDatabase(name) {
+	database(name) {
 		this._database = name;
 		this._invalidateCache();
 
@@ -260,18 +261,11 @@ class Statement extends DependencyResolver {
 	}
 
 	/**
-	 * Overrides the previous database name
-	 * @param name
+	 *
+	 * @param {string} tableName
 	 * @returns {Statement}
 	 */
-	dropDatabase(name) {
-		this._database = name;
-		this._invalidateCache();
-
-		return this;
-	}
-
-	createTable(tableName) {
+	table(tableName) {
 		this._tables.push(tableName);
 		this._invalidateCache();
 
@@ -284,6 +278,11 @@ class Statement extends DependencyResolver {
 	 * @property {string} columnDefinition.columnName
 	 * @property {string} columnDefinition.type
 	 * @property {object} columnDefinition.columnDefinition
+	 * @property {object} columnDefinition.autoincrement
+	 * @property {object} columnDefinition.primaryKey
+	 * @property {object} columns.foreignKey
+	 * @property {string} columns.foreignKey.table
+	 * @property {string} columns.foreignKey.columnName
 	 * @property {any} columnDefinition.columnDefinition.default - default value
 	 * @property {boolean} columns.columnDefinition.nullable - are null value permitted
 	 * @property {boolean} columns.columnDefinition.unique - is unique constraint have to be
@@ -301,23 +300,25 @@ class Statement extends DependencyResolver {
 		return this;
 	}
 
-	dropTable(tableName) {
-		this._tables.push(tableName);
+	/**
+	 * @param {string|string[]|null} columnsNames
+	 */
+	select(columnsNames = null) {
+		if (!columnsNames) {
+			columnsNames = "*";
+		}
+
+		this._selectClause.concat(columnsNames);
 		this._invalidateCache();
 
 		return this;
 	}
 
 	/**
-	 * @param {string|string[]} columnsNames
+	 *
+	 * @param {object} values - column-value mapping
+	 * @returns {Statement}
 	 */
-	select(columnsNames) {
-		this._selectClause.concat(columnsNames)
-		this._invalidateCache();
-
-		return this;
-	}
-
 	values(values) {
 		this._valuesClause.concat(values);
 		this._invalidateCache();
@@ -327,7 +328,7 @@ class Statement extends DependencyResolver {
 
 	/**
 	 * Overrides the previous set clause values
-	 * @param values
+	 * @param values - column-value mapping
 	 * @returns {Statement}
 	 */
 	set(values) {
