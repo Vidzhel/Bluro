@@ -120,6 +120,7 @@ class Logger {
 			levelId,
 			date: new Date(),
 			location: this._getLocation(),
+			prefix,
 		};
 
 		const configs = this._findConfigs(levelId);

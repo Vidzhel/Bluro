@@ -7,4 +7,9 @@ module.exports = function intLib(options) {
 
 	configsInit(options);
 	loggerInit(options);
+
+	process.on("uncaughtException", (err) => {
+		const msg = `Fatal error ocurred ${err}`;
+		Logger.logCritical(msg, "errors");
+	});
 };
