@@ -1,15 +1,17 @@
 const dependencyResolver = require("./iocContainer/DependencyResolver");
-const configsInit = require("./configs");
-const loggerInit = require("./logger");
+const initConfig = require("./configs");
 
-module.exports = function intLib(options) {
+module.exports.initLib = function (options = {}) {
 	options.dependencyResolver = dependencyResolver;
 
-	configsInit(options);
-	loggerInit(options);
+	initConfig(options);
 
-	process.on("uncaughtException", (err) => {
-		const msg = `Fatal error ocurred ${err}`;
-		Logger.logCritical(msg, "errors");
-	});
+	const loggerInit = require("./logger");
+	const initDialect = require("./database");
+
+	loggerInit(options);
+	initDialect(options);
+
+	const initModules = require("./modulesManager");
+	initModules(options);
 };

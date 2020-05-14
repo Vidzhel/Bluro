@@ -1,50 +1,24 @@
-const initLib = require("./lib");
-const routeDispatcher = require("./lib/router/router");
+const { initLib } = require("./lib");
+const App = require("./server");
 
 (function initEngine() {
-	const options = {
-		root: module.parent.path,
-	};
+	const options = {};
 	initLib(options);
+	Logger.logSuccess("Bluro was initialized");
+	startApp(options);
 })();
 
-class Server {
-	constructor() {
-		this.dispatcher = new routeDispatcher();
-	}
-
-	listen(port = null) {
-		const http = require("http");
-		let hostname = "127.0.0.1";
-		port = 8080;
-
-		const server = http.createServer((req, res) => {
-			this.dispatcher.dispatch(req, res);
-			res.statusCode = 200;
-			res.setHeader("Content-Type", "text/plain");
-			res.end("Hello World");
-		});
-
-		server.listen(port, hostname, () => {
-			console.log(`Server running at http://${hostname}:${port}/`);
-		});
-	}
-
-	// TODO delete and replace with auto loading from file
-	addRule(methods, mountingPath, handlers) {
-		this.dispatcher.defineRule(methods, mountingPath, handlers);
-	}
-
-	addRoute(methods, mountingPath, handler) {
-		this.dispatcher.defineRoute(methods, mountingPath, handler);
-	}
+function startApp(options) {
+	const configs = ConfigsManager.getEntry("app");
+	const app = new App(configs);
+	connectModules(options.modulesManager, app);
+	app.start();
 }
 
-module.exports = Server;
-
-// App.use(methods, mp, processor|controller)
-//		.use(...)
-// App.get(handler)
-// 	   .post(handler)
-
-module.exports = Server;
+function connectModules(modulesManager, app) {
+	for (const module of modulesManager.modules) {
+		module.routes.map(app.addRoute.bind(app));
+		module.rules.map(app.addRule.bind(app));
+	}
+	Logger.logInfo("Modules were connected");
+}
