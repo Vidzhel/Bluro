@@ -1,17 +1,20 @@
 const logger = require("./logger");
 
 module.exports = function initLogger(options) {
-	/**
-	 * @type {logger}
-	 * @global
-	 */
-	global.Logger = null;
-
 	options.dependencyResolver.registerDependency({
 		dependency: logger,
 		setAsGlobal: true,
 		singleton: true,
 		name: "Logger",
 	});
-	return logger;
+
+	function logGlobalErr(err) {
+		const msg = `Fatal error occurred ${err}`;
+		Logger.logCritical(msg, { error: err, config: "errors", prefix: "Unhandled error" });
+	}
+
+	process.on("uncaughtException", logGlobalErr);
+	process.on("unhandledRejection", logGlobalErr);
+
+	Logger.logInfo("Initialized logger");
 };
