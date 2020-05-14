@@ -8,32 +8,33 @@ class DependencyResolver {
 	dependencies = [];
 
 	/**
-	 * Registers callee (this) type as a dependency
-	 *
-	 *
-	 * @param {{dependency: any, name: string}} configs
+	 * If the registered dependency is a singleton an instance of it will be returned
+	 * @param {object} configs - config object
 	 * @param {Function} configs.dependency - constructor of the dependency
-	 * @param {string} configs.name - name of a dependency (define another way to get dependency)
-	 * @param {string} configs.setAsGlobal - if true than the dependency will be set as a global variable as vel as registered as dependency
-	 * @param {boolean} configs.singleton - if true, all dependent objects will get only one instance of a dependency
+	 * @param {string?} configs.name - name of a dependency (define another way to get dependency)
+	 * @param {string?} configs.setAsGlobal - if true than the dependency will be set as a global
+	 *     variable as vel as registered as dependency
+	 * @param {boolean?} configs.singleton - if true, all dependent objects will get only one
+	 *     instance of a dependency
 	 * @param {...any} args - arguments that will be passed to the dependency constructor
+	 * @returns {object}
 	 */
 	static registerDependency(configs, ...args) {
-		let {dependency, singleton = false, setAsGlobal = false, name = null} = configs;
+		let { dependency, singleton = false, setAsGlobal = false, name = null } = configs;
 
 		if (Object.is(dependency, DependencyResolver)) {
 			throw new Error("DependencyResolver can't be registered as dependency");
 		}
-		if (this.isRegisteredDependency(dependency, name)) {
+		if (DependencyResolver.isRegisteredDependency(dependency, name)) {
 			throw new Error("The dependency's already been registered");
 		}
-		if (singleton !== setAsGlobal) {
+		if (setAsGlobal && singleton !== setAsGlobal) {
 			throw new Error("Global variable have to be singleton");
 		}
 
 		name = !name ? dependency.name : name;
 
-		const key = {name, type: dependency};
+		const key = { name, type: dependency };
 		let value;
 
 		if (singleton) {
@@ -53,6 +54,41 @@ class DependencyResolver {
 		};
 
 		DependencyResolver._registeredDependencies.set(key, dep);
+		if (singleton) {
+			return value;
+		}
+	}
+
+	/**
+	 * if the registered dependency is a singleton an instance of it will be returned
+	 * @param {object} configs - config object
+	 * @param {Function} configs.dependency - type to register
+	 * @param {string?} configs.name - name of a dependency (define another way to get dependency)
+	 * @param {string?} configs.setAsGlobal - if true than the dependency will be set as a global
+	 *     variable as vel as registered as dependency
+	 */
+	static registerType(configs) {
+		let { dependency, setAsGlobal = false, name = null } = configs;
+
+		if (Object.is(dependency, DependencyResolver)) {
+			throw new Error("DependencyResolver can't be registered as dependency");
+		}
+		if (DependencyResolver.isRegisteredDependency(dependency, name)) {
+			throw new Error("The dependency's already been registered");
+		}
+
+		name = !name ? dependency.name : name;
+
+		const key = { name, type: null };
+
+		if (setAsGlobal) {
+			DependencyResolver.registerGlobalDependency(dependency, name);
+		}
+		const dep = {
+			value: dependency,
+			singleton: true,
+		};
+		DependencyResolver._registeredDependencies.set(key, dep);
 	}
 
 	/**
@@ -68,25 +104,7 @@ class DependencyResolver {
 	}
 
 	static isRegisteredDependency(type = null, name = null) {
-		for (const [key, _] of DependencyResolver._registeredDependencies) {
-			if (
-				key.name === name &&
-				typeof type === "function" &&
-				DependencyResolver._isSubclassOrTheClass(key.type, type)
-			) {
-				return true;
-			} else if (
-				key.name === name ||
-				(typeof type === "function" &&
-					DependencyResolver._isSubclassOrTheClass(key.type, type))
-			) {
-				if (type === null || name === null) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return !!DependencyResolver._getRegisteredDependency(type, name);
 	}
 
 	isRegisteredDependency(type, name = null) {
@@ -95,6 +113,7 @@ class DependencyResolver {
 
 	/**
 	 * Searches a registered dependency with the given name or type or both
+	 * Type dependency you cant require only by name
 	 *
 	 * @returns the first dependency that matches all requirements
 	 * @param {function} type - a base type or the type of the dependency to get
@@ -112,10 +131,30 @@ class DependencyResolver {
 		}
 
 		let depName, depData;
-		[{name: depName}, depData] = dep;
+		[{ name: depName }, depData] = dep;
 		injectionName = injectionName || depName;
 
-		this.dependencies.push({type, name: injectionName, data: depData});
+		this.dependencies.push({ type, name: injectionName, data: depData });
+	}
+
+	/**
+	 * Searches a registered dependency with the given name or type or both
+	 * Type dependency you cant require only by name
+	 *
+	 * @returns the first dependency that matches all requirements
+	 * @param {function} type - a base type or the type of the dependency to get
+	 * @param {string} name - a name of the dependency
+	 */
+	static getDependency(type = null, name = null) {
+		const dep = DependencyResolver._getRegisteredDependency(type, name);
+		if (!dep) {
+			throw new Error("A required dependency doesn't exist");
+		}
+
+		let depName, depData;
+		[{ name: depName }, depData] = dep;
+
+		return depData.value;
 	}
 
 	static _getRegisteredDependency(type = null, name = null) {
@@ -147,7 +186,11 @@ class DependencyResolver {
 	 * @param {Function} superClass
 	 */
 	static _isSubclassOrTheClass(base, superClass) {
-		return base.prototype instanceof superClass || Object.is(base, superClass);
+		if (base !== null) {
+			return Object.is(base, superClass) || base.prototype instanceof superClass;
+		}
+
+		return base === superClass;
 	}
 
 	resolveDependencies() {
@@ -157,7 +200,7 @@ class DependencyResolver {
 		const deps = this.dependencies;
 		this.dependencies = [];
 
-		for (const {name, data} of deps) {
+		for (const { name, data } of deps) {
 			if (data.isSingleton) {
 				Object.defineProperty(this, name, {
 					value: data.value,
@@ -170,6 +213,7 @@ class DependencyResolver {
 		}
 	}
 }
+DependencyResolver.registerGlobalDependency(DependencyResolver, "DependencyResolver");
 
 module.exports = DependencyResolver;
 // class Service1 {
