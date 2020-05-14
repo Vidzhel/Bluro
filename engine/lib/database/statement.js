@@ -1,9 +1,8 @@
-const DependencyResolver = require("../../../iocContainer/DependencyResolver");
+const DependencyResolver = require("../iocContainer/DependencyResolver");
 
 class Statement extends DependencyResolver {
-
 	_tables = [];
-	_columnsDefinition = []
+	_columnsDefinition = [];
 	_selectClause = [];
 	_valuesClause = [];
 	_whereClause = [];
@@ -25,7 +24,7 @@ class Statement extends DependencyResolver {
 		DROP_TABLE: "DROP_TABLE",
 		CREATE_DATABASE: "CREATE_DATABASE",
 		DROP_DATABASE: "DROP_DATABASE",
-	}
+	};
 
 	constructor() {
 		super();
@@ -35,9 +34,8 @@ class Statement extends DependencyResolver {
 		this.connectionManager = null;
 		this.requireDependency(null, "_sqlStatementBuilder", "builder");
 		this.requireDependency(null, "_ConnectionManager", "connectionManager");
+		this.resolveDependencies();
 
-		this.TYPES = this.builder.TYPES;
-		this.OP = this.builder.OP;
 		this.cachedStatement = null;
 		this.cachedAction = null;
 	}
@@ -48,17 +46,7 @@ class Statement extends DependencyResolver {
 	 */
 	execute(action) {
 		const statement = this.build(action);
-
-		return new Promise((resolve, reject) => {
-			this.connectionManager.connection.query(statement, (error, result, fields) => {
-				this.logQuery(error, result, fields);
-				if (error) {
-					reject(error);
-				}
-
-				resolve({result, fields});
-			});
-		});
+		return this.connectionManager.query(statement);
 	}
 
 	logQuery(error, result, fields) {
@@ -68,10 +56,10 @@ class Statement extends DependencyResolver {
 			}, error no: ${error.errno || "none"}, is fatal${
 				error.fatal === undefined ? "none" : error.fatal
 			} in \n\n"${error.sql || "none"}"`;
-			Logger.logError(msg, {file: "db"});
+			Logger.logError(msg, { file: "db" });
 		} else {
 			const msg = `"${this.statement}" was successfully executed`;
-			Logger.debugSuccess(msg, {file: "db", obj: {result, fields}});
+			Logger.debugSuccess(msg, { file: "db", obj: { result, fields } });
 		}
 	}
 
@@ -154,12 +142,9 @@ class Statement extends DependencyResolver {
 
 		this.builder.update(...this._tables);
 		this.builder.set(this._setClause);
-		if (this._whereClause.length !== 0)
-			this.builder.where(this._whereClause);
-		if (this.orderBy)
-			this.builder.orderBy(this._orderByClause);
-		if (this._limitClause)
-			this.builder.limit(this._limitClause);
+		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
+		if (this.orderBy) this.builder.orderBy(this._orderByClause);
+		if (this._limitClause) this.builder.limit(this._limitClause);
 	}
 
 	_buildDelete() {
@@ -168,14 +153,10 @@ class Statement extends DependencyResolver {
 		}
 
 		this.builder.deleteFrom(...this._tables);
-		if (this._whereClause.length !== 0)
-			this.builder.where(this._whereClause);
-		if (this.orderBy)
-			this.builder.orderBy(this._orderByClause);
-		if (this._limitClause)
-			this.builder.limit(this._limitClause);
+		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
+		if (this.orderBy) this.builder.orderBy(this._orderByClause);
+		if (this._limitClause) this.builder.limit(this._limitClause);
 	}
-
 
 	_buildSelect() {
 		if (this._selectClause.length === 0) {
@@ -187,12 +168,9 @@ class Statement extends DependencyResolver {
 
 		this.builder.select(this._selectClause);
 		this.builder.from(this._tables);
-		if (this._whereClause.length === 0)
-			this.builder.where(this._whereClause);
-		if (this._limitClause)
-			this.builder.limit(this._limitClause);
-		if (this.orderBy)
-			this.builder.orderBy(this._orderByClause);
+		if (this._whereClause.length === 0) this.builder.where(this._whereClause);
+		if (this._limitClause) this.builder.limit(this._limitClause);
+		if (this.orderBy) this.builder.orderBy(this._orderByClause);
 	}
 
 	_buildCreateTable() {
@@ -290,10 +268,15 @@ class Statement extends DependencyResolver {
 	 * @returns {Statement}
 	 */
 	createColumn(columnsDefinition) {
-		if (typeof columnsDefinition === "object" || typeof columnsDefinition[Symbol.iterator] === "function") {
-			this._columnsDefinition.concat(columnsDefinition);
+		if (
+			typeof columnsDefinition === "object" ||
+			typeof columnsDefinition[Symbol.iterator] === "function"
+		) {
+			this._columnsDefinition = this._columnsDefinition.concat(columnsDefinition);
 		} else {
-			throw new TypeError("Expected object or array of objects, got " + typeof columnsDefinition);
+			throw new TypeError(
+				"Expected object or array of objects, got " + typeof columnsDefinition,
+			);
 		}
 		this._invalidateCache();
 
@@ -308,7 +291,7 @@ class Statement extends DependencyResolver {
 			columnsNames = "*";
 		}
 
-		this._selectClause.concat(columnsNames);
+		this._selectClause = this._selectClause.concat(columnsNames);
 		this._invalidateCache();
 
 		return this;
@@ -320,7 +303,7 @@ class Statement extends DependencyResolver {
 	 * @returns {Statement}
 	 */
 	values(values) {
-		this._valuesClause.concat(values);
+		this._valuesClause = this._valuesClause.concat(values);
 		this._invalidateCache();
 
 		return this;
@@ -367,7 +350,7 @@ class Statement extends DependencyResolver {
 	 * @returns {Statement}
 	 */
 	where(where) {
-		this._whereClause.concat(where);
+		this._whereClause = this._whereClause.concat(where);
 		this._invalidateCache();
 
 		return this;

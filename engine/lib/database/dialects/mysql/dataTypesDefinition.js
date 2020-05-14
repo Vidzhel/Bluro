@@ -1,26 +1,38 @@
-const dataTypesId = require("../base/dataTypes");
+const id = require("../base/dataTypesId");
 
 const DataTypesDefinition = {
-	[dataTypesId.tinyInt]: () => "TINYINT",
-	[dataTypesId.smallInt]: () => "SMALLINT",
-	[dataTypesId.mediumInt]: () => "MEDIUMINT",
-	[dataTypesId.int]: () => "INT",
-	[dataTypesId.bigInt]: () => "BIGINT",
+	[id.TINY_INT]: () => "TINYINT",
+	[id.SMALL_INT]: () => "SMALLINT",
+	[id.MEDIUM_INT]: () => "MEDIUMINT",
+	[id.INT]: () => "INT",
+	[id.BIG_INT]: () => "BIGINT",
 
-	[dataTypesId.bit]: (count = null) => (count ? `BIT(${count})` : "BIT"),
+	[id.BIT]: ({ size }) => (size ? `BIT(${size})` : "BIT"),
 
-	[dataTypesId.float]: () => "FLOAT",
-	[dataTypesId.double]: () => "DOUBLE",
-	[dataTypesId.decimal]: (precision, scale) => `DECIMAL(${precision}, ${scale})`,
+	[id.FLOAT]: () => "FLOAT",
+	[id.DOUBLE]: () => "DOUBLE",
+	[id.DECIMAL]: ({ precision, scale }) => {
+		if (!precision || !scale) {
+			throw new Error("Precision and scale have to be specified for DECIMAL data type");
+		}
+		return `DECIMAL(${precision}, ${scale})`;
+	},
 
-	[dataTypesId.varchar]: () => "VARCHAR",
+	[id.VARCHAR]: ({ size }) => {
+		if (!size) {
+			throw new Error("Size have to be specified for VARCHAR data type");
+		}
+		return `VARCHAR(${size})`;
+	},
 
-	[dataTypesId.varBinary]: () => "VARCHAR",
-	[dataTypesId.json]: () => "JSON",
+	[id.VARBINARY]: () => "VARCHAR",
+	[id.JSON]: () => "JSON",
 
-	[dataTypesId.time]: () => "TIME",
-	[dataTypesId.date]: () => "DATE",
-	[dataTypesId.dateTime]: () => "DATETIME",
+	[id.TIME]: () => "TIME",
+	[id.DATE]: () => "DATE",
+	[id.DATE_TIME]: () => "DATETIME",
 };
+
+let a = DataTypesDefinition[id.VARCHAR];
 
 module.exports = DataTypesDefinition;

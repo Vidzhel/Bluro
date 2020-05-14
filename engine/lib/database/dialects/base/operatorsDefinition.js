@@ -1,4 +1,4 @@
-const { OP, JOINS } = require("./OPerators");
+const OP = require("./OPerators");
 
 const definitions = {
 	[OP.eq]: "=",
@@ -12,7 +12,7 @@ const definitions = {
 	[OP.in]: "IN",
 	[OP.notIn]: "NOT IN",
 	[OP.like]: "LIKE",
-	[OP.notLike]: "NOT LIKE",
+	// [OP.notLike]: "NOT LIKE",
 	// [OP.iLike]: "ILIKE",
 	// [OP.notILike]: "NOT ILIKE",
 	[OP.startsWith]: "LIKE",
@@ -32,20 +32,18 @@ const definitions = {
 	// [OP.strictRight]: ">>",
 	// [OP.noExtendRight]: "&<",
 	// [OP.noExtendLeft]: "&>",
-	[OP.any]: "ANY",
-	[OP.all]: "ALL",
-	[OP.and]: "AND",
-	[OP.or]: "OR",
-	[OP.col]: "COL",
-	[OP.join]: "JOIN",
-	[OP.innerJoin]: "INNER JOIN",
-	[OP.outerJoin]: "OUTER JOIN",
-	[OP.leftJoin]: "LEFT JOIN",
-	[OP.rightJoin]: "RIGHT JOIN",
-	[OP.fullJoin]: "FULL JOIN",
+	// [OP.any]: "ANY",
+	// [OP.all]: "ALL",
+	// [OP.and]: "AND",
+	// [OP.or]: "OR",
+	// [OP.col]: "COL",
+	// [OP.join]: "JOIN",
+	// [OP.innerJoin]: "INNER JOIN",
+	// [OP.outerJoin]: "OUTER JOIN",
+	// [OP.leftJoin]: "LEFT JOIN",
+	// [OP.rightJoin]: "RIGHT JOIN",
+	// [OP.fullJoin]: "FULL JOIN",
 	// [OP.placeholder]: "$$PLACEHOLDER$$",
 };
 
-module.exports.OP = OP;
-module.exports.DEFINITIONS = definitions;
-module.exports.JOINS = JOINS;
+module.exports = definitions;

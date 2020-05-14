@@ -12,13 +12,13 @@ class QuerySet extends DependencyResolver {
 		this.statementBuilder = null;
 
 		this.requireDependency(null, "_sqlStatement", "statementBuilder");
+		this.resolveDependencies();
+
 		this._data = [];
 		this._populated = false;
 		this._model = model;
 		this.tableName = model.tableName;
 		this.actions = this.statementBuilder.BUILD_ACTIONS;
-		this.TYPES = this.statementBuilder.TYPES;
-		this.OP = this.statementBuilder.OP;
 
 		if (data && data.length && data.length !== 0) {
 			if (data instanceof Model) {
@@ -91,19 +91,16 @@ class QuerySet extends DependencyResolver {
 				return true;
 			});
 		} else {
-
-			this.statementBuilder
-				.where(this._configureWhereClause(options));
+			this.statementBuilder.where(this._configureWhereClause(options));
 		}
 	}
 
 	_filterFunction(func, exclude) {
 		if (this._populated) {
-			this._data = this._data.filter((model) => exclude ? !func(model) : func(model));
+			this._data = this._data.filter((model) => (exclude ? !func(model) : func(model)));
 			return this;
 		} else {
-			this.statementBuilder.table(this.tableName)
-				.where(this._configureWhereClause(options));
+			this.statementBuilder.table(this.tableName).where(this._configureWhereClause(options));
 		}
 	}
 
@@ -140,7 +137,6 @@ class QuerySet extends DependencyResolver {
 		return this;
 	}
 
-
 	orderBy(options) {
 		if (!this._populated) {
 			this.statementBuilder.orderBy(options);
@@ -148,7 +144,6 @@ class QuerySet extends DependencyResolver {
 
 		return this;
 	}
-
 
 	// reverse() {
 	// 	if (this._populated) {
@@ -168,8 +163,11 @@ class QuerySet extends DependencyResolver {
 
 	fetch() {
 		if (!this._populated) {
-			const data = this.statementBuilder.select().table(this.tableName).execute(this.actions.SELECT);
-			Logger.logDebugInfo(data, {obj: data});
+			const data = this.statementBuilder
+				.select()
+				.table(this.tableName)
+				.execute(this.actions.SELECT);
+			Logger.logDebugInfo(data, { obj: data });
 		}
 
 		return this;
@@ -183,7 +181,7 @@ class QuerySet extends DependencyResolver {
 		return this;
 	}
 
-	* [Symbol.iterator]() {
+	*[Symbol.iterator]() {
 		for (const entry of this._data) {
 			yield entry;
 		}

@@ -39,22 +39,12 @@ const OPId = {
 	values: Symbol("values"),
 	col: Symbol("col"),
 	// placeholder: Symbol("placeholder"),
-	join: Symbol("join"),
-	innerJoin: Symbol("innerJoin"),
-	outerJoin: Symbol("outerJoin"),
-	leftJoin: Symbol("leftJoin"),
-	rightJoin: Symbol("rightJoin"),
-	fullJoin: Symbol("fullJoin"),
+	// join: Symbol("join"),
+	// innerJoin: Symbol("innerJoin"),
+	// outerJoin: Symbol("outerJoin"),
+	// leftJoin: Symbol("leftJoin"),
+	// rightJoin: Symbol("rightJoin"),
+	// fullJoin: Symbol("fullJoin"),
 };
 
-const JOINS = [
-	OpIds.join,
-	OpIds.fullJoin,
-	OpIds.innerJoin,
-	OpIds.leftJoin,
-	OpIds.rightJoin,
-	OpIds.outerJoin,
-];
-
-module.exports.OP = OPId;
-module.exports.JOINS = JOINS;
+module.exports = OPId;

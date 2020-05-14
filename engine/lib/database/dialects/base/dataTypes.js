@@ -1,24 +1,73 @@
+const id = require("./dataTypesId");
+
 const DataTypesId = {
-	tinyInt: Symbol("tinyInt"),
-	smallInt: Symbol("smallInt"),
-	mediumInt: Symbol("mediumInt"),
-	int: Symbol("int"),
-	bigInt: Symbol("bigInt"),
+	TINY_INT: () => {
+		return { id: id.TINY_INT };
+	},
+	SMALL_INT: () => {
+		return { id: id.SMALL_INT };
+	},
+	MEDIUM_INT: () => {
+		return { id: id.MEDIUM_INT };
+	},
+	INT: () => {
+		return { id: id.INT };
+	},
+	BIG_INT: () => {
+		return { id: id.BIG_INT };
+	},
 
-	bit: Symbol("bit"),
+	/**
+	 *
+	 * @param {number?} size - number of bits, by default only one bit
+	 * @returns {{size: number?, id: symbol}}
+	 * @constructor
+	 */
+	BIT: (size) => {
+		return { id: id.BIT, size };
+	},
 
-	float: Symbol("float"),
-	double: Symbol("double"),
-	decimal: Symbol("decimal"),
+	FLOAT: () => {
+		return { id: id.FLOAT };
+	},
+	DOUBLE: () => {
+		return { id: id.DOUBLE };
+	},
+	/**
+	 *
+	 * @param {number} precision - overall number of digits
+	 * @param {number} scale - number of digits to the right of the decimal point
+	 * @returns {{precision: number, scale: number, id: symbol}}
+	 * @constructor
+	 */ DECIMAL: (precision, scale) => {
+		return { id: id.DECIMAL, precision, scale };
+	},
 
-	varchar: Symbol("varchar"),
+	/**
+	 * @param {number} size - maximal size of string
+	 * @returns {{size: number, id: symbol}}
+	 * @constructor
+	 */
+	VARCHAR: (size) => {
+		return { id: id.VARCHAR, size };
+	},
 
-	varBinary: Symbol("varBinary"),
-	json: Symbol("json"),
+	VARBINARY: () => {
+		return { id: id.VARBINARY };
+	},
+	JSON: () => {
+		return { id: id.JSON };
+	},
 
-	time: Symbol("time"),
-	date: Symbol("date"),
-	dateTime: Symbol("dateTime"),
+	TIME: () => {
+		return { id: id.TIME };
+	},
+	DATE: () => {
+		return { id: id.DATE };
+	},
+	DATE_TIME: () => {
+		return { id: id.DATE_TIME };
+	},
 };
 
 module.exports = DataTypesId;

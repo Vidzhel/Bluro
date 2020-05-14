@@ -3,7 +3,7 @@ const baseStatementBuilder = require("../base/statementBuilder");
 const driver = require("mysql");
 
 const dataTypesDefinition = require("./dataTypesDefinition");
-const {DEFINITIONS: Op} = require("../base/operatorsDefinition");
+const Op = require("../base/operatorsDefinition");
 
 const ORDER = ["DESC", "ASC"];
 
@@ -54,17 +54,21 @@ class StatementBuilder extends baseStatementBuilder {
 
 		const columnsDeclaration = this._declareColumns(columnsDefinition);
 		const constraintDeclaration = this._declareConstraints(columnsDefinition);
-		this.addClause(`CREATE TABLE IF NOT EXISTS ${tableName} (${columnsDeclaration}\n\n${constraintDeclaration})`);
+		this.addClause(
+			`CREATE TABLE IF NOT EXISTS ${tableName} (\n${columnsDeclaration}\n\n${constraintDeclaration})`,
+		);
 		return this;
 	}
 
 	_declareColumns(columnsDefinition) {
-		return this._groupValues(columnsDefinition.map((column) => this._declareColumn(column) + "\n"));
+		return columnsDefinition.map((column) => this._declareColumn(column)).join(",\n");
 	}
 
 	_declareColumn(columnDefinition) {
 		if (typeof columnDefinition.columnName !== "string") {
-			throw new TypeError("Column name string was expected, got " + typeof columnDefinition.tableName);
+			throw new TypeError(
+				"Column name string was expected, got " + typeof columnDefinition.tableName,
+			);
 		}
 		if (typeof columnDefinition !== "object") {
 			throw new TypeError("Options object was expected, got " + typeof columnDefinition);
@@ -74,13 +78,12 @@ class StatementBuilder extends baseStatementBuilder {
 		if (!columnDefinition.type) {
 			throw new Error("The column type have to be specified");
 		}
-		const dataType = dataTypesDefinition[columnDefinition.type];
+		const dataType = dataTypesDefinition[columnDefinition.type.id](columnDefinition.type);
 		if (!dataType) {
 			throw new Error("Wrong data type id specified");
 		}
 
 		clause += dataType;
-
 
 		if (columnDefinition.nullable) {
 			clause += " NULL";
@@ -103,18 +106,28 @@ class StatementBuilder extends baseStatementBuilder {
 		}
 
 		if (columnDefinition.primaryKey && columnDefinition.foreignKey) {
-			throw new Error("Column cannot have the primary key and the foreign key constraint" +
-				" in the same time");
+			throw new Error(
+				"Column cannot have the primary key and the foreign key constraint" +
+					" in the same time",
+			);
 		}
 
 		return clause;
 	}
 
 	_declareConstraints(columnsDefinition) {
-		return this._groupValues(columnsDefinition.map((column) => this._declareForeignKey(column) + "\n"));
+		return this._groupValues(
+			columnsDefinition.map((column) => {
+				if (column.foreignKey) {
+					return this._declareForeignKey(column.foreignKey) + "\n";
+				}
+
+				return "";
+			}),
+		);
 	}
 
-	_declareForeignKey([columnName, {table, columnName: foreignColumn}]) {
+	_declareForeignKey([columnName, { table, columnName: foreignColumn }]) {
 		return `FOREIGN KEY ${columnName} REFERENCES ${table}(${foreignColumn})`;
 	}
 
@@ -132,8 +145,15 @@ class StatementBuilder extends baseStatementBuilder {
 	 *     column
 	 */
 	select(columns) {
-		if (columns && (typeof columns !== "string" || typeof columns[Symbol.iterator] !== "function" || typeof columns[0] !== "string")) {
-			throw new TypeError(`Expected null, string or array of strings, got ${typeof columns}[${typeof columns[0]}]`);
+		if (
+			columns &&
+			(typeof columns !== "string" ||
+				typeof columns[Symbol.iterator] !== "function" ||
+				typeof columns[0] !== "string")
+		) {
+			throw new TypeError(
+				`Expected null, string or array of strings, got ${typeof columns}[${typeof columns[0]}]`,
+			);
 		}
 		if (!columns) {
 			columns = "*";
@@ -176,8 +196,9 @@ class StatementBuilder extends baseStatementBuilder {
 		for (const value of values) {
 			clause += " (";
 			for (const column of columnsOrder) {
-				clause +=
-					`${this._escapeIdentifiers(column)} = ${this._escapeValue(value[column])}`;
+				clause += `${this._escapeIdentifiers(column)} = ${this._escapeValue(
+					value[column],
+				)}`;
 			}
 			clause += ")";
 		}
@@ -267,47 +288,16 @@ class StatementBuilder extends baseStatementBuilder {
 		}
 		const operator = Op[cond.operator];
 
-		if (
-			cond.firstValue &&
-			(cond.secondValue || cond.innerCondition) && operator
-		) {
+		if (cond.firstValue && (cond.secondValue || cond.innerCondition) && operator) {
 			return ` ${this._escapeIdentifiers(cond.firstValue)} ${operator} ${
 				cond.secondValue || "(" + this._whereCondition(cond.innerCondition) + ")"
 			}`;
 		} else {
 			throw new Error(
-				"Condition column, operator and value have to be specified in where condition"
+				"Condition column, operator and value have to be specified in where condition",
 			);
 		}
 	}
-
-	// from(from) {
-	// 	let clause = "FROM ";
-	//
-	// 	if (
-	// 		typeof from !== "string" ||
-	// 		(typeof from[Symbol.iterator] === "function" && typeof from[0] === "string")
-	// 	) {
-	// 		clause += this._groupValues(from);
-	// 	} else {
-	// 		clause += this._configure(from, this._fromCondition);
-	// 	}
-	//
-	// 	this.addClause(clause);
-	// 	return this;
-	// }
-	//
-	// _fromCondition(cond) {
-	// 	let resultingString = "";
-	//
-	// 	if (typeof cond.innerCondition === "object") {
-	// 		if (typeof cond.innerCondition !== "object") {
-	// 			throw new Error(
-	// 				"Inner condition have to be specified in from clause, expected object, got "
-	// + typeof cond.innerCondition ); } if (!JOINS.includes(cond.join)) { throw new
-	// Error("Expected join operator, got " + cond.join); }  resultingString =
-	// _whereCondition(cond.innerCondition); } else { throw new Error("Expected object, got " +
-	// typeof cond); }  return resultingString; }
 
 	limit(limit) {
 		this.addClause(`LIMIT ${limit}`);
@@ -339,7 +329,7 @@ class StatementBuilder extends baseStatementBuilder {
 	}
 
 	_escapeValue(values) {
-		if (typeof ids[Symbol.iterator] === "function" && typeof ids !== "string") {
+		if (typeof values[Symbol.iterator] === "function" && typeof values !== "string") {
 			return values.map(driver.escape);
 		} else {
 			return driver.escape(values);
