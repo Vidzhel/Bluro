@@ -16,6 +16,7 @@ class RulesDispatcher {
 	 * @param {string|string[]} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified rules will be merged
 	 * @param {Function} handlers
+	 * @param {obj} options
 	 */
 	defineRule(methods, mountingPath, handlers, options) {
 		const rule = new Rule(methods, mountingPath, handlers, options);
