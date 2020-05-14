@@ -1,8 +1,16 @@
 {
+    "app": {
+        "host": "127.0.0.1",
+        "port": "8080"
+    },
     "database": {
-        "destination": "localhost:3001",
-        "name": "cms",
-        "username": "root",
-        "password": "HardPass"
-    }
+        "host": "localhost",
+        "database": "bluro",
+        "user": "root",
+        "password": "HardPass123",
+        "connectTimeout": 10000
+    },
+    "modules": [
+        "Auth"
+    ]
 }

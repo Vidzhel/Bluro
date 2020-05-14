@@ -1,6 +1,7 @@
 # Mine
 .vscode
 .idea
+.configs
 
 # Logs
 logs
@@ -126,14 +127,3 @@ dist
 .idea/modules.xml
 .idea/saveactions_settings.xml
 .idea/vcs.xml
-apps/
-components/
-engine/lib/controller/
-engine/lib/database/dialects/base/connectionManager.js
-engine/lib/database/dialects/mysql/connectionManager.js
-engine/lib/database/model/column.js
-engine/lib/database/model/transaction.js
-engine/lib/models/
-engine/lib/serviceAstraction/
-modules/
-engine/services/

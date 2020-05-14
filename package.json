@@ -2,16 +2,13 @@
     "name": "Bluro",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "./engine/index.js",
     "author": "",
     "repository": {
         "type": "git",
         "url": "https://github.com/Vidzhel/CMS.git"
     },
     "license": "ISC",
-    "scripts": {
-        "init": "node init_config.js"
-    },
     "dependencies": {
         "colors": "^1.4.0",
         "mysql": "^2.18.1"
@@ -19,6 +16,10 @@
     "devDependencies": {
         "babel-eslint": "^10.1.0",
         "eslint": "^6.8.0",
-        "nodemon": "^2.0.3"
+        "nodemon": "^2.0.3",
+        "jsdoc-dynamic": "^1.0.3"
+    },
+    "scripts": {
+        "bluro": "node engine/lib/CLI/CLI.js"
     }
 }
