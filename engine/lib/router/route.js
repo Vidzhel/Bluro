@@ -21,13 +21,13 @@ class Route extends Rule {
 		this._handlers[method] = handler;
 	}
 
-	dispatch(req, res, data) {
+	async dispatch(req, res, data) {
 		const method = req.method;
 		const handler = this._handlers[method];
 		const temp = Object.assign({}, this._options);
 		data = Object.assign(temp, data);
 
-		handler(req, res, data);
+		await handler(req, res, data);
 	}
 }
 

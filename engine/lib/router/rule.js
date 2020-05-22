@@ -142,18 +142,18 @@ class Rule {
 		return true;
 	}
 
-	dispatch(error, req, res, data) {
+	async dispatch(error, req, res, data) {
 		data.params = this.extractedParams;
 
 		if (error) {
-			const idx = this._dispatchError(error, req, res, data, 0);
-			this._dispatchRequest(req, res, data, idx);
+			const idx = await this._dispatchError(error, req, res, data, 0);
+			await this._dispatchRequest(req, res, data, idx);
 		} else {
-			this._dispatchRequest(req, res, data);
+			await this._dispatchRequest(req, res, data);
 		}
 	}
 
-	_dispatchError(error, req, res, data, handler_index = 0) {
+	async _dispatchError(error, req, res, data, handler_index = 0) {
 		const method = req.method;
 		const handlers = this._handlers[method];
 
@@ -162,7 +162,7 @@ class Rule {
 
 			// if error handler
 			if (handler.length > 3) {
-				handler(error, req, res, data);
+				await handler(error, req, res, data);
 				return handler_index;
 			}
 		}
@@ -170,7 +170,7 @@ class Rule {
 		throw error;
 	}
 
-	_dispatchRequest(req, res, data, handler_index = 0) {
+	async _dispatchRequest(req, res, data, handler_index = 0) {
 		const method = req.method;
 		const handlers = this._handlers[method];
 
@@ -180,11 +180,11 @@ class Rule {
 			try {
 				// if a handler is a request handler
 				if (!(handler.length > 3)) {
-					handler(req, res, data);
+					await handler(req, res, data);
 				}
 			} catch (error) {
 				// if no error handler was specified
-				this._dispatchError(error, req, res, data, i);
+				await this._dispatchError(error, req, res, data, i);
 			}
 		}
 	}

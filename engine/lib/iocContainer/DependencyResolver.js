@@ -2,7 +2,57 @@
 
 /**
  * Implements Dependency Injection  by setting dependency as a property of a dependent class
+ * @example
+ * class Service1 {
+	doSomething() {
+		console.log("Service1");
+	}
+}
+DependencyResolver.registerDependency(Service1, false, "service");
+
+class Service2 {
+	constructor() {
+		this.counter = 0;
+	}
+
+	doSomething() {
+		console.log("Service2 " + this.counter);
+		this.counter++;
+	}
+}
+DependencyResolver.registerDependency(Service2, false, "service");
+
+class Service3 extends Service2 {
+	doSomething() {
+		console.log("Service3");
+	}
+}
+DependencyResolver.registerDependency(Service3, false, "service2");
+
+class Client extends DependencyResolver {
+	constructor() {
+		super();
+		this.requireDependency(Service2, null, "service");
+		this.resolveDependencies();
+	}
+
+	work() {
+		this.service.doSomething();
+	}
+}
+
+// Client.require
+
+// Client = decorator(Client, "Hello world");
+
+let a = new Client();
+let b = new Client();
+
+a.work();
+b.work();
+
  */
+
 class DependencyResolver {
 	static _registeredDependencies = new Map();
 	dependencies = [];
@@ -120,8 +170,8 @@ class DependencyResolver {
 	 * @param {string} name - a name of the dependency
 	 * @param {string} injectionName - the dependency name to set on callee object
 	 */
-	requireDependency(type = null, name = null, injectionName = null) {
-		if (!(this instanceof DependencyResolver)) {
+	static requireDependency(type = null, name = null, injectionName = null) {
+		if (!(this instanceof DependencyResolver || this.prototype instanceof DependencyResolver)) {
 			throw new Error("A Callee has to be a subclass of the DependencyResolver");
 		}
 
@@ -134,9 +184,16 @@ class DependencyResolver {
 		[{ name: depName }, depData] = dep;
 		injectionName = injectionName || depName;
 
+		if (!this.dependencies) {
+			this.dependencies = [];
+		}
+
 		this.dependencies.push({ type, name: injectionName, data: depData });
 	}
 
+	requireDependency(type = null, name = null, injectionName = null) {
+		DependencyResolver.requireDependency.call(this, type, name, injectionName);
+	}
 	/**
 	 * Searches a registered dependency with the given name or type or both
 	 * Type dependency you cant require only by name
@@ -193,8 +250,8 @@ class DependencyResolver {
 		return base === superClass;
 	}
 
-	resolveDependencies() {
-		if (!(this instanceof DependencyResolver)) {
+	static resolveDependencies() {
+		if (!(this instanceof DependencyResolver || this.prototype instanceof DependencyResolver)) {
 			throw new Error("A callee has to be a subclass of the DependencyResolver");
 		}
 		const deps = this.dependencies;
@@ -206,60 +263,18 @@ class DependencyResolver {
 					value: data.value,
 				});
 			} else {
+				const args = data.args ? data.args : [];
 				Object.defineProperty(this, name, {
-					value: new data.value(...data.args),
+					value: new data.value(...args),
 				});
 			}
 		}
+	}
+
+	resolveDependencies() {
+		DependencyResolver.resolveDependencies.call(this);
 	}
 }
 DependencyResolver.registerGlobalDependency(DependencyResolver, "DependencyResolver");
 
 module.exports = DependencyResolver;
-// class Service1 {
-// 	doSomething() {
-// 		console.log("Service1");
-// 	}
-// }
-// DependencyResolver.registerDependency(Service1, false, "service");
-
-// class Service2 {
-// 	constructor() {
-// 		this.counter = 0;
-// 	}
-
-// 	doSomething() {
-// 		console.log("Service2 " + this.counter);
-// 		this.counter++;
-// 	}
-// }
-// DependencyResolver.registerDependency(Service2, false, "service");
-
-// class Service3 extends Service2 {
-// 	doSomething() {
-// 		console.log("Service3");
-// 	}
-// }
-// DependencyResolver.registerDependency(Service3, false, "service2");
-
-// class Client extends DependencyResolver {
-// 	constructor() {
-// 		super();
-// 		this.requireDependency(Service2, null, "service");
-// 		this.resolveDependencies();
-// 	}
-
-// 	work() {
-// 		this.service.doSomething();
-// 	}
-// }
-
-// // Client.require
-
-// // Client = decorator(Client, "Hello world");
-
-// let a = new Client();
-// let b = new Client();
-
-// a.work();
-// b.work();

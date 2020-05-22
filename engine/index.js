@@ -1,22 +1,26 @@
 const { initLib } = require("./lib");
-const App = require("./server");
+const App = require("./app");
+const MigrationManager = require("./lib/database/migrationManager/migrationManager");
 
-(function initEngine() {
+(async function initEngine() {
 	const options = {};
-	initLib(options);
+	await initLib(options);
 	Logger.logSuccess("Bluro was initialized");
-	startApp(options);
+	await startApp(options);
 })();
 
-function startApp(options) {
+async function startApp(options) {
 	const configs = ConfigsManager.getEntry("app");
 	const app = new App(configs);
-	connectModules(options.modulesManager, app);
-	app.start();
+	await connectModules(options.modulesManager, app);
+	await app.start();
+	Logger.logSuccess("Application started");
 }
 
-function connectModules(modulesManager, app) {
+async function connectModules(modulesManager, app) {
 	for (const module of modulesManager.modules) {
+		await MigrationManager.makeMigration(module);
+		await MigrationManager.applyMigration(module);
 		module.routes.map(app.addRoute.bind(app));
 		module.rules.map(app.addRule.bind(app));
 	}

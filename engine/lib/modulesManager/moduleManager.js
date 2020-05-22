@@ -38,7 +38,7 @@ class ModuleManager {
 
 	/**
 	 *
-	 * @param {"all"|"post"|"put"|"delete"|"get"} methods - HTTP methods
+	 * @param {"all"|"post"|"put"|"delete"|"get"|string[]} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {routeHandler} handler
@@ -55,7 +55,7 @@ class ModuleManager {
 
 	/**
 	 *
-	 * @param {"all"|"post"|"put"|"delete"|"get"} methods - HTTP methods
+	 * @param {"all"|"post"|"put"|"delete"|"get"|string[]} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {ruleHandler} handlers

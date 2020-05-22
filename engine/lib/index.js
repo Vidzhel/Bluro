@@ -1,7 +1,7 @@
 const dependencyResolver = require("./iocContainer/DependencyResolver");
 const initConfig = require("./configs");
 
-module.exports.initLib = function (options = {}) {
+module.exports.initLib = async function (options = {}) {
 	options.dependencyResolver = dependencyResolver;
 
 	initConfig(options);
@@ -10,7 +10,7 @@ module.exports.initLib = function (options = {}) {
 	const initDialect = require("./database");
 
 	loggerInit(options);
-	initDialect(options);
+	await initDialect(options);
 
 	const initModules = require("./modulesManager");
 	initModules(options);

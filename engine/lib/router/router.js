@@ -121,7 +121,7 @@ class RulesDispatcher {
 		};
 	}
 
-	dispatch(req, res) {
+	async dispatch(req, res) {
 		const pathSegments = utilities.splitPath(req.url);
 		const method = req.method;
 		const rules = this._rulesStack["rules"];
@@ -135,12 +135,12 @@ class RulesDispatcher {
 		for (const rule of rules) {
 			if (rule.match(method, pathSegments)) {
 				if (error) {
-					rule.dispatch(error, req, res, data);
+					await rule.dispatch(error, req, res, data);
 					error = null;
 				}
 
 				try {
-					rule.dispatch(null, req, res, data);
+					await rule.dispatch(null, req, res, data);
 				} catch (err) {
 					error = err;
 				}
@@ -152,7 +152,7 @@ class RulesDispatcher {
 		// the routes are sorted by descending
 		for (const route of routes) {
 			if (route.match(method, pathSegments)) {
-				route.dispatch(req, res, data);
+				await route.dispatch(req, res, data);
 				break;
 			}
 		}

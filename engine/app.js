@@ -1,4 +1,6 @@
 const routeDispatcher = require("./lib/router/router");
+const extendRequest = require("./lib/HTTP/extendRequest");
+const extendResponse = require("./lib/HTTP/extendResponse");
 
 const BYTE = "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
 const IP = `^(?:${BYTE}\\.){3}${BYTE}$`;
@@ -36,17 +38,28 @@ class App {
 
 	initServer() {
 		return this.protocol.createServer((req, res) => {
-			this.dispatcher.dispatch(req, res);
-			res.statusCode = 200;
-			res.setHeader("Content-Type", "text/plain");
-			res.end("Hello World");
+			extendRequest(req);
+			extendResponse(res);
+			req.onData(async () => {
+				res.setHeader("Content-Type", "application/json");
+				try {
+					await this.dispatcher.dispatch(req, res);
+					res.send();
+				} catch (e) {
+					res.send();
+					throw e;
+				}
+			});
 		});
 	}
 
 	start() {
-		const { host, https, port } = this.options;
-		this.server.listen(port, host, () => {
-			Logger.logInfo(`Server running at ${https ? "https" : "http"}://${host}:${port}/`);
+		return new Promise((resolve) => {
+			const { host, https, port } = this.options;
+			this.server.listen(port, host, () => {
+				Logger.logInfo(`Server running at ${https ? "https" : "http"}://${host}:${port}/`);
+				resolve();
+			});
 		});
 	}
 

@@ -40,7 +40,7 @@ const _defaultFormatters = {
 	level: (info) => `[${info.level}]`,
 	location: (info) => `${info.location}`,
 	prefix: (info) => (info.prefix ? `[${info.prefix}]` : ""),
-	newLine: () => `\n`,
+	newLine: () => `\n  `,
 	objToString: (info) => (info.obj ? JSON.stringify(info.obj) : ""),
 	errorStack: (info) => (info.error ? info.error.stack : ""),
 };

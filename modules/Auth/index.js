@@ -1,13 +1,14 @@
-const User = require("./Models/User");
+const User = require("./User");
+const controllers = require("./controllers");
+const authRule = require("./authRule");
 
 module.exports = function initAuth(options) {
 	const manager = options.modulesManager;
 
 	manager.connectModel(User);
-	manager.connectRule("all", "/", (err, request, response, data) => {
-		data.message = "hello from auth";
-	});
-	manager.connectRoute("all", "/", (request, response, data) => {
-		response.write(data);
-	});
+
+	manager.connectRule("all", "/", authRule);
+
+	manager.connectRoute(["post", "get"], "/login", controllers.loginPage);
+	manager.connectRoute(["post", "get"], "/signup", controllers.signupPage);
 };
