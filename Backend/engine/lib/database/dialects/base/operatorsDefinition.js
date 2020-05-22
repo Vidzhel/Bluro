@@ -1,4 +1,4 @@
-const OP = require("./OPerators");
+const OP = require("./operators");
 
 const definitions = {
 	[OP.eq]: "=",

@@ -2,7 +2,7 @@
     "name": "Bluro",
     "version": "1.0.0",
     "description": "",
-    "main": "./engine/index.js",
+    "main": "engine/index.js",
     "author": "",
     "repository": {
         "type": "git",

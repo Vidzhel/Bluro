@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "login": "login",
+    "pass": "pass"
+  },
+  "reg": {
+    "login": "login",
+    "pass1": "pass",
+    "pass2": "pass"
+  }
+}
