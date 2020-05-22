@@ -1,26 +1,29 @@
 const DependencyResolver = require("../iocContainer/DependencyResolver");
+const ModelDescriptor = require("./modelDescription");
 const DATA_TYPES = require("./dialects/base/dataTypes");
 const OPERATORS = require("./dialects/base/operators");
-const QuerySet = require("./querySet");
 
 const MODEL_STATES = {
-	CREATED: "CREATED",
-	MODIFIED: "MODIFIED",
-	SAVED: "SAVED",
+	CREATED: "CREATED", // when save is called then all columns will be saved, if delete is called an exception is thrown
+	DELETED: "DELETED", // if save is called then all columns will be saved, if delete is called an exception is thrown
+	MODIFIED: "MODIFIED", // when save is called then modified columns will be updated, if delete is called then data will be deleted
+	SAVED: "SAVED", // if save is called an exception is thrown, if delete is called then data will be deleted
 };
 
 const DEFAULT_OPTIONS = {
 	default: null,
-	nullable: true,
+	nullable: false,
 	primaryKey: false,
 	unique: false,
 	validators: [],
+	autoincrement: false,
+	foreignKey: null,
 };
 
 class Model extends DependencyResolver {
 	static DATA_TYPES = DATA_TYPES;
 	static OP = OPERATORS;
-	static selector = new QuerySet(this, this._data);
+	static _models = {};
 
 	/**
 	 * @typedef {object} columnDefinition
@@ -32,276 +35,404 @@ class Model extends DependencyResolver {
 	 * or value have to be specified
 	 * @property {boolean} [autoincrement]
 	 * @property {boolean} [primaryKey] - at least one column have to be primary key or
-	 * additional will be generated
+	 * 		additional will be generated, primary keys are immutable columns
 	 * @property {object} [foreignKey]
-	 * @property {Model} foreignKey.model
-	 * @property {string} foreignKey.table
+	 * @property {Model} foreignKey.model - referenced module
+	 * @property {string} foreignKey.table - referenced table (module name)
+	 * @property {string} foreignKey.columnName - referenced column
 	 * @property {boolean} [unique] - is unique constraint have to be specified
-	 * @property {function|function[]} [validators] - validators will be given a new
-	 *     column value and if at least on of them return false, then exception will be trowed
+	 * @property {function|function[]} [validators] - validators will be given new
+	 *     column value and if at least on of them return object with property fail true,
+	 *     then an exception will be trowed. Additionally property description can be specified to
+	 *     describe the exception
 	 */
 
 	/**
-	 *
-	 * @param {columnDefinition[]} columns
+	 * @param {columnDefinition[]} schema
 	 */
-	constructor(columns) {
-		super();
-
-		/** @type {Statement}*/
-		this.statementBuilder = null;
-		this.requireDependency(null, "_sqlStatement", "statementBuilder");
-		this.resolveDependencies();
-
-		this.ACTIONS = this.statementBuilder.BUILD_ACTIONS;
-
-		this._data = {};
-		this._columnsDefinitions = {};
-		this.tableName = this.constructor.name;
+	static init(schema) {
+		this._validateCall();
+		this._defaultData = {};
+		/**
+		 *
+		 * @type {{ColumnDefinition}}
+		 * @private
+		 */
+		this._columns = {};
+		this.tableName = this.name;
 		this.primaryKey = null;
 		this.foreignKeys = [];
 
-		this.state = MODEL_STATES.SAVED;
-		this._modifiedColumns = [];
+		this._initColumns(schema);
 
-		this._initColumns(columns);
-	}
+		/**
+		 * @type {QuerySet}
+		 */
+		this.selector = null;
+		const querySet = this.getDependency(null, "_querySet");
+		this.selector = new querySet(this);
 
-	static async up() {
-		try {
-			await this.statementBuilder
-				.table(this.tableName)
-				.createColumn(Object.values(this._columnsDefinitions));
-
-			Logger.logError(`Migrated table ${this.tableName}`, {
-				file: "db",
-				prefix: "UP Migration",
-			});
-		} catch (e) {
-			Logger.logError(e.message, { config: "db", prefix: "UP Migration error", error: e });
+		if (Model._models[this.tableName]) {
+			throw new Error(`Ambiguous table names are forbidden (${this.tableName})`);
 		}
 	}
 
-	static async down() {
-		try {
-			await this.statementBuilder.table(this.tableName);
-		} catch (e) {
-			Logger.logError(e.message, { config: "db", prefix: "DOWN Migration error", error: e });
+	static _validateCall() {
+		if (!(this.prototype instanceof Model)) {
+			throw Error("Callee have to be subclass of Model");
+		}
+		if (Object.is(this, Model)) {
+			throw new Error("Callee can't be Model itself, but subclass of Model");
 		}
 	}
 
-	_initColumns(columns) {
-		let havePrimaryKey = false;
-
+	static _initColumns(columns) {
 		for (const column of columns) {
-			if (this._data[column.columnName]) {
+			if (this._defaultData[column.columnName]) {
 				throw new Error(
 					`Columns with ambiguous names aren't allowed (${column.columnName})`,
 				);
 			}
+
 			const columnDefinition = this._validateConfig(column);
-			havePrimaryKey = this._checkPrimaryKey(columnDefinition, havePrimaryKey);
+			this._checkPrimaryKey(columnDefinition);
 			this._checkForeignKey(columnDefinition);
 			this._checkValue(columnDefinition);
-
-			this._declareColumnProperty(columnDefinition);
 		}
 
 		// Declare additional column for primary key
-		if (!havePrimaryKey) {
+		if (!this.primaryKey) {
 			this._declarePrimaryKey();
 		}
 	}
 
-	_validateConfig(column) {
+	static _validateConfig(column) {
 		// Prevent ambiguous names in queries
 		column.name = column.columnName;
 		column.columnName = this.getFullColumnName(column.columnName);
 
 		const columnDefinition = Object.assign({}, DEFAULT_OPTIONS, column);
-		const { nullable, validators, name } = columnDefinition;
+		const {
+			nullable,
+			validators,
+			name,
+			autoincrement,
+			value,
+			default: _default,
+		} = columnDefinition;
 
-		this._columnsDefinitions[name] = columnDefinition;
+		this._columns[name] = columnDefinition;
 		if (nullable) {
 			validators.push(nullValidator);
+		}
+
+		if (autoincrement && (_default || value)) {
+			throw new Error("Autoincrement column can't have default or value parameters");
 		}
 
 		return columnDefinition;
 	}
 
-	getFullColumnName(columnName) {
+	static getFullColumnName(columnName) {
 		return `${this.tableName}.${columnName}`;
 	}
 
-	_checkPrimaryKey(columnDefinition, havePrimaryKey) {
-		const { primaryKey, nullable, columnName } = columnDefinition;
+	static _checkPrimaryKey(columnDefinition) {
+		const { primaryKey, nullable, name } = columnDefinition;
 
-		if (primaryKey && !havePrimaryKey) {
-			havePrimaryKey = true;
-			this.primaryKey = columnName;
-		} else if (primaryKey && havePrimaryKey) {
+		if (primaryKey && !this.primaryKey) {
+			this.primaryKey = name;
+		} else if (primaryKey && this.primaryKey) {
 			throw new Error(`Model ${this.tableName} can't have more than one primary key`);
 		}
 
 		if (primaryKey && nullable) {
 			throw new Error("Primary key columnDefinition can't be nullable");
 		}
-
-		return havePrimaryKey;
 	}
 
-	_checkForeignKey({ name, columnName, foreignKey }) {
+	static _checkForeignKey({ name, foreignKey, type }) {
 		if (foreignKey) {
-			const { model, columnName: referencedColumn } = foreignKey;
-			if (!(model.prototype instanceof Model)) {
-				throw new TypeError(
-					`Expected foreign key model reference, got ${model}, in ${this.tableName} ${name} column`,
-				);
-			}
-			if (
-				!(model.hasColumn(referencedColumn) && model.isPrimaryKeyColumn(referencedColumn))
-			) {
+			const { table, model, columnName } = foreignKey;
+
+			const referenceTableName = table || model.tableName;
+			const referencedModel = Model._models[referenceTableName];
+			const referencedColumnType =
+				referencedModel && referencedModel._columns[columnName].type;
+
+			if (table && typeof table !== "string") {
+				throw new Error("Table name was expected, got " + typeof table);
+			} else if (model && !(model instanceof Model)) {
+				throw new Error("Model was expected, got " + model);
+			} else if (!model && !table) {
 				throw new Error(
-					`Referenced model (${model}) has to have referenced primary column ${referencedColumn}`,
+					"'table' or 'model' property have to be specified to create foreign key",
 				);
 			}
 
-			foreignKey.table = model.tableName;
+			if (referencedModel) {
+				throw new Error(
+					`Referenced model '${referenceTableName}' hasn't been initialized yet`,
+				);
+			}
+			if (!referencedModel.hasColumn(columnName)) {
+				throw new Error(
+					`Referenced model '${referenceTableName}' doesn't have referenced column '${columnName}'`,
+				);
+			}
+			if (referencedColumnType !== type) {
+				throw new Error(
+					`Referenced column '${columnName}' had different type '${referencedColumnType}', this column '${name}', type '${type}'`,
+				);
+			}
+
+			foreignKey.tableName = table.tableName;
 			this.foreignKeys.push(name);
 		}
 	}
 
-	_checkValue(columnDefinition) {
-		const { columnName, nullable, default: _default, value } = columnDefinition;
+	static _checkValue(columnDefinition) {
+		const { name, default: _default, value } = columnDefinition;
 
 		if (value) {
-			this._data[columnName] = value;
-			this.state = MODEL_STATES.CREATED;
+			this.this._defaultData[name] = value;
 		} else if (_default) {
-			this._data[columnName] = _default;
-		} else if (!nullable) {
-			throw new Error(
-				"Not nullable columnDefinition has to have default value or value, but not null",
-			);
+			this._defaultData[name] = _default;
+		} else {
+			this._defaultData[name] = null;
 		}
 	}
 
-	_declarePrimaryKey() {
+	static _declarePrimaryKey() {
 		const name = "id";
-		const columnName = this.tableName + "." + name;
-		this.primaryKey = columnName;
+		const columnName = this.getFullColumnName(name);
+		this.primaryKey = name;
 
-		const columnDefinition = {
+		if (this._columns[name]) {
+			throw new Error(
+				"Column 'id' is reserved for primary key in case you didn't specify PK",
+			);
+		}
+		this._columns[name] = {
+			...DEFAULT_OPTIONS,
 			columnName,
 			name,
-			type: Model.TYPES.INT(),
+			type: DATA_TYPES.INT(),
 			nullable: false,
 			autoincrement: true,
 			primaryKey: true,
-			default: 0,
 		};
-		this._columnsDefinitions[columnName] = columnDefinition;
 
-		this._declareColumnProperty(columnDefinition);
+		this._defaultData[name] = null;
+	}
+
+	constructor() {
+		super();
+
+		/** @type {Statement}*/
+		this.statementBuilder = null;
+		this.requireDependency(null, "_sqlStatement", "statementBuilder");
+		this.resolveDependencies();
+		this.ACTIONS = this.statementBuilder.BUILD_ACTIONS;
+
+		this.tableName = this.constructor.tableName;
+		this._columns = this.constructor._columns;
+		this._data = Object.assign({}, this.constructor._defaultData);
+
+		this.state = MODEL_STATES.CREATED;
+		this._modifiedColumns = [];
+
+		for (const column of Object.values(this._columns)) {
+			this._declareColumnProperty(column);
+		}
 	}
 
 	_declareColumnProperty(column) {
-		const { columnName, validators, name } = column;
+		const { validators, name } = column;
+		const primaryKeyName = this.constructor.primaryKey;
 
 		Object.defineProperties(this, {
 			[name]: {
 				get: () => {
-					return this._data[columnName];
+					return this._data[name];
 				},
-				enumerable: true,
-			},
-			[name]: {
 				set: (value) => {
-					for (const validator of validators) {
-						const res = validator(value);
-						if (res.fail) {
-							throw new Error(
-								`Validation error for value "${value}" in the "${this.tableName}" model, description: ${res.description}`,
-							);
-						}
+					if (name === primaryKeyName) {
+						throw new Error("Primary key cannot be changed");
 					}
 
-					if (this._data[columnName] !== value) {
-						this._modifiedColumns.push(columnName);
-						this._data[columnName] = value;
+					this._validateValue(validators, value);
+
+					if (this._data[name] !== value) {
+						this._modifiedColumns.push(name);
+						this._data[name] = value;
+						this._setState(MODEL_STATES.MODIFIED);
 					}
 				},
+				enumerable: true,
 			},
 		});
 	}
 
-	hasColumn(columnName) {
-		return !!this._columnsDefinitions[this.getFullColumnName(columnName)];
+	_setState(state) {
+		if (!(this.state === MODEL_STATES.CREATED && state === MODEL_STATES.MODIFIED)) {
+			this.state = state;
+		}
 	}
 
-	isPrimaryKeyColumn(columnName) {
-		const columnDefinition = this._columnsDefinitions[this.getFullColumnName(columnName)];
-		if (columnDefinition) {
-			return !!columnDefinition.primaryKey;
-		}
+	_validateValues() {
+		for (const [columnName, columnDefinition] of Object.entries(this._columns)) {
+			const validators = columnDefinition.validators;
+			const value = this._data[columnName];
 
-		return false;
+			if (validators) {
+				this._validateValue(validators, value);
+			}
+		}
 	}
 
-	isForeignKeyColumn(columnName) {
-		const columnDefinition = this._columnsDefinitions[this.getFullColumnName(columnName)];
-		if (columnDefinition) {
-			return !!columnDefinition.foreignKey;
+	_validateValue(validators, value) {
+		for (const validator of validators) {
+			const res = validator(value);
+			if (res.fail) {
+				throw new Error(
+					`Validation error for value "${value}" in the "${this.tableName}" model, description: ${res.description}`,
+				);
+			}
 		}
+	}
 
-		return false;
+	static hasColumn(columnName) {
+		this._validateCall();
+		return this._columns[columnName];
+	}
+
+	static isPrimaryKeyColumn(columnName) {
+		this._validateCall();
+		return this.primaryKey === columnName;
+	}
+
+	static isForeignKeyColumn(columnName) {
+		this._validateCall();
+		return this.foreignKeys.includes(columnName);
 	}
 
 	async save() {
-		if (this.state === MODEL_STATES.CREATED) {
+		if (this.state === MODEL_STATES.CREATED || this.state === MODEL_STATES.DELETED) {
 			try {
-				await this.statementBuilder
+				this._validateValues();
+
+				const { result } = await this.statementBuilder
 					.table(this.tableName)
-					.values(this._data)
+					.values(this._mapChangedColumnsToValues())
 					.execute(this.ACTIONS.INSERT);
+
+				this._data[this.primaryKey] = result.insertId;
+
+				Logger.logInfo(`Inserted rows ${result.affectedRows} into ${this.tableName}`, {
+					prefix: "SAVE_MODEL",
+					config: "db",
+				});
 			} catch (e) {
-				Logger.logError(e.message, { file: "db", prefix: "Model insertion error" });
+				Logger.logError("Model insertion error", {
+					prefix: "SAVE_MODEL",
+					error: e,
+					config: "db",
+				});
 			}
 		} else if (this.state === MODEL_STATES.MODIFIED) {
 			try {
-				await this.statementBuilder
+				const { result } = await this.statementBuilder
 					.table(this.tableName)
 					.update(this._mapChangedColumnsToValues())
 					.where({
 						firstValue: this.primaryKey,
 						operator: Model.OP.eq,
-						secondValue: this[this.primaryKey],
+						secondValue: this._columns[this.primaryKey],
 					})
 					.execute(this.ACTIONS.UPDATE);
+
+				Logger.logInfo(`Updated rows ${result.affectedRows} into ${this.tableName}`, {
+					prefix: "SAVE_MODEL",
+					config: "db",
+				});
 			} catch (e) {
-				Logger.logError(e.message, { file: "db", prefix: "Model updating error" });
+				Logger.logError("Model updating error", {
+					prefix: "SAVE_MODEL",
+					error: e,
+					config: "db",
+				});
 			}
 		} else {
-			Logger.logDebug(`No save was performed on ${this.tableName} model`);
+			throw new Error(`Nothing to save on '${this.tableName}' model`);
 		}
+
+		this._modifiedColumns = [];
+		this._setState(MODEL_STATES.SAVED);
 	}
 
-	async del() {}
+	async del() {
+		if (this.state === MODEL_STATES.MODIFIED || this.state === MODEL_STATES.SAVED) {
+			try {
+				const { result } = await this.statementBuilder
+					.table(this.tableName)
+					.where({
+						firstValue: this.primaryKey,
+						operator: Model.OP.eq,
+						secondValue: this._columns[this.primaryKey],
+					})
+					.execute(this.ACTIONS.DELETE);
+
+				Logger.logInfo(`Deleted rows ${result.affectedRows} from ${this.tableName}`, {
+					prefix: "SAVE_MODEL",
+					config: "db",
+				});
+			} catch (e) {
+				Logger.logError("Model deletion error", {
+					file: "db",
+					prefix: "DELETE_MODEL",
+					error: e,
+					config: "db",
+				});
+			}
+		} else {
+			throw new Error(`Cannot delete model '${this.tableName}' with state '${this.state}'`);
+		}
+
+		this._modifiedColumns = [];
+		this._setState(MODEL_STATES.DELETED);
+	}
 
 	_mapChangedColumnsToValues() {
 		const values = {};
 
-		for (const column of this._modifiedColumns) {
-			values[column] = this._data[column];
+		if (this.state === MODEL_STATES.CREATED) {
+			for (const [columnName, value] of Object.entries(this._data)) {
+				if (!this._columns[columnName].autoincrement) {
+					values[columnName] = value;
+				}
+			}
+		} else {
+			for (const column of this._modifiedColumns) {
+				if (!this._columns[column].autoincrement) {
+					values[column] = this._data[column];
+				}
+			}
 		}
 
 		return values;
 	}
 
+	/**
+	 * @param {typeof Model} model
+	 */
 	isDependentOn(model) {
-		for (const foreignKey of this.foreignKeys) {
-			const columnDefinition = this._columnsDefinitions[foreignKey];
-			if (Object.is(columnDefinition.foreignKey.model, model)) {
+		for (const foreignKey of this.constructor.foreignKeys) {
+			const columnDefinition = this._columns[foreignKey];
+
+			const thisTableName =
+				columnDefinition.foreignKey.table || columnDefinition.foreignKey.model.tableName;
+			if (thisTableName !== model.tableName) {
 				return true;
 			}
 		}
@@ -310,33 +441,20 @@ class Model extends DependencyResolver {
 	}
 
 	/**
-	 * @typedef {object} ModelDescription
-	 * @property {string} tableName
-	 * @property {string[]} foreignKeys
-	 * @property {string} primaryKey
-	 * @property {columnDefinition[]} columns
-	 */
-
-	/**
 	 * @return {ModelDescription}
 	 */
-	describe() {
-		const tableName = this.tableName;
-		const foreignKeys = this.foreignKeys;
-		const primaryKeys = this.primaryKey;
-		const columns = this._columnsDefinitions;
-		return {
-			tableName,
-			foreignKeys,
-			primaryKeys,
-			columns,
-		};
+	static describe() {
+		this._validateCall();
+		return new ModelDescriptor(this);
 	}
 
 	/**
-	 * @param {ModelDescription} description
+	 * @param {columnDefinition[]} columns
 	 */
-	compare(description) {}
+	static compare(columns) {
+		this._validateCall();
+		return this.describe().compare(columns);
+	}
 }
 
 function nullValidator(value) {

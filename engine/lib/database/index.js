@@ -4,7 +4,7 @@ const REGISTERED_DRIVERS = {
 	mysql: "./dialects/mysql",
 };
 
-module.exports = function initDialect(options, dialect = "mySql") {
+module.exports = async function initDialect(options, dialect = "mySql") {
 	dialect = dialect.toLowerCase();
 	if (!Object.keys(REGISTERED_DRIVERS).includes(dialect)) {
 		throw new Error(`Given driver isn't registered (${dialect})`);
@@ -12,16 +12,21 @@ module.exports = function initDialect(options, dialect = "mySql") {
 
 	const base = REGISTERED_DRIVERS[dialect];
 	const dbConfigs = global.ConfigsManager.getEntry("database");
+
+	const connectionManager = require(base + "/connectionManager");
+	await connectionManager.connect(dbConfigs);
+
 	const { registerDependency, registerType } = options.dependencyResolver;
 
-	registerDependency(
-		{
-			dependency: require(base + "/connectionManager"),
-			name: "_ConnectionManager",
-			singleton: true,
-		},
-		dbConfigs,
-	);
+	registerType({
+		dependency: require("./querySet"),
+		name: "_querySet",
+	});
+	registerDependency({
+		dependency: connectionManager,
+		name: "_ConnectionManager",
+		singleton: true,
+	});
 	registerDependency({
 		dependency: require(base + "/statementBuilder"),
 		name: "_sqlStatementBuilder",

@@ -22,6 +22,8 @@ class Statement extends DependencyResolver {
 		DELETE: "DELETE",
 		CREATE_TABLE: "CREATE_TABLE",
 		DROP_TABLE: "DROP_TABLE",
+		ADD_COLUMN: "ADD_COLUMN",
+		DROP_COLUMN: "DROP_COLUMN",
 		CREATE_DATABASE: "CREATE_DATABASE",
 		DROP_DATABASE: "DROP_DATABASE",
 	};
@@ -106,6 +108,14 @@ class Statement extends DependencyResolver {
 					this._buildDropTable();
 					break;
 				}
+				case this.BUILD_ACTIONS.DROP_COLUMN: {
+					this._buildDropColumns();
+					break;
+				}
+				case this.BUILD_ACTIONS.ADD_COLUMN: {
+					this._buildAddColumns();
+					break;
+				}
 				default: {
 					throw new Error(`The given build action doesn't exist (${action})`);
 				}
@@ -162,15 +172,14 @@ class Statement extends DependencyResolver {
 		if (this._selectClause.length === 0) {
 			throw new Error("Select clause is required to build select statement");
 		}
-		if (this._tables.length === 0) {
-			throw new Error("Tables are required to build select statement");
+		if (this._tables.length === 0 || this._tables.length > 1) {
+			throw new Error("A table is required to build select statement");
 		}
 
-		this.builder.select(this._selectClause);
-		this.builder.from(this._tables);
-		if (this._whereClause.length === 0) this.builder.where(this._whereClause);
+		this.builder.selectFrom(this._selectClause, this._tables[0]);
+		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
 		if (this._limitClause) this.builder.limit(this._limitClause);
-		if (this.orderBy) this.builder.orderBy(this._orderByClause);
+		if (this._orderByClause) this.builder.orderBy(this._orderByClause);
 	}
 
 	_buildCreateTable() {
@@ -206,6 +215,33 @@ class Statement extends DependencyResolver {
 		}
 
 		this.builder.dropDatabase(this._database);
+	}
+
+	_buildAddColumns() {
+		if (this._tables.length === 0 || this._tables.length > 1) {
+			throw new Error("A table is required to build add columns statement");
+		}
+		if (this._columnsDefinition.length === 0) {
+			throw new Error("Column definition are required to build add columns statement");
+		}
+
+		this.builder.createColumns(this._tables[0], this._columnsDefinition);
+	}
+
+	_buildDropColumns() {
+		if (this._tables.length === 0 || this._tables.length > 1) {
+			throw new Error("A table is required to build drop columns statement");
+		}
+		if (this._columnsDefinition.length === 0) {
+			throw new Error(
+				"Column names (specify as column definition with only 'columnName' prop) are required to build drop columns statement",
+			);
+		}
+
+		this.builder.dropColumns(
+			this._tables[0],
+			this._columnsDefinition.map((column) => column.columnName),
+		);
 	}
 
 	_clear() {
@@ -252,22 +288,10 @@ class Statement extends DependencyResolver {
 
 	/**
 	 *
-	 * @param {object|objects[]} columnsDefinition
-	 * @property {string} columnDefinition.columnName
-	 * @property {string} columnDefinition.type
-	 * @property {object} columnDefinition.columnDefinition
-	 * @property {object} columnDefinition.autoincrement
-	 * @property {object} columnDefinition.primaryKey
-	 * @property {object} columns.foreignKey
-	 * @property {string} columns.foreignKey.table
-	 * @property {string} columns.foreignKey.columnName
-	 * @property {any} columnDefinition.columnDefinition.default - default value
-	 * @property {boolean} columns.columnDefinition.nullable - are null value permitted
-	 * @property {boolean} columns.columnDefinition.unique - is unique constraint have to be
-	 *     specified
+	 * @param {columnDefinition} columnsDefinition
 	 * @returns {Statement}
 	 */
-	createColumn(columnsDefinition) {
+	column(columnsDefinition) {
 		if (
 			typeof columnsDefinition === "object" ||
 			typeof columnsDefinition[Symbol.iterator] === "function"

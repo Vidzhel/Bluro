@@ -2,19 +2,31 @@ const BaseConnectionManager = require("../base/connectionManager");
 const driver = require("mysql");
 
 class ConnectionManager extends BaseConnectionManager {
-	connect(config) {
+	static connect(config) {
 		super.connect(config);
-		this.connection = driver.createConnection(config);
+		ConnectionManager.connection = driver.createConnection(config);
 
 		return new Promise((resolve, reject) => {
-			this.connection.connect((err, result) => {
+			ConnectionManager.connection.connect((err, result) => {
 				if (err) {
 					reject(err);
 				}
 
 				resolve(result);
 			});
-		});
+		})
+			.then((result) => {
+				let message = `Connected to a database, ${config.host}`;
+				Logger.logInfo(message, { config: "db", obj: result });
+				Logger.logInfo(message, { obj: result });
+			})
+			.catch((err) => {
+				Logger.logError("Connection failed", {
+					config: "db",
+					error: err,
+					obj: { host: config.host, db: config.database },
+				});
+			});
 	}
 
 	/**
@@ -23,18 +35,19 @@ class ConnectionManager extends BaseConnectionManager {
 	 * @return {Promise}
 	 */
 	query(query) {
-		Logger.logInfo(query, { prefix: "DB manager" });
+		Logger.logInfo(query, { prefix: "QUERY_REQUEST" });
 
 		return new Promise((resolve, reject) => {
-			// TODO uncomment
-			// this.connection.query(query, (error, result, fields) => {
-			// 	this.logQuery(error, result, fields);
-			// 	if (error) {
-			// 		reject(error);
-			// 	}
-			//
-			// 	resolve({ result, fields });
-			// });
+			this.connection.query(query, (error, result, fields) => {
+				if (error) {
+					Logger.logError(query, { prefix: "QUERY_ERR", error });
+					reject(error);
+				} else {
+					Logger.logSuccess(query, { prefix: "QUERY_RES", obj: result });
+
+					resolve({ result, fields });
+				}
+			});
 		});
 	}
 

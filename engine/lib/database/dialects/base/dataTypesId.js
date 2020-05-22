@@ -1,24 +1,24 @@
 const DataTypesId = {
-	TINY_INT: Symbol(""),
-	SMALL_INT: Symbol("SMALL_INT"),
-	MEDIUM_INT: Symbol("MEDIUM_INT"),
-	INT: Symbol("INT"),
-	BIG_INT: Symbol("BIG_INT"),
+	TINY_INT: "TINY_INT",
+	SMALL_INT: "SMALL_INT",
+	MEDIUM_INT: "MEDIUM_INT",
+	INT: "INT",
+	BIG_INT: "BIG_INT",
 
-	BIT: Symbol("BIT"),
+	BIT: "BIT",
 
-	FLOAT: Symbol("FLOAT"),
-	DOUBLE: Symbol("DOUBLE"),
-	DECIMAL: Symbol("DECIMAL"),
+	FLOAT: "FLOAT",
+	DOUBLE: "DOUBLE",
+	DECIMAL: "DECIMAL",
 
-	VARCHAR: Symbol("VARCHAR"),
+	VARCHAR: "VARCHAR",
 
-	VARBINARY: Symbol("VARBINARY"),
-	JSON: Symbol("JSON"),
+	VARBINARY: "VARBINARY",
+	JSON: "JSON",
 
-	TIME: Symbol("TIME"),
-	DATE: Symbol("DATE"),
-	DATE_TIME: Symbol("DATE_TIME"),
+	TIME: "TIME",
+	DATE: "DATE",
+	DATE_TIME: "DATE_TIME",
 };
 
 module.exports = DataTypesId;

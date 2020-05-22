@@ -1,5 +1,6 @@
 const Model = require("./model");
 const DependencyResolver = require("../iocContainer/DependencyResolver");
+const OP = require("./dialects/base/operators");
 
 class QuerySet extends DependencyResolver {
 	/**
@@ -108,9 +109,13 @@ class QuerySet extends DependencyResolver {
 		const where = [];
 
 		for (const [field, value] of Object.entries(options)) {
+			if (!this._model.hasColumn(field)) {
+				throw new Error(`Model ${this.tableName} doesn't have column ${field}`);
+			}
+
 			where.push({
 				firstValue: field,
-				operator: exclude ? this.OP.ne : this.OP.eq,
+				operator: exclude ? OP.ne : OP.eq,
 				secondValue: value,
 			});
 		}
@@ -163,11 +168,14 @@ class QuerySet extends DependencyResolver {
 
 	fetch() {
 		if (!this._populated) {
-			const data = this.statementBuilder
+			return this.statementBuilder
 				.select()
 				.table(this.tableName)
-				.execute(this.actions.SELECT);
-			Logger.logDebugInfo(data, { obj: data });
+				.execute(this.actions.SELECT)
+				.then((data) => {
+					this._data = data;
+					return new QuerySet(this._model, data.result);
+				});
 		}
 
 		return this;
@@ -185,6 +193,10 @@ class QuerySet extends DependencyResolver {
 		for (const entry of this._data) {
 			yield entry;
 		}
+	}
+
+	get length() {
+		return this._data.length;
 	}
 }
 

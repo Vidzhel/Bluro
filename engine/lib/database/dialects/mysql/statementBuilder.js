@@ -1,6 +1,7 @@
 "use strict";
 const baseStatementBuilder = require("../base/statementBuilder");
 const driver = require("mysql");
+const Model = require("../../model");
 
 const dataTypesDefinition = require("./dataTypesDefinition");
 const Op = require("../base/operatorsDefinition");
@@ -32,19 +33,7 @@ class StatementBuilder extends baseStatementBuilder {
 
 	/**
 	 * @param {string} tableName
-	 * @param {object} columnsDefinition
-	 * @param {string} columnsDefinition.columnName
-	 * @param {string} columnsDefinition.type
-	 * @param {object} columnsDefinition.columnDefinition
-	 * @param {object} columnsDefinition.autoincrement
-	 * @param {object} columnsDefinition.primaryKey
-	 * @param {object} columnsDefinition.foreignKey
-	 * @param {string} columnsDefinition.foreignKey.table
-	 * @param {string} columnsDefinition.foreignKey.columnName
-	 * @param {any} columnsDefinition.columnDefinition.default - default value
-	 * @param {boolean} columnsDefinition.columnDefinition.nullable - are null value permitted
-	 * @param {boolean} columnsDefinition.columnDefinition.unique - is unique constraint have to be
-	 *     specified
+	 * @param {columnDefinition} columnsDefinition
 	 * @returns {StatementBuilder}
 	 */
 	createTable(tableName, columnsDefinition) {
@@ -55,17 +44,37 @@ class StatementBuilder extends baseStatementBuilder {
 		const columnsDeclaration = this._declareColumns(columnsDefinition);
 		const constraintDeclaration = this._declareConstraints(columnsDefinition);
 		this.addClause(
-			`CREATE TABLE IF NOT EXISTS ${tableName} (\n${columnsDeclaration}\n\n${constraintDeclaration})`,
+			`CREATE TABLE IF NOT EXISTS ${tableName} (\n  ${columnsDeclaration}\n\n  ${constraintDeclaration})`,
 		);
 		return this;
 	}
 
+	/**
+	 * @param tableName
+	 * @param {columnDefinition[]} columnsDefinition
+	 * @returns {StatementBuilder}
+	 */
+	createColumns(tableName, columnsDefinition) {
+		if (typeof tableName !== "string") {
+			throw new TypeError("String was expected, got " + typeof tableName);
+		}
+
+		let clause = `ALTER TABLE ${this._escapeIdentifiers(tableName)}\n  ADD COLUMN `;
+		clause += columnsDefinition
+			.map((column) => {
+				return this._declareColumn(column);
+			})
+			.join("\n  ADD COLUMN ");
+
+		this.addClause(clause);
+	}
+
 	_declareColumns(columnsDefinition) {
-		return columnsDefinition.map((column) => this._declareColumn(column)).join(",\n");
+		return columnsDefinition.map((column) => this._declareColumn(column)).join(",\n  ");
 	}
 
 	_declareColumn(columnDefinition) {
-		if (typeof columnDefinition.columnName !== "string") {
+		if (typeof columnDefinition.name !== "string") {
 			throw new TypeError(
 				"Column name string was expected, got " + typeof columnDefinition.tableName,
 			);
@@ -73,7 +82,7 @@ class StatementBuilder extends baseStatementBuilder {
 		if (typeof columnDefinition !== "object") {
 			throw new TypeError("Options object was expected, got " + typeof columnDefinition);
 		}
-		let clause = `${this._escapeIdentifiers(columnDefinition.columnName)} `;
+		let clause = `${this._escapeIdentifiers(columnDefinition.name)} `;
 
 		if (!columnDefinition.type) {
 			throw new Error("The column type have to be specified");
@@ -96,7 +105,7 @@ class StatementBuilder extends baseStatementBuilder {
 		}
 
 		if (columnDefinition.default) {
-			clause += ` DEFAULT ${columnDefinition.default}`;
+			clause += ` DEFAULT ${this._escapeValue(columnDefinition.default)}`;
 		}
 
 		if (columnDefinition.primaryKey) {
@@ -119,7 +128,7 @@ class StatementBuilder extends baseStatementBuilder {
 		return this._groupValues(
 			columnsDefinition.map((column) => {
 				if (column.foreignKey) {
-					return this._declareForeignKey(column.foreignKey) + "\n";
+					return this._declareForeignKey(column.columnName, column.foreignKey) + "\n  ";
 				}
 
 				return "";
@@ -127,8 +136,19 @@ class StatementBuilder extends baseStatementBuilder {
 		);
 	}
 
-	_declareForeignKey([columnName, { table, columnName: foreignColumn }]) {
-		return `FOREIGN KEY ${columnName} REFERENCES ${table}(${foreignColumn})`;
+	_declareForeignKey(columnName, { table, model, columnName: foreignColumn }) {
+		if (table && typeof table !== "string") {
+			throw new Error("Table name was expected, got " + typeof table);
+		} else if (model && !(model instanceof Model)) {
+			throw new Error("Model was expected, got " + model);
+		} else if (!model && !table) {
+			throw new Error(
+				"'table' or 'model' property have to be specified to create foreign key",
+			);
+		}
+
+		const referencedTableName = table || model.tableName;
+		return `FOREIGN KEY ${columnName} REFERENCES ${referencedTableName}(${foreignColumn})`;
 	}
 
 	dropTable(tableName) {
@@ -141,25 +161,53 @@ class StatementBuilder extends baseStatementBuilder {
 	}
 
 	/**
+	 *
+	 * @param {string} tableName
+	 * @param {string[]} columnNames
+	 */
+	dropColumns(tableName, columnNames) {
+		if (typeof tableName !== "string") {
+			throw new TypeError("String was expected, got " + typeof tableName);
+		}
+
+		let clause = `ALTER TABLE ${this._escapeIdentifiers(tableName)}\n  DROP COLUMN `;
+		clause += columnNames
+			.map((columnName) => this._escapeIdentifiers(columnName))
+			.join(",  \n DROP COLUMN ");
+
+		this.addClause(clause);
+	}
+
+	/**
 	 * @param {string|string[]|null} columns - one column, multiple columns or null for any
 	 *     column
+	 * @param {string} table
 	 */
-	select(columns) {
+	selectFrom(columns, table) {
 		if (
 			columns &&
-			(typeof columns !== "string" ||
-				typeof columns[Symbol.iterator] !== "function" ||
-				typeof columns[0] !== "string")
+			typeof columns !== "string" &&
+			typeof columns[Symbol.iterator] !== "function" &&
+			typeof columns[0] !== "string"
 		) {
 			throw new TypeError(
 				`Expected null, string or array of strings, got ${typeof columns}[${typeof columns[0]}]`,
 			);
 		}
+
+		if (typeof table !== "string") {
+			throw new Error("Expected string, got " + typeof table);
+		}
+
 		if (!columns) {
 			columns = "*";
 		}
 
-		this.addClause(`SELECT ${this._escapeIdentifiers(this._groupValues(columns))}`);
+		this.addClause(
+			`SELECT ${this._escapeIdentifiers(
+				this._groupValues(columns),
+			)} FROM ${this._escapeIdentifiers(table)}`,
+		);
 		return this;
 	}
 
@@ -172,15 +220,17 @@ class StatementBuilder extends baseStatementBuilder {
 		if (typeof table !== "string") {
 			throw new TypeError("Expected table name to have string type, got " + typeof table);
 		}
-		let clause = "INSERT INTO ";
-		const columnsOrder = Object.keys(values);
-		const columns = this._escapeIdentifiers();
+		if (typeof values[Symbol.iterator] !== "function") {
+			values = [values];
+		}
 
+		let clause = "INSERT INTO ";
 		clause += this._escapeIdentifiers(table);
 
-		if (columns) {
-			clause += ` (${this._groupValues(this._escapeIdentifiers(columns))})`;
-		}
+		const columnsOrder = Object.keys(values[0]);
+		const columns = this._escapeIdentifiers(columnsOrder);
+
+		clause += ` (${this._groupValues(columns)})`;
 		this.addClause(clause);
 
 		this._values(values, columnsOrder);
@@ -189,18 +239,15 @@ class StatementBuilder extends baseStatementBuilder {
 
 	_values(values, columnsOrder) {
 		let clause = "VALUES";
-		if (typeof values[Symbol.iterator] !== "function") {
-			values = [values];
-		}
 
 		for (const value of values) {
-			clause += " (";
-			for (const column of columnsOrder) {
-				clause += `${this._escapeIdentifiers(column)} = ${this._escapeValue(
-					value[column],
-				)}`;
-			}
-			clause += ")";
+			const values = columnsOrder
+				.map((column) => {
+					return `${this._escapeValue(value[column])}`;
+				})
+				.join(", ");
+
+			clause += `\n  (${values})`;
 		}
 
 		this.addClause(clause);
@@ -255,7 +302,7 @@ class StatementBuilder extends baseStatementBuilder {
 	where(where) {
 		let clause = "WHERE ";
 
-		clause += this._configure(where, this._whereCondition);
+		clause += this._configure(where, this._whereCondition.bind(this));
 
 		this.addClause(clause);
 		return this;
@@ -289,9 +336,11 @@ class StatementBuilder extends baseStatementBuilder {
 		const operator = Op[cond.operator];
 
 		if (cond.firstValue && (cond.secondValue || cond.innerCondition) && operator) {
-			return ` ${this._escapeIdentifiers(cond.firstValue)} ${operator} ${
-				cond.secondValue || "(" + this._whereCondition(cond.innerCondition) + ")"
-			}`;
+			const secondOperand = !cond.innerCondition
+				? this._escapeValue(cond.secondValue)
+				: "(" + this._whereCondition(cond.innerCondition) + ")";
+
+			return ` ${this._escapeIdentifiers(cond.firstValue)} ${operator} ${secondOperand}`;
 		} else {
 			throw new Error(
 				"Condition column, operator and value have to be specified in where condition",
@@ -329,7 +378,7 @@ class StatementBuilder extends baseStatementBuilder {
 	}
 
 	_escapeValue(values) {
-		if (typeof values[Symbol.iterator] === "function" && typeof values !== "string") {
+		if (values && typeof values[Symbol.iterator] === "function" && typeof values !== "string") {
 			return values.map(driver.escape);
 		} else {
 			return driver.escape(values);

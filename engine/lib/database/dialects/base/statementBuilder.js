@@ -3,7 +3,7 @@ const requiredMethods = [
 	"dropDatabase",
 	"createTable",
 	"dropTable",
-	"select",
+	"selectFrom",
 	"insertInto",
 	"deleteFrom",
 	"update",

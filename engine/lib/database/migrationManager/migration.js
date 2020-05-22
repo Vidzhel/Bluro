@@ -1,30 +1,39 @@
 const fs = require("fs");
+const DependencyResolver = require("../../iocContainer/DependencyResolver");
 const MIGRATION_NAME_REGEXP = RegExp(/^(\d*)_(\w+?)_.*$/, "i");
 const MIGRATE_ACTIONS = {
-	DEFINE_TABLE: "DEFINE_TABLE",
-	DEFINE_COLUMN: "DEFINE_COLUMN",
-	CHANGE_COLUMN: "CHANGE_COLUMN",
-	DELETE_TABLE: "DELETE_TABLE",
-	DELETE_COLUMN: "DELETE_COLUMN",
+	DEFINE_TABLE: "DEFINE_TABLE", // Contains bool
+	DEFINE_COLUMN: "DEFINE_COLUMN", // Contains object of columns' definitions
+	CHANGE_COLUMN: "CHANGE_COLUMN", // Contains object of columns' definitions
+	DELETE_TABLE: "DELETE_TABLE", // Contains bool
+	DELETE_COLUMN: "DELETE_COLUMN", // Contains object of columns' names
 };
 
-class Migration {
-	constructor({ migrationDir, moduleName, index = 0, migrationName = null }) {
+class Migration extends DependencyResolver {
+	static MIGRATE_ACTIONS = MIGRATE_ACTIONS;
+
+	constructor({ module, migrationDir, moduleName, index = 0, migrationName = null }) {
+		super();
 		this.index = index;
-		this.migrationDir = migrationDir;
-		this.moduleName = moduleName;
-		this.name = migrationName || Migration._generateMigrationName(index, moduleName);
-		this.path = migrationDir + "/" + this.name;
-		this.tables = {};
+		this.migrationDir = migrationDir || Migration._getMigrationDir(module.path);
+		this.moduleName = moduleName || module.name;
+		this.name = migrationName || Migration._generateMigrationName(index, this.moduleName);
+		this.path = this.migrationDir + "/" + this.name;
+		this.tables = new Map();
 		this.migrated = false;
+
+		this.statementBuilder = null;
+		this.requireDependency(null, "_sqlStatement", "statementBuilder");
+		this.resolveDependencies();
+
+		this.initialMigration = true;
+		// this.saved = false;
 	}
 
 	static async loadMigrations(module) {
-		const dir = await Migration._getMigrationDir(module.path);
-		return Migration._getMigrations(dir).map((migration) => {
-			migration.load();
-			return migration;
-		});
+		const dir = Migration._getMigrationDir(module.path);
+		this.saved = true;
+		return Migration._getMigrations(dir);
 	}
 
 	static _generateMigrationName(id, module) {
@@ -32,16 +41,14 @@ class Migration {
 	}
 
 	static _getMigrationDir(modulePath) {
-		return new Promise((resolve) => {
-			const migrationsDir = modulePath + "/migrations";
-			fs.access(migrationsDir, fs.constants.F_OK, (err) => {
-				if (err) {
-					fs.mkdirSync(migrationsDir);
-				}
-
-				resolve(migrationsDir);
-			});
+		const migrationsDir = modulePath + "/migrations";
+		fs.access(migrationsDir, fs.constants.F_OK, (err) => {
+			if (err) {
+				fs.mkdirSync(migrationsDir);
+			}
 		});
+
+		return migrationsDir;
 	}
 
 	/**
@@ -50,11 +57,12 @@ class Migration {
 	 * @return {Migration[]}
 	 * @private
 	 */
-	static async _getMigrations(migrationDirectory) {
-		const dirHandle = await fs.promises.opendir(migrationDirectory);
+	static _getMigrations(migrationDirectory) {
 		const migrations = [];
+		const dirHandler = fs.opendirSync(migrationDirectory);
 
-		for await (const file of dirHandle) {
+		let file = dirHandler.readSync();
+		while (file) {
 			const match = MIGRATION_NAME_REGEXP.exec(file.name);
 
 			if (file.isFile() && match) {
@@ -67,47 +75,187 @@ class Migration {
 				migration.load();
 
 				migrations.push(migration);
+				file = dirHandler.readSync();
 			}
 		}
-		dirHandle.closeSync();
+
+		dirHandler.closeSync();
 
 		return migrations;
 	}
 
 	/**
-	 * @param {ModelDescription} modelDescription
+	 * Sets define table and define columns action
 	 */
-	setDefineTableAction(modelDescription) {
-		// TODO table have to have specific order, so tables object doesn't fit here
-		this.tables[modelDescription.tableName] = {};
-		this.tables[modelDescription.tableName][MIGRATE_ACTIONS.DEFINE_TABLE] = modelDescription;
+	setDefineModelAction(model) {
+		const description = model.describe();
+		const tableName = description.tableName;
+
+		this.setDefineTableAction(tableName);
+		for (const columnDefinition of Object.values(description.columns)) {
+			this.setDefineColumnAction(tableName, columnDefinition);
+		}
+	}
+	/**
+	 *
+	 * @param tableName
+	 */
+	setDefineTableAction(tableName) {
+		if (this.tables.get(tableName)) {
+			throw new Error(`Cannot define table, the table already exits`);
+		}
+
+		this._defineTableIfNotExists(tableName)[MIGRATE_ACTIONS.DEFINE_TABLE] = true;
+	}
+
+	/**
+	 * @param tableName
+	 * @param {columnDefinition} columnDefinition
+	 */
+	setDefineColumnAction(tableName, columnDefinition) {
+		columnDefinition = this._getNecessaryData(columnDefinition);
+		this._defineTableIfNotExists(tableName);
+		const data = this._defineActionIfNotExists(tableName, MIGRATE_ACTIONS.DEFINE_COLUMN);
+		data[columnDefinition.name] = columnDefinition;
+	}
+
+	/**
+	 * @param tableName
+	 * @param {columnDefinition} columnDefinition
+	 */
+	setChangeColumnAction(tableName, columnDefinition) {
+		columnDefinition = this._getNecessaryData(columnDefinition);
+		this._defineTableIfNotExists(tableName);
+		const data = this._defineActionIfNotExists(tableName, MIGRATE_ACTIONS.CHANGE_COLUMN);
+		data[columnDefinition.name] = columnDefinition;
+		this.initialMigration = false;
+	}
+
+	_getNecessaryData({
+		default: _default,
+		type,
+		nullable,
+		autoincrement,
+		primaryKey,
+		unique,
+		foreignKey,
+		name,
+	}) {
+		return {
+			name,
+			type,
+			default: _default,
+			nullable,
+			autoincrement,
+			primaryKey,
+			unique,
+			foreignKey,
+		};
+	}
+
+	/**
+	 * @param {string} tableName
+	 * @param {string} columnName
+	 */
+	setDeleteColumnAction(tableName, columnName) {
+		this._defineTableIfNotExists(tableName);
+		const data = this._defineActionIfNotExists(tableName, MIGRATE_ACTIONS.DELETE_COLUMN);
+		data[columnName] = true;
+		this.initialMigration = false;
+	}
+
+	/**
+	 * @param {string} tableName
+	 */
+	setDeleteTableAction(tableName) {
+		const table = this._defineTableIfNotExists(tableName);
+		table[MIGRATE_ACTIONS.DELETE_TABLE] = true;
+		this.initialMigration = false;
+	}
+
+	_defineTableIfNotExists(tableName) {
+		let table = this.tables.get(tableName);
+		if (!table) {
+			table = {
+				migrated: false,
+			};
+			this.tables.set(tableName, table);
+		}
+
+		return table;
+	}
+
+	/**
+	 *
+	 * @return {object}
+	 * @private
+	 */
+	_defineActionIfNotExists(table, action) {
+		let data = this.tables.get(table)[action];
+		if (!data) {
+			data = {};
+			this.tables.get(table)[action] = data;
+		}
+
+		return data;
 	}
 
 	load() {
-		this.tables = require(this.path);
+		const migration = require(this.path);
+		this.initialMigration = migration.initialMigration;
+		this.migrated = migration.migrated;
+		this.name = migration.name;
+
+		for (const [tableName, data] of migration.tables) {
+			this.tables.set(tableName, data);
+		}
 	}
 
 	save() {
-		return fs.promises.writeFile(this.path, this.tables);
+		const migrated = this.migrated;
+		const initialMigration = this.initialMigration;
+		const name = this.name;
+		const tables = [...this.tables.entries()];
+
+		return fs.writeFileSync(
+			this.path,
+			JSON.stringify({ migrated, initialMigration, tables, name }),
+		);
 	}
 
 	delete() {
-		return fs.promises.unlink(this.path);
+		return fs.unlinkSync(this.path);
 	}
 
 	combineMigrations(migration) {
-		for (const [tableName, table] of Object.values(migration.tables)) {
-			for (const [action, data] of Object.values(table)) {
+		this.index = migration.index;
+
+		for (const [tableName, table] of migration.tables.entries()) {
+			for (const [action, data] of Object.entries(table)) {
 				switch (action) {
 					case MIGRATE_ACTIONS.DEFINE_TABLE:
+						this._defineTable(tableName);
 						break;
-					case MIGRATE_ACTIONS.CHANGE_COLUMN:
+					case MIGRATE_ACTIONS.CHANGE_COLUMN: {
+						for (const columnDefinition of Object.values(data)) {
+							this._changeColumn(tableName, columnDefinition);
+						}
 						break;
-					case MIGRATE_ACTIONS.DEFINE_COLUMN:
+					}
+					case MIGRATE_ACTIONS.DEFINE_COLUMN: {
+						for (const columnDefinition of Object.values(data)) {
+							this._defineColumn(tableName, columnDefinition);
+						}
 						break;
-					case MIGRATE_ACTIONS.DELETE_COLUMN:
+					}
+					case MIGRATE_ACTIONS.DELETE_COLUMN: {
+						for (const columnDefinition of Object.values(data)) {
+							this._deleteColumn(tableName, columnDefinition.columnName);
+						}
 						break;
+					}
 					case MIGRATE_ACTIONS.DELETE_TABLE:
+						this._deleteTable(tableName);
 						break;
 				}
 			}
@@ -115,18 +263,177 @@ class Migration {
 	}
 
 	/**
-	 *
-	 * @param tableName
-	 * @param {ModelDescription} modelDescription
+	 * @param {string} tableName
 	 * @private
 	 */
-	_defineTable(modelDescription) {
-		const tableName = modelDescription.tableName;
-		if (this.tables[tableName]) {
+	_defineTable(tableName) {
+		this.setDefineTableAction(tableName);
+	}
+
+	/**
+	 * @param tableName
+	 * @param {columnDefinition} columnDefinition
+	 * @private
+	 */
+	_changeColumn(tableName, columnDefinition) {
+		const table = this.tables.get(tableName);
+		const { name } = columnDefinition;
+
+		if (!table) {
+			throw new Error(`Cannot change column '${name}', table '${tableName}' isn't defined`);
+		}
+
+		const oldColumnDefinition = this._getColumnDefinition(table, name);
+		if (!oldColumnDefinition) {
 			throw new Error(
-				`Cannot combine migrations, action: '${MIGRATE_ACTIONS.DEFINE_TABLE}', table already exits`,
+				`Table '${tableName} 'doesn't have column '${name}' defined, so it cannot be changed`,
 			);
 		}
+
+		this._setColumnDefinition(table, name, columnDefinition);
+	}
+
+	/**
+	 * @param tableName
+	 * @param {columnDefinition} columnDefinition
+	 * @private
+	 */
+	_defineColumn(tableName, columnDefinition) {
+		const table = this.tables.get(tableName);
+		const { name } = columnDefinition;
+		if (!table) {
+			throw new Error(`Cannot define '${name}', table '${tableName}' isn't defined`);
+		}
+
+		const oldColumnDefinition = this._getColumnDefinition(table, name);
+		if (!oldColumnDefinition) {
+			throw new Error(
+				`Table '${tableName} 'is not defined, so it cannot be used to define new column`,
+			);
+		}
+		this._setColumnDefinition(table, name, columnDefinition);
+	}
+
+	/**
+	 * @param tableName
+	 * @param {string} columnName
+	 * @private
+	 */
+	_deleteColumn(tableName, columnName) {
+		const table = this.tables.get(tableName);
+		if (!table) {
+			throw new Error(
+				`Table '${tableName}' is not defined, so it cannot be used to delete a column`,
+			);
+		}
+
+		const oldColumnDefinition = this._getColumnDefinition(table, columnName);
+		if (!oldColumnDefinition) {
+			throw new Error(
+				`Table '${tableName}' doesn't have '${columnName}' defined, so it cannot be deleted`,
+			);
+		}
+
+		delete table[MIGRATE_ACTIONS.DEFINE_COLUMN][columnName];
+	}
+
+	/**
+	 * @param tableName
+	 * @private
+	 */
+	_deleteTable(tableName) {
+		const table = this.tables.get(tableName);
+		if (!table) {
+			throw new Error(`Table '${tableName}' is not defined, so it cannot be deleted`);
+		}
+
+		this.tables.delete(tableName);
+	}
+
+	_getColumnDefinition(table, columnName) {
+		const columnsDefinitions = table[MIGRATE_ACTIONS.DEFINE_COLUMN];
+		if (columnsDefinitions) {
+			return columnsDefinitions[columnName] || null;
+		}
+
+		return null;
+	}
+
+	_setColumnDefinition(table, columnName, columnDefinition) {
+		table[MIGRATE_ACTIONS.DEFINE_COLUMN][columnName] = columnDefinition;
+	}
+
+	async migrate() {
+		for (const [tableName, changes] of this.tables.entries()) {
+			for (const [action, data] of Object.entries(changes)) {
+				switch (action) {
+					case MIGRATE_ACTIONS.DEFINE_COLUMN: {
+						const columns = Object.values(data);
+
+						if (changes[MIGRATE_ACTIONS.DEFINE_TABLE]) {
+							if (changes[MIGRATE_ACTIONS.DELETE_TABLE]) {
+								await this.migrateDeleteTable(tableName);
+							}
+							await this.migrateDefineTable(tableName, columns);
+						} else {
+							await this.migrateDefineColumn(tableName, columns);
+						}
+						break;
+					}
+					case MIGRATE_ACTIONS.DELETE_TABLE: {
+						if (!changes[MIGRATE_ACTIONS.DEFINE_TABLE]) {
+							await this.migrateDeleteTable(tableName);
+						}
+						break;
+					}
+					case MIGRATE_ACTIONS.DELETE_COLUMN: {
+						const columns = Object.keys(data);
+						await this.migrateDeleteColumns(tableName, columns);
+						break;
+					}
+					case MIGRATE_ACTIONS.CHANGE_COLUMN: {
+						const columnNames = Object.keys(data);
+						const columnsDefinitions = Object.values(data);
+						await this.migrateDeleteColumns(tableName, columnNames);
+						await this.migrateDefineColumn(tableName, columnsDefinitions);
+					}
+				}
+			}
+		}
+
+		this.migrated = true;
+		this.save();
+	}
+
+	async migrateDefineTable(tableName, columnsDefinitions) {
+		this.statementBuilder.table(tableName);
+		for (const column of columnsDefinitions) {
+			this.statementBuilder.column(column);
+		}
+		await this.statementBuilder.execute(this.statementBuilder.BUILD_ACTIONS.CREATE_TABLE);
+	}
+
+	async migrateDefineColumn(tableName, columnsDefinitions) {
+		this.statementBuilder.table(tableName);
+		for (const column of columnsDefinitions) {
+			this.statementBuilder.column(column);
+		}
+		await this.statementBuilder.execute(this.statementBuilder.BUILD_ACTIONS.ADD_COLUMN);
+	}
+
+	async migrateDeleteTable(tableName) {
+		await this.statementBuilder
+			.table(tableName)
+			.execute(this.statementBuilder.BUILD_ACTIONS.DROP_TABLE);
+	}
+
+	async migrateDeleteColumns(tableName, columnNames) {
+		this.statementBuilder.table(tableName);
+		for (const column of columnNames) {
+			this.statementBuilder.column({ columnName: column });
+		}
+
+		await this.statementBuilder.execute(this.statementBuilder.BUILD_ACTIONS.DROP_COLUMN);
 	}
 }
 
