@@ -2,7 +2,12 @@ const Model = require("../database/model");
 
 class ModuleManager {
 	modules = [];
+	general = {
+		routes: [],
+		rules: [],
+	};
 	currentModule = null;
+	isGeneralInit = false;
 
 	startModuleInit(name, path) {
 		/**
@@ -17,11 +22,25 @@ class ModuleManager {
 		};
 	}
 
+	startGeneralInit() {
+		this.currentModule = {
+			routes: [],
+			rules: [],
+		};
+		this.isGeneralInit = true;
+	}
+
 	endModuleInit() {
 		if (this.currentModule === null) {
 			throw new Error("You need to start the module initialization first");
 		}
-		this.modules.push(this.currentModule);
+		if (!this.isGeneralInit) {
+			this.modules.push(this.currentModule);
+		} else {
+			this.general = this.currentModule;
+			this.isGeneralInit = false;
+		}
+
 		this.currentModule = null;
 	}
 
@@ -38,7 +57,7 @@ class ModuleManager {
 
 	/**
 	 *
-	 * @param {"all"|"post"|"put"|"delete"|"get"|string[]} methods - HTTP methods
+	 * @param {"all"|"post"|"put"|"delete"|"get"|"options"|string[]} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {routeHandler} handler
@@ -55,17 +74,24 @@ class ModuleManager {
 
 	/**
 	 *
-	 * @param {"all"|"post"|"put"|"delete"|"get"|string[]} methods - HTTP methods
+	 *  NOTE: if handler specified with 4 parameters (error in the beginning) it will be defined as
+	 *  error handler and won't be called except the situation when an exception was occurred in previous rules
+	 *
+	 *	If a rule returns true, further rules will be ignored
+	 *
+	 * @param {"all"|"post"|"put"|"delete"|"options"|"get"|string[]} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {ruleHandler} handlers
+	 * @param {object} options
+	 * @param {boolean} options.sensitive
 	 */
-	connectRule(methods, mountingPath, handlers) {
+	connectRule(methods, mountingPath, handlers, options) {
 		if (this.currentModule === null) {
 			throw new Error("You need to start the module initialization first");
 		}
 
-		this.currentModule.rules.push({ methods, mountingPath, handlers });
+		this.currentModule.rules.push({ methods, mountingPath, handlers, options });
 	}
 }
 

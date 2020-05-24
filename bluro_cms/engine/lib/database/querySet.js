@@ -25,7 +25,7 @@ class QuerySet extends DependencyResolver {
 			if (data instanceof Model) {
 				this._data.push(data);
 				this._populated = true;
-			} else if (typeof data[Symbol.iterator] !== "function" && typeof data !== "string") {
+			} else if (typeof data[Symbol.iterator] === "function" && typeof data !== "string") {
 				for (const model of data) {
 					if (!(model instanceof Model)) {
 						throw new TypeError("Expected model, got " + model);
@@ -173,8 +173,11 @@ class QuerySet extends DependencyResolver {
 				.table(this.tableName)
 				.execute(this.actions.SELECT)
 				.then((data) => {
-					this._data = data;
-					return new QuerySet(this._model, data.result);
+					this._data = [];
+					for (const result of data.result) {
+						this._data.push(new this._model(result));
+					}
+					return this;
 				});
 		}
 
@@ -193,6 +196,13 @@ class QuerySet extends DependencyResolver {
 		for (const entry of this._data) {
 			yield entry;
 		}
+	}
+
+	get(idx) {
+		if (typeof idx !== "number") {
+			throw new Error("Index was expected, got " + typeof idx);
+		}
+		return this._data[idx];
 	}
 
 	get length() {

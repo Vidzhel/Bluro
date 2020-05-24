@@ -5,7 +5,9 @@
   },
   "reg": {
     "login": "login",
-    "pass1": "pass",
-    "pass2": "pass"
+    "email": "email",
+    "blogName": "blogName",
+    "password": "pass",
+    "repPassword": "pass"
   }
 }

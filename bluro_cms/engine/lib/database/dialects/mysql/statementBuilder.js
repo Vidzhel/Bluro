@@ -64,7 +64,7 @@ class StatementBuilder extends baseStatementBuilder {
 			.map((column) => {
 				return this._declareColumn(column);
 			})
-			.join("\n  ADD COLUMN ");
+			.join(",\n  ADD COLUMN ");
 
 		this.addClause(clause);
 	}

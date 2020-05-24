@@ -305,8 +305,8 @@ class Migration extends DependencyResolver {
 			throw new Error(`Cannot define '${name}', table '${tableName}' isn't defined`);
 		}
 
-		const oldColumnDefinition = this._getColumnDefinition(table, name);
-		if (!oldColumnDefinition) {
+		const oldTableDefinition = this._getTableDefinition(table);
+		if (!oldTableDefinition) {
 			throw new Error(
 				`Table '${tableName} 'is not defined, so it cannot be used to define new column`,
 			);
@@ -357,6 +357,10 @@ class Migration extends DependencyResolver {
 		}
 
 		return null;
+	}
+
+	_getTableDefinition(table) {
+		return table[MIGRATE_ACTIONS.DEFINE_TABLE];
 	}
 
 	_setColumnDefinition(table, columnName, columnDefinition) {

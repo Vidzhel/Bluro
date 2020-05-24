@@ -153,7 +153,7 @@ class Statement extends DependencyResolver {
 		this.builder.update(...this._tables);
 		this.builder.set(this._setClause);
 		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
-		if (this.orderBy) this.builder.orderBy(this._orderByClause);
+		if (this._orderByClause) this.builder.orderBy(this._orderByClause);
 		if (this._limitClause) this.builder.limit(this._limitClause);
 	}
 
@@ -164,7 +164,7 @@ class Statement extends DependencyResolver {
 
 		this.builder.deleteFrom(...this._tables);
 		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
-		if (this.orderBy) this.builder.orderBy(this._orderByClause);
+		if (this._orderByClause) this.builder.orderBy(this._orderByClause);
 		if (this._limitClause) this.builder.limit(this._limitClause);
 	}
 

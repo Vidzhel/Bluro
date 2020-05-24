@@ -1,6 +1,6 @@
 const colors = require("colors");
 const fs = require("fs");
-const PATH_REGEXP = /^[a-z]:((\\|\/)[a-z0-9]+)+\.[a-z0-9]+$/i;
+const PATH_REGEXP = /^[a-z]:((\\|\/)[a-z_0-9]+)+\.[a-z0-9]+$/i;
 const ROOT = ConfigsManager.getEntry("root");
 
 const _loggingLevels = {
@@ -55,9 +55,7 @@ const DEFAULT_CONFIGS = [
 			_defaultFormatters.dateTime,
 			_defaultFormatters.message,
 			_defaultFormatters.newLine,
-			_defaultFormatters.newLine,
 			_defaultFormatters.objToString,
-			_defaultFormatters.newLine,
 			_defaultFormatters.newLine,
 			_defaultFormatters.errorStack,
 		],
@@ -119,6 +117,24 @@ const DEFAULT_CONFIGS = [
 		],
 		targets: {
 			console: true,
+		},
+	},
+	{
+		level: _loggingLevels.critical,
+		name: "requests",
+		logByName: true,
+		formatters: [
+			_defaultFormatters.level,
+			_defaultFormatters.dateTime,
+			_defaultFormatters.prefix,
+			_defaultFormatters.message,
+		],
+		targets: {
+			console: true,
+			files: {
+				path: ROOT + "/logs/errors.log",
+				verbose: "requests",
+			},
 		},
 	},
 ];
@@ -346,6 +362,7 @@ class Logger {
 					prevRes.push(current(info));
 					return prevRes;
 				}, [])
+				.filter((str) => !!str)
 				.join(" ");
 		};
 	}

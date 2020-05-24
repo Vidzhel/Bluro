@@ -2,12 +2,6 @@
 const Rule = require("./rule");
 
 class Route extends Rule {
-	/**
-	 * @param {string|string[]} methods - HTTP methods
-	 * @param {Function|Function[]} handler
-	 * @param {object} options - additional props that will be passed to route
-	 * controller, will be overwritten by the data that is filled by rules
-	 */
 	define(methods, handler, options) {
 		if (typeof handler !== "function") {
 			throw new Error("Expected function, got " + typeof handler);

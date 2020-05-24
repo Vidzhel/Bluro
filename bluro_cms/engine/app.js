@@ -38,6 +38,10 @@ class App {
 
 	initServer() {
 		return this.protocol.createServer((req, res) => {
+			Logger.logInfo(`Request received: ${req.url} (${req.method})`, {
+				config: "requests",
+				prefix: "REQUEST",
+			});
 			extendRequest(req);
 			extendResponse(res);
 			req.onData(async () => {
@@ -45,8 +49,20 @@ class App {
 				try {
 					await this.dispatcher.dispatch(req, res);
 					res.send();
+					Logger.logSuccess(`Request handled: ${req.url} (${req.method})`, {
+						config: "requests",
+						prefix: "REQUEST",
+					});
 				} catch (e) {
+					res.code(res.CODES.InternalError);
 					res.send();
+					Logger.logError(
+						`Request handled with error '${e.name}': ${req.url} (${req.method})`,
+						{
+							config: "requests",
+							prefix: "REQUEST",
+						},
+					);
 					throw e;
 				}
 			});
@@ -64,21 +80,31 @@ class App {
 	}
 
 	/**
+	 *  NOTE: if handler specified with 4 parameters (error in the beginning) it will be defined as
+	 *  error handler and won't be called except the situation when an exception was occurred in
+	 * previous rules
+	 *
 	 * @callback ruleHandler
-	 * @param {Error|null} error
+	 * @param {Error|null} [error]
 	 * @param {Request} req
 	 * @param {Response} res
 	 * @param {object} data - the data that will be passed to a rule
 	 */
+
 	/**
+	 *  NOTE: if handler specified with 4 parameters (error in the beginning) it will be defined as
+	 *  error handler and won't be called except the situation when an exception was occurred in
+	 *  previous rules
 	 *
+	 *  If Handler returns true, further rules will be ignored
 	 * @param {"all"|"post"|"put"|"delete"|"get"} methods - HTTP methods
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {ruleHandler} handlers
+	 * @param {object} options
 	 */
-	addRule({ methods, mountingPath, handlers }) {
-		this.dispatcher.defineRule(methods, mountingPath, handlers);
+	addRule({ methods, mountingPath, handlers, options }) {
+		this.dispatcher.defineRule(methods, mountingPath, handlers, options);
 	}
 
 	/**

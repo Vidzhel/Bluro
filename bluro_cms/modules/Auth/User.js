@@ -1,4 +1,3 @@
-// const { Model } = require("../../dependencies");
 const Model = DependencyResolver.getDependency(null, "Model");
 const USER_ROLES = {
 	ADMIN: "ADMIN",
@@ -8,16 +7,20 @@ const USER_ROLES = {
 
 class User extends Model {
 	static ROLES = USER_ROLES;
-
-	constructor() {
-		super();
-	}
 }
 
 User.init([
 	{
 		columnName: "userName",
 		type: Model.DATA_TYPES.VARCHAR(10),
+	},
+	{
+		columnName: "blogName",
+		type: Model.DATA_TYPES.VARCHAR(20),
+	},
+	{
+		columnName: "email",
+		type: Model.DATA_TYPES.VARCHAR(20),
 	},
 	{
 		columnName: "password",

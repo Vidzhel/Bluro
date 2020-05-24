@@ -226,7 +226,11 @@ class Model extends DependencyResolver {
 		this._defaultData[name] = null;
 	}
 
-	constructor() {
+	/**
+	 *
+	 * @param data - data to fill in
+	 */
+	constructor(data = null) {
 		super();
 
 		/** @type {Statement}*/
@@ -236,10 +240,12 @@ class Model extends DependencyResolver {
 		this.ACTIONS = this.statementBuilder.BUILD_ACTIONS;
 
 		this.tableName = this.constructor.tableName;
+		this.primaryKey = this.constructor.primaryKey;
+		this.foreignKeys = this.constructor.foreignKeys;
 		this._columns = this.constructor._columns;
-		this._data = Object.assign({}, this.constructor._defaultData);
+		this._data = Object.assign({}, this.constructor._defaultData, data || {});
 
-		this.state = MODEL_STATES.CREATED;
+		this.state = data ? MODEL_STATES.SAVED : MODEL_STATES.CREATED;
 		this._modifiedColumns = [];
 
 		for (const column of Object.values(this._columns)) {
@@ -329,7 +335,7 @@ class Model extends DependencyResolver {
 
 				this._data[this.primaryKey] = result.insertId;
 
-				Logger.logInfo(`Inserted rows ${result.affectedRows} into ${this.tableName}`, {
+				Logger.logInfo(`Inserted rows ${result.affectedRows} into '${this.tableName}'`, {
 					prefix: "SAVE_MODEL",
 					config: "db",
 				});
@@ -379,11 +385,11 @@ class Model extends DependencyResolver {
 					.where({
 						firstValue: this.primaryKey,
 						operator: Model.OP.eq,
-						secondValue: this._columns[this.primaryKey],
+						secondValue: this._data[this.primaryKey],
 					})
 					.execute(this.ACTIONS.DELETE);
 
-				Logger.logInfo(`Deleted rows ${result.affectedRows} from ${this.tableName}`, {
+				Logger.logInfo(`Deleted rows ${result.affectedRows} from '${this.tableName}'`, {
 					prefix: "SAVE_MODEL",
 					config: "db",
 				});

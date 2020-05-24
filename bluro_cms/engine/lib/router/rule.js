@@ -1,7 +1,7 @@
 "use strict";
 
 const utilities = require("./utilities");
-const METHODS = ["GET", "POST", "PUT", "DELETE"];
+const METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"];
 const PATH_SYMBOL = "[0-9a-z-._~]";
 
 class Rule {
@@ -83,10 +83,13 @@ class Rule {
 		if (this.length > pathSegments.length) {
 			return false;
 		}
-		// If the rule match only the root, but a request path isn't root
-		// than rule doesn't match
-		if (pathSegments.length !== 0 && this._mountingSegmentsData.length === 0) {
-			return false;
+
+		if (this.options.sensitive) {
+			// If the rule match only the root, but a request path isn't root
+			// than rule doesn't match
+			if (pathSegments.length !== 0 && this._mountingSegmentsData.length === 0) {
+				return false;
+			}
 		}
 
 		this.extractedParams = {};
@@ -134,9 +137,11 @@ class Rule {
 			idx++;
 		}
 
-		// if requested path is longer than matching path there isn't UNI_SEGMENT
-		if (pathSegments.length > this._mountingSegmentsData.length) {
-			return false;
+		if (this.options.sensitive) {
+			// if requested path is longer than matching path (there isn't UNI_SEGMENT)
+			if (pathSegments.length > this._mountingSegmentsData.length) {
+				return false;
+			}
 		}
 
 		return true;
@@ -146,10 +151,15 @@ class Rule {
 		data.params = this.extractedParams;
 
 		if (error) {
-			const idx = await this._dispatchError(error, req, res, data, 0);
-			await this._dispatchRequest(req, res, data, idx);
+			const { idx, preventPropagation } = await this._dispatchError(error, req, res, data, 0);
+
+			if (preventPropagation) {
+				return preventPropagation;
+			}
+
+			return await this._dispatchRequest(req, res, data, idx);
 		} else {
-			await this._dispatchRequest(req, res, data);
+			return await this._dispatchRequest(req, res, data);
 		}
 	}
 
@@ -162,8 +172,8 @@ class Rule {
 
 			// if error handler
 			if (handler.length > 3) {
-				await handler(error, req, res, data);
-				return handler_index;
+				const preventPropagation = await handler(error, req, res, data);
+				return { idx: handler_index, preventPropagation };
 			}
 		}
 
@@ -173,20 +183,23 @@ class Rule {
 	async _dispatchRequest(req, res, data, handler_index = 0) {
 		const method = req.method;
 		const handlers = this._handlers[method];
+		let stopPropagating = false;
 
-		for (let i = handler_index; i < handlers.length; i++) {
+		for (let i = handler_index; i < handlers.length && !stopPropagating; i++) {
 			const handler = handlers[i];
 
 			try {
 				// if a handler is a request handler
 				if (!(handler.length > 3)) {
-					await handler(req, res, data);
+					stopPropagating = await handler(req, res, data);
 				}
 			} catch (error) {
 				// if no error handler was specified
-				await this._dispatchError(error, req, res, data, i);
+				stopPropagating = await this._dispatchError(error, req, res, data, i);
 			}
 		}
+
+		return stopPropagating;
 	}
 
 	_processPathSegments(pathSegments) {

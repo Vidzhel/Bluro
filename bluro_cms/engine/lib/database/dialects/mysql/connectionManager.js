@@ -17,8 +17,7 @@ class ConnectionManager extends BaseConnectionManager {
 		})
 			.then((result) => {
 				let message = `Connected to a database, ${config.host}`;
-				Logger.logInfo(message, { config: "db", obj: result });
-				Logger.logInfo(message, { obj: result });
+				Logger.logInfo(message, { config: "db" });
 			})
 			.catch((err) => {
 				Logger.logError("Connection failed", {
@@ -35,15 +34,15 @@ class ConnectionManager extends BaseConnectionManager {
 	 * @return {Promise}
 	 */
 	query(query) {
-		Logger.logInfo(query, { prefix: "QUERY_REQUEST" });
+		Logger.logInfo(query, { prefix: "QUERY_REQUEST", config: "db" });
 
 		return new Promise((resolve, reject) => {
 			this.connection.query(query, (error, result, fields) => {
 				if (error) {
-					Logger.logError(query, { prefix: "QUERY_ERR", error });
+					Logger.logError(query, { prefix: "QUERY_ERR", error, config: "db" });
 					reject(error);
 				} else {
-					Logger.logSuccess(query, { prefix: "QUERY_RES", obj: result });
+					Logger.logSuccess(query, { prefix: "QUERY_RES", obj: result, config: "db" });
 
 					resolve({ result, fields });
 				}
