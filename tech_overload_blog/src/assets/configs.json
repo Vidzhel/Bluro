@@ -1,0 +1,7 @@
+{
+  "endpoints": {
+    "base": "http://localhost:8080/",
+    "register": "http://localhost:8080/signup",
+    "login": "http://localhost:8080/login"
+  }
+}
