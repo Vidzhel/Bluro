@@ -12,10 +12,21 @@
 	},
 	"modules": ["Auth"],
 	"cors": {
-		"allowedMethods": ["PUT", "DELETE"],
-		"allowedOrigins": ["http://localhost:3000"],
-		"allowedHeaders": ["Content-Type"],
+		"allowedMethods": [
+			"PUT",
+			"DELETE",
+			"POST",
+			"GET"
+		],
+		"allowedOrigins": [
+			"http://localhost:3000"
+		],
+		"allowedHeaders": [
+			"Content-Type",
+			"Cookies"
+		],
 		"exposedHeaders": [],
-		"permissionAge": 86400
+		"permissionAge": 86400,
+		"allowCredentials": true
 	}
 }

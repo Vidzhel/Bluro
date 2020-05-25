@@ -127,13 +127,12 @@ class RulesDispatcher {
 		const data = {};
 		let error;
 		let requestHandled = false;
+		let preventPropagation = false;
 
 		// Iterate over all matching the path length rules and dispatch the rules that are match
 		// rules are sorted by ascending
 		for (const rule of rules) {
 			if (rule.match(method, pathSegments)) {
-				let preventPropagation = false;
-
 				if (error) {
 					preventPropagation = await rule.dispatch(error, req, res, data);
 					error = null;
@@ -147,9 +146,13 @@ class RulesDispatcher {
 
 				if (preventPropagation) {
 					requestHandled = true;
-					break;
+					return;
 				}
 			}
+		}
+
+		if (error) {
+			throw error;
 		}
 
 		// Iterate over all rotes from the longest one to the shortest and

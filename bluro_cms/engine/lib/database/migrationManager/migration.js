@@ -249,8 +249,8 @@ class Migration extends DependencyResolver {
 						break;
 					}
 					case MIGRATE_ACTIONS.DELETE_COLUMN: {
-						for (const columnDefinition of Object.values(data)) {
-							this._deleteColumn(tableName, columnDefinition.columnName);
+						for (const name of Object.keys(data)) {
+							this._deleteColumn(tableName, name);
 						}
 						break;
 					}

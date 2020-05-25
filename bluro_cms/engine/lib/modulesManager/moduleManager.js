@@ -61,7 +61,7 @@ class ModuleManager {
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {routeHandler} handler
-	 * @param {object?} options - additional props that will be passed to route
+	 * @param {object} [options] - additional props that will be passed to route
 	 * controller, will be overwritten by the data that is filled by rules
 	 */
 	connectRoute(methods, mountingPath, handler, options = null) {
@@ -75,7 +75,8 @@ class ModuleManager {
 	/**
 	 *
 	 *  NOTE: if handler specified with 4 parameters (error in the beginning) it will be defined as
-	 *  error handler and won't be called except the situation when an exception was occurred in previous rules
+	 *  error handler and won't be called except the situation when an exception was occurred in
+	 * previous rules
 	 *
 	 *	If a rule returns true, further rules will be ignored
 	 *
@@ -83,7 +84,7 @@ class ModuleManager {
 	 * @param {string} mountingPath - if an existing mounting point is specified, the previous
 	 *     handler will be overwritten
 	 * @param {ruleHandler} handlers
-	 * @param {object} options
+	 * @param {object} [options]
 	 * @param {boolean} options.sensitive
 	 */
 	connectRule(methods, mountingPath, handlers, options) {

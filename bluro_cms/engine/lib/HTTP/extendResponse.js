@@ -1,6 +1,7 @@
 module.exports = function extendResponse(res) {
 	/**
-	 * @type {{Unauth: number, Forbidden: number, InternalError: number, OK: number, BadReq: number, Accepted: number, Created: number, NotFound: number}}
+	 * @type {{Unauth: number, Forbidden: number, InternalError: number, OK: number, BadReq:
+	 *     number, Accepted: number, Created: number, NotFound: number}}
 	 */
 	res.CODES = {
 		OK: 200,
@@ -14,9 +15,9 @@ module.exports = function extendResponse(res) {
 	};
 
 	res._chunks = {
-		errors: [],
-		success: [],
+		session: {}, errors: [], success: [], info: [],
 	};
+
 	res._addChunk = function (type, chunk) {
 		this._chunks[type].push(chunk);
 	};
@@ -28,9 +29,25 @@ module.exports = function extendResponse(res) {
 			res.statusCode = res.CODES.BadReq;
 		}
 	};
+
 	res.success = function (success) {
 		res._chunks.success.push(success);
 	};
+
+	res.info = function (info) {
+		res._chunks.info.push(info);
+	};
+
+	res.setCookie = function (key, val) {
+		return res.setHeader("Set-Cookie", `${key}:${val}`);
+	};
+
+	res.setCredentials = function (credentials) {
+		res._chunks.session = {
+			...res._chunks.session, ...credentials,
+		};
+	};
+
 	/**
 	 *
 	 * @param {CODES} code

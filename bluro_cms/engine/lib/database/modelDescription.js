@@ -48,7 +48,7 @@ class ModelDescription {
 			return COMPARE_COLUMNS.OTHER_COLUMN_NOT_DEFINED;
 		}
 		if (!thisColumn) {
-			return COMPARE_COLUMNS.OTHER_COLUMN_NOT_DEFINED;
+			return COMPARE_COLUMNS.THIS_COLUMN_NOT_DEFINED;
 		}
 
 		if (

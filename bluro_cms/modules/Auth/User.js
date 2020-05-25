@@ -23,8 +23,7 @@ User.init([
 		type: Model.DATA_TYPES.VARCHAR(20),
 	},
 	{
-		columnName: "password",
-		type: Model.DATA_TYPES.VARCHAR(10),
+		columnName: "pass", type: Model.DATA_TYPES.VARCHAR(100),
 	},
 	{
 		columnName: "role",

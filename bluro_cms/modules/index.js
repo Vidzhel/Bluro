@@ -29,10 +29,16 @@ module.exports = function initModules(options) {
 function cors(req, res, data) {
 	const cors = ConfigsManager.getEntry("cors");
 
+	// Always required headers
 	if (cors.allowedOrigins.length) {
 		res.setHeader("Access-Control-Allow-Origin", cors.allowedOrigins.join(", "));
 	}
 
+	if (cors.allowCredentials) {
+		res.setHeader("Access-Control-Allow-Credentials", cors.allowCredentials);
+	}
+
+	// Required on option method
 	if (req.method === "OPTIONS") {
 		if (cors.allowedHeaders.length) {
 			res.setHeader("Access-Control-Allow-Headers", cors.allowedHeaders.join(", "));

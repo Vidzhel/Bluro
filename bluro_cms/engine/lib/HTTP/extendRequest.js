@@ -17,6 +17,20 @@ module.exports = function extendRequest(request) {
 		callback();
 	};
 
+	request.getCookie = function (key) {
+		return findCookie(key, request.headers["cookie"] || "");
+	};
+
+	function findCookie(key, cookies) {
+		const regExp = new RegExp(`;?${key}:(.*);?`);
+		const res = regExp.exec(cookies);
+		if (res) {
+			return res[1] || null;
+		}
+
+		return null;
+	}
+
 	request.json = function () {
 		if (this._ready) {
 			return JSON.parse(this._chunks);

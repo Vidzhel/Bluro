@@ -47,10 +47,18 @@ class ConfigsManager {
 	}
 
 	/**
+	 * Tries to get entry from environment, if fails, returns config file variable
+	 *
 	 * @param {string} key
 	 * @returns {*|null}
 	 */
 	getEntry(key) {
+		const env = process.env[key];
+
+		if (env) {
+			return env;
+		}
+
 		return this._data[key] || null;
 	}
 
