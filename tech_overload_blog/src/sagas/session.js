@@ -47,7 +47,7 @@ function* signUpFlow(action) {
 			type: SES_ASYNC.LOGIN_ASYNC_SUCCESS,
 			message: "You've been successfully registered",
 		});
-		action.history.push("/login");
+		action.history.push("/auth/login");
 	} else {
 		yield put({
 			type: SES_ASYNC.LOGIN_ASYNC_FAILURE,
@@ -77,6 +77,8 @@ function* tryFetch(timeout, endpoint, requestData) {
 				...requestData,
 				signal,
 				mode: "cors",
+				redirect: "follow",
+				credentials: "include",
 			}),
 			delay(timeout, true),
 		]);

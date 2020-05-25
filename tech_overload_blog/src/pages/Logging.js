@@ -1,5 +1,5 @@
 import React from "react";
-import { Auth } from "../components/Auth";
+import { Auth } from "../containers/Auth";
 import { Route, useRouteMatch, Switch } from "react-router-dom";
 import { SignUpForm } from "../components/SignUpForm";
 import { LoginForm } from "../components/LoginForm";

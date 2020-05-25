@@ -53,8 +53,16 @@
 
 ```
 {
-    errors: [], // Error messages
-    success: [], // Success messages
+    session: {
+      userName: string,
+      email: string,
+      role: string
+    },
+
+    errors: [],
+    success: [],
+    info: [],
+
     collection: {
         count: number // Number of items in the collection
         data: [] // Collection of data
@@ -79,3 +87,11 @@
 404 **Not Found** - The user is able to communicate with the server but it is unable to locate the requested file or resource.
 
 500 **Internal Server Error** - Server cannot process the request for an unknown reason.
+
+### Start
+
+To start bluro cms you need to provide some config parameters. You can do it ether by passing into config.json in the root of the bluro_cms directory or by specifying environment variable. I'd recommend set sensitive data as an environment variable.
+
+Environment variables:
+
+-   secret - string that will be used to generate and validate JWT (JS Website Tokens)
