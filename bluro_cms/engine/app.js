@@ -26,16 +26,12 @@ class App {
 	}
 
 	_validateOptions() {
-		const {host, port} = this.options;
+		const { host, port } = this.options;
 
-		if (!(
-			port && PORT_REGEX.test(port.toString())
-		)) {
+		if (!(port && PORT_REGEX.test(port.toString()))) {
 			throw new Error("Wrong port format was specified");
 		}
-		if (!(
-			host && IP_REGEX.test(host)
-		)) {
+		if (!(host && IP_REGEX.test(host))) {
 			throw new Error("Wrong ip format was specified");
 		}
 	}
@@ -44,7 +40,8 @@ class App {
 		return this.protocol.createServer((req, res) => {
 			try {
 				Logger.logInfo(`Request received: ${req.url} (${req.method})`, {
-					config: "requests", prefix: "REQUEST",
+					config: "requests",
+					prefix: "REQUEST",
 				});
 				extendRequest(req);
 				extendResponse(res);
@@ -65,7 +62,8 @@ class App {
 		res.send();
 
 		Logger.logSuccess(`Request handled: ${req.url} (${req.method})`, {
-			config: "requests", prefix: "REQUEST",
+			config: "requests",
+			prefix: "REQUEST",
 		});
 	}
 
@@ -74,16 +72,19 @@ class App {
 		res.send();
 
 		Logger.logError(`Request handled with error '${e.name}': ${req.url} (${req.method})`, {
-			config: "requests", prefix: "REQUEST",
+			config: "requests",
+			prefix: "REQUEST",
 		});
 		Logger.logError("Request handled with error", {
-			error: e, config: "errors", prefix: "Unhandled error",
+			error: e,
+			config: "errors",
+			prefix: "Unhandled error",
 		});
 	}
 
 	start() {
 		return new Promise((resolve) => {
-			const {host, https, port} = this.options;
+			const { host, https, port } = this.options;
 			this.server.listen(port, host, () => {
 				Logger.logInfo(`Server running at ${https ? "https" : "http"}://${host}:${port}/`);
 				resolve();

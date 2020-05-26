@@ -132,7 +132,8 @@ const DEFAULT_CONFIGS = [
 		targets: {
 			console: true,
 			files: {
-				path: ROOT + "/logs/requests.log", verbose: "requests",
+				path: ROOT + "/logs/requests.log",
+				verbose: "requests",
 			},
 		},
 	},
