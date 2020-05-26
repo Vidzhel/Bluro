@@ -28,50 +28,62 @@ class App {
 	_validateOptions() {
 		const { host, port } = this.options;
 
-		if (!(port && PORT_REGEX.test(port.toString()))) {
+		if (!(
+			port && PORT_REGEX.test(port.toString())
+		)) {
 			throw new Error("Wrong port format was specified");
 		}
-		if (!(host && IP_REGEX.test(host))) {
+		if (!(
+			host && IP_REGEX.test(host)
+		)) {
 			throw new Error("Wrong ip format was specified");
 		}
 	}
 
 	initServer() {
 		return this.protocol.createServer((req, res) => {
-			Logger.logInfo(`Request received: ${req.url} (${req.method})`, {
-				config: "requests",
-				prefix: "REQUEST",
-			});
-			extendRequest(req);
-			extendResponse(res);
-			req.onData(async () => {
-				res.setHeader("Content-Type", "application/json");
-				try {
-					await this.dispatcher.dispatch(req, res);
-					res.send();
-					Logger.logSuccess(`Request handled: ${req.url} (${req.method})`, {
-						config: "requests",
-						prefix: "REQUEST",
-					});
-				} catch (e) {
-					res.code(res.CODES.InternalError);
-					res.send();
-					Logger.logError(
-						`Request handled with error '${e.name}': ${req.url} (${req.method})`,
-						{
-							config: "requests",
-							prefix: "REQUEST",
-						},
-					);
-					throw e;
-				}
-			});
+			try {
+				Logger.logInfo(`Request received: ${req.url} (${req.method})`, {
+					config: "requests", prefix: "REQUEST",
+				});
+				extendRequest(req);
+				extendResponse(res);
+
+				req.onData(async () => {
+					await this.handleData(req, res);
+				});
+			} catch (e) {
+				this.handleError(res, e);
+			}
+		});
+	}
+
+	async handleData(req, res) {
+		res.setHeader("Content-Type", "application/json");
+
+		await this.dispatcher.dispatch(req, res);
+		res.send();
+
+		Logger.logSuccess(`Request handled: ${req.url} (${req.method})`, {
+			config: "requests", prefix: "REQUEST",
+		});
+	}
+
+	handleError(res, e) {
+		res.code(res.CODES.InternalError);
+		res.send();
+
+		Logger.logError(`Request handled with error '${e.name}': ${req.url} (${req.method})`, {
+			config: "requests", prefix: "REQUEST",
+		});
+		Logger.logError("Request handled with error", {
+			error: e, config: "errors", prefix: "Unhandled error",
 		});
 	}
 
 	start() {
 		return new Promise((resolve) => {
-			const { host, https, port } = this.options;
+			const {host, https, port} = this.options;
 			this.server.listen(port, host, () => {
 				Logger.logInfo(`Server running at ${https ? "https" : "http"}://${host}:${port}/`);
 				resolve();

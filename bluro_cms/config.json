@@ -1,26 +1,29 @@
 {
 	"app": {
-		"host": "127.0.0.1",
-		"port": "8080"
-	},
-	"database": {
-		"host": "localhost",
-		"database": "bluro",
-		"user": "root",
-		"password": "HardPass123",
-		"connectTimeout": 10000
-	},
-	"modules": ["Auth"],
-	"cors": {
-		"allowedMethods": [
-			"PUT",
-			"DELETE",
-			"POST",
-			"GET"
-		],
-		"allowedOrigins": [
-			"http://localhost:3000"
-		],
+      "host": "127.0.0.1",
+      "port": "8080"
+    },
+  "database": {
+    "host": "localhost",
+    "database": "bluro",
+    "user": "root",
+    "password": "HardPass123",
+    "connectTimeout": 10000
+  },
+  "modules": [
+    "Auth",
+    "Article"
+  ],
+  "cors": {
+    "allowedMethods": [
+      "PUT",
+      "DELETE",
+      "POST",
+      "GET"
+    ],
+    "allowedOrigins": [
+      "http://localhost:3000"
+    ],
 		"allowedHeaders": [
 			"Content-Type",
 			"Cookies"

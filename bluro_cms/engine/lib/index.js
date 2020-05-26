@@ -6,9 +6,11 @@ module.exports.initLib = async function (options = {}) {
 
 	initConfig(options);
 
+	const initFileManager = require("./fileManager");
 	const loggerInit = require("./logger");
 	const initDialect = require("./database");
 
+	initFileManager(options);
 	loggerInit(options);
 	await initDialect(options);
 

@@ -132,8 +132,7 @@ const DEFAULT_CONFIGS = [
 		targets: {
 			console: true,
 			files: {
-				path: ROOT + "/logs/errors.log",
-				verbose: "requests",
+				path: ROOT + "/logs/requests.log", verbose: "requests",
 			},
 		},
 	},
@@ -362,6 +361,7 @@ class Logger {
 					prevRes.push(current(info));
 					return prevRes;
 				}, [])
+				.map((str) => str.trim())
 				.filter((str) => !!str)
 				.join(" ");
 		};

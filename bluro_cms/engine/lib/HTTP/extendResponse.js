@@ -14,9 +14,7 @@ module.exports = function extendResponse(res) {
 		InternalError: 500,
 	};
 
-	res._chunks = {
-		session: {}, errors: [], success: [], info: [],
-	};
+	res._chunks = {errors: [], success: [], info: []};
 
 	res._addChunk = function (type, chunk) {
 		this._chunks[type].push(chunk);
@@ -48,6 +46,15 @@ module.exports = function extendResponse(res) {
 		};
 	};
 
+	res.setCollection = function (data, offset, count) {
+		res._chunks.collection = {
+			data, offset, count,
+		};
+	};
+
+	res.setEntry = function (entry) {
+		res._chunks.entry = entry;
+	};
 	/**
 	 *
 	 * @param {CODES} code
