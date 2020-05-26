@@ -26,7 +26,7 @@ class App {
 	}
 
 	_validateOptions() {
-		const { host, port } = this.options;
+		const {host, port} = this.options;
 
 		if (!(
 			port && PORT_REGEX.test(port.toString())
