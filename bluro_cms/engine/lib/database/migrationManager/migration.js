@@ -15,8 +15,8 @@ class Migration extends DependencyResolver {
 	constructor({ module, migrationDir, moduleName, index = 0, migrationName = null }) {
 		super();
 		this.index = index;
-		this.migrationDir = migrationDir || Migration._getMigrationDir(module.path);
 		this.moduleName = moduleName || module.name;
+		this.migrationDir = migrationDir || Migration._getMigrationDir(module.path);
 		this.name = migrationName || Migration._generateMigrationName(index, this.moduleName);
 		this.path = this.migrationDir + "/" + this.name;
 		this.tables = new Map();
@@ -30,7 +30,7 @@ class Migration extends DependencyResolver {
 		// this.saved = false;
 	}
 
-	static async loadMigrations(module) {
+	static loadMigrations(module) {
 		const dir = Migration._getMigrationDir(module.path);
 		this.saved = true;
 		return Migration._getMigrations(dir);
@@ -42,11 +42,11 @@ class Migration extends DependencyResolver {
 
 	static _getMigrationDir(modulePath) {
 		const migrationsDir = modulePath + "/migrations";
-		fs.access(migrationsDir, fs.constants.F_OK, (err) => {
-			if (err) {
-				fs.mkdirSync(migrationsDir);
-			}
-		});
+		try {
+			fs.accessSync(migrationsDir, fs.constants.F_OK);
+		} catch (e) {
+			fs.mkdirSync(migrationsDir);
+		}
 
 		return migrationsDir;
 	}
@@ -59,13 +59,7 @@ class Migration extends DependencyResolver {
 	 */
 	static _getMigrations(migrationDirectory) {
 		const migrations = [];
-		let dirHandler;
-		try {
-			dirHandler = fs.opendirSync(migrationDirectory);
-		} catch (e) {
-			fs.mkdirSync(migrationDirectory);
-			dirHandler = fs.opendirSync(migrationDirectory);
-		}
+		let dirHandler = fs.opendirSync(migrationDirectory);
 
 		let file = dirHandler.readSync();
 		while (file) {
@@ -163,6 +157,8 @@ class Migration extends DependencyResolver {
 			formattedForeignKey = {
 				columnName: foreignKey.columnName,
 				tableName: foreignKey.tableName,
+				onUpdate: foreignKey.onUpdate,
+				onDelete: foreignKey.onDelete,
 			};
 		}
 

@@ -1,5 +1,6 @@
 const Model = DependencyResolver.getDependency(null, "Model");
 const bcrypt = require("bcryptjs");
+const VERBOSE_REGEXP = /[0-9a-z-._~]/i;
 const USER_ROLES = {
 	ADMIN: "ADMIN",
 	USER: "USER",
@@ -19,6 +20,11 @@ User.init([
 	{
 		columnName: "userName",
 		type: Model.DATA_TYPES.VARCHAR(10),
+	},
+	{
+		columnName: "verbose",
+		type: Model.DATA_TYPES.VARCHAR(50, VERBOSE_REGEXP),
+		unique: true,
 	},
 	{
 		columnName: "email",

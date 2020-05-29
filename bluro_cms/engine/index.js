@@ -10,7 +10,11 @@ const MigrationManager = require("./lib/database/migrationManager/migrationManag
 })();
 
 async function startApp(options) {
-	const configs = ConfigsManager.getEntry("app");
+	const configs = {
+		host: ConfigsManager.getEntry("host"),
+		port: ConfigsManager.getEntry("port"),
+	};
+
 	const app = new App(configs);
 	await connectModules(options.modulesManager, app);
 	await app.start();

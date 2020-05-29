@@ -446,7 +446,7 @@ class Model extends DependencyResolver {
 			const res = validator(value, columnDefinition);
 			if (res.fail) {
 				throw new Error(
-					`Validation error for value "${value}" in the "${this.tableName}" model, description: ${res.description}`,
+					`Validation error for value "${value}" in the "${this.tableName}" model, column '${columnDefinition.columnName}', description: ${res.description}`,
 				);
 			}
 		}

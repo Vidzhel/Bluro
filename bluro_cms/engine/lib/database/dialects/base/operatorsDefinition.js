@@ -44,6 +44,11 @@ const definitions = {
 	// [OP.rightJoin]: "RIGHT JOIN",
 	// [OP.fullJoin]: "FULL JOIN",
 	// [OP.placeholder]: "$$PLACEHOLDER$$",
+	[OP.SET_NULL]: "SET NULL",
+	[OP.RESTRICT]: "RESTRICT",
+	[OP.NO_ACTION]: "NO ACTION",
+	[OP.SET_DEFAULT]: "SET DEFAULT",
+	[OP.CASCADE]: "CASCADE",
 };
 
 module.exports = definitions;

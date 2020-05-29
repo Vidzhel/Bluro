@@ -11,7 +11,13 @@ module.exports = async function initDialect(options, dialect = "mySql") {
 	}
 
 	const base = REGISTERED_DRIVERS[dialect];
-	const dbConfigs = global.ConfigsManager.getEntry("database");
+	const dbConfigs = {
+		host: ConfigsManager.getEntry("dbhost"),
+		database: ConfigsManager.getEntry("database"),
+		user: ConfigsManager.getEntry("user"),
+		password: ConfigsManager.getEntry("password"),
+		connectTimeout: ConfigsManager.getEntry("connectTimeout"),
+	};
 
 	const connectionManager = require(base + "/connectionManager");
 	await connectionManager.connect(dbConfigs);

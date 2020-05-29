@@ -17,17 +17,24 @@ Article.init([
 	},
 	{
 		columnName: "user",
-		foreignKey: { table: "User", columnName: "id" },
+		foreignKey: {
+			table: "User",
+			columnName: "id",
+			onDelete: Model.OP.CASCADE,
+			onUpdate: Model.OP.CASCADE,
+		},
 		type: Model.DATA_TYPES.INT(),
 	},
 	{
 		columnName: "dateOfPublishing",
+		verboseName: "Date of publishing",
 		type: Model.DATA_TYPES.DATE_TIME(),
 		nullable: true,
 		validators: Model.CUSTOM_VALIDATORS_GENERATORS.dateInterval(),
 	},
 	{
 		columnName: "dateOfChanging",
+		verboseName: "Date of changing",
 		type: Model.DATA_TYPES.DATE_TIME(),
 		validators: Model.CUSTOM_VALIDATORS_GENERATORS.dateInterval(),
 	},

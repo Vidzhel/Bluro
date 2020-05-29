@@ -45,6 +45,11 @@ const OPId = {
 	// leftJoin: Symbol("leftJoin"),
 	// rightJoin: Symbol("rightJoin"),
 	// fullJoin: Symbol("fullJoin"),
+	SET_NULL: "SET_NULL",
+	RESTRICT: "RESTRICT",
+	NO_ACTION: "NO_ACTION",
+	SET_DEFAULT: "SET_DEFAULT",
+	CASCADE: "CASCADE",
 };
 
 module.exports = OPId;

@@ -69,16 +69,15 @@ class MigrationManager {
 	}
 
 	static async applyMigration(module) {
-		await Migration.loadMigrations(module).then(async (migrations) => {
-			for (const migration of migrations) {
-				if (!migration.migrated) {
-					await migration.migrate();
-					Logger.logSuccess(`Migrated '${migration.name}'`, {
-						prefix: "MIGRATION_MANAGER",
-					});
-				}
+		const migrations = Migration.loadMigrations(module);
+		for (const migration of migrations) {
+			if (!migration.migrated) {
+				await migration.migrate();
+				Logger.logSuccess(`Migrated '${migration.name}'`, {
+					prefix: "MIGRATION_MANAGER",
+				});
 			}
-		});
+		}
 	}
 
 	static _prioritiseModels(models) {

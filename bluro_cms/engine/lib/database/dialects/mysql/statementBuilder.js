@@ -142,16 +142,22 @@ class StatementBuilder extends baseStatementBuilder {
 	//
 	// }
 
-	_declareForeignKey(columnName, { tableName, columnName: foreignColumn, constraintName }) {
+	_declareForeignKey(
+		columnName,
+		{ tableName, columnName: foreignColumn, constraintName, onDelete, onUpdate },
+	) {
 		if (typeof tableName !== "string") {
 			throw new Error("Table name was expected, got " + typeof tableName);
 		}
+
+		const onUpdateClause = onUpdate ? `ON UPDATE ${onUpdate}` : "";
+		const onDeleteClause = onUpdate ? `ON DELETE ${onDelete} ` : "";
 
 		return `CONSTRAINT ${constraintName} FOREIGN KEY (${this._escapeIdentifiers(
 			columnName,
 		)}) REFERENCES ${this._escapeIdentifiers(tableName)}(${this._escapeIdentifiers(
 			foreignColumn,
-		)})`;
+		)}) ${onDeleteClause}${onUpdateClause}`;
 	}
 
 	dropTable(tableName) {

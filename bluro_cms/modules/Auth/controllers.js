@@ -1,6 +1,7 @@
 const User = require("./User");
 const bcrypt = require("bcryptjs");
 const jwtGenerator = require("njwt");
+const { v1: uuid } = require("uuid");
 
 function requireAuthorization(req, res, data) {
 	if (!data.session) {
@@ -52,6 +53,7 @@ function handleTokenLogin(req, res, user, tokenBody, data) {
 				email: tokenBody.email,
 				userName: user.userName,
 				role: tokenBody.role,
+				verbose: tokenBody.verbose,
 			};
 
 			data.session = { ...credentials, id: tokenBody.id };
@@ -78,6 +80,112 @@ async function signupController(req, res, data) {
 	if (validateRegister(res, credentials)) {
 		await signup(res, credentials);
 	}
+}
+
+async function getProfileController(req, res, data) {
+	const verbose = data.params.verbose;
+
+	const set = await User.selector
+		.filter({
+			verbose,
+		})
+		.fetch();
+	const user = set.get(0);
+
+	if (!user) {
+		res.error("User doesn't exist");
+		res.code(res.CODES.NotFound);
+		return;
+	}
+
+	res.setEntry(await user.toObject());
+}
+
+async function getProfilesController(req, res) {
+	const count = parseInt(req.query.count) || 10;
+	const offset = parseInt(req.query.offset) || 0;
+	let results;
+
+	const set = await User.selector.limit(offset, count).fetch();
+
+	results = await set.getList();
+	res.setCollection(results, offset, count);
+}
+
+async function updateProfileController(req, res, data) {
+	const verbose = data.params.verbose;
+
+	if (!checkRights(data, res, verbose)) {
+		return;
+	}
+	let set = await User.selector.filter({ verbose }).fetch();
+	const user = set.get(0);
+
+	if (!user) {
+		res.error("User doesn't exist");
+		res.code(res.CODES.NotFound);
+		return;
+	}
+
+	let { userName, verbose: newVerbose, email, pass, repPass, role } = data.reqData;
+	if (pass && !repPass) {
+		res.error("To change password specify password and repeat password");
+		res.code(res.CODES.BadReq);
+		return;
+	}
+	if (pass && pass !== repPass) {
+		res.error("Passwords don't match");
+		res.code(res.CODES.BadReq);
+		return;
+	}
+
+	set = await User.selector.filter({ verbose: newVerbose }).fetch();
+	if (set.length !== 0) {
+		res.error("User with the same verbose has already been registered");
+		res.code(res.CODES.Forbidden);
+		return;
+	}
+
+	const userData = {
+		userName,
+		verbose: newVerbose,
+		email,
+		pass,
+		role,
+	};
+
+	const validationResult = User.validateValues(userData, true);
+	if (validationResult.fail) {
+		res.error(validationResult.constructor);
+		res.code(res.CODES.BadReq);
+		return;
+	}
+
+	await User.update(userData, {
+		verbose,
+	});
+
+	// If that user was updated, set new credentials
+	if (verbose === data.session.verbose) {
+		res.setCredentials({
+			email: userData.email || data.session.email,
+			userName: userData.userName || data.session.userName,
+			role: userData.role || data.session.role,
+			verbose: userData.verbose || data.session.verbose,
+		});
+	}
+}
+
+async function deleteProfileController(req, res, data) {
+	const verbose = data.params.verbose;
+
+	if (!checkRights(data, res, verbose)) {
+		return;
+	}
+
+	await User.del({
+		verbose,
+	});
 }
 
 function validateRegister(res, data) {
@@ -112,12 +220,14 @@ async function login(res, credentials) {
 			email: user.email,
 			pass: user.pass,
 			role: user.role,
+			verbose: user.verbose,
 		});
 
 		res.setCredentials({
 			email: user.email,
 			login: user.userName,
 			role: user.role,
+			verbose: user.verbose,
 		});
 
 		res.setCookie("token", jwt);
@@ -140,13 +250,13 @@ async function signup(res, credentials) {
 		res.code(res.CODES.Forbidden);
 	} else {
 		const userData = {
+			verbose: uuid(),
 			userName: credentials.login,
 			email: credentials.email,
 			pass: credentials.pass,
 		};
 
 		const result = User.validateValues(userData, true);
-
 		if (result.fail) {
 			res.error(result.description);
 			res.code(res.CODES.BadReq);
@@ -182,9 +292,26 @@ function generateJWT(credentials) {
 	return jwt.compact();
 }
 
-DependencyResolver.registerType({ dependency: requireAuthorization });
+function checkRights(data, res, verbose) {
+	if (data.session.role !== "ADMIN" && data.session.verbose !== verbose) {
+		res.error("You don't have rights to change the user profile");
+		res.code(res.CODES.Forbidden);
+		return false;
+	}
+	if (data.reqData.role && data.session.role !== "ADMIN") {
+		res.error("You aren't allowed to change role");
+		res.code(res.CODES.Forbidden);
+		return false;
+	}
 
-module.exports.loginPage = loginController;
-module.exports.signupPage = signupController;
+	return true;
+}
+
+module.exports.loginController = loginController;
+module.exports.signupController = signupController;
 module.exports.authRule = authRule;
 module.exports.requireAuthorizationRule = requireAuthorization;
+module.exports.getProfileController = getProfileController;
+module.exports.getProfilesController = getProfilesController;
+module.exports.updateProfileController = updateProfileController;
+module.exports.deleteProfileController = deleteProfileController;
