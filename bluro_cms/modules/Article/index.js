@@ -3,6 +3,8 @@ const controllers = require("./controllers");
 
 module.exports = function initAuth(options) {
 	const manager = options.modulesManager;
+	DependencyResolver.registerType({ dependency: Article });
+
 	const requireAuthorization = DependencyResolver.getDependency(null, "requireAuthorization");
 	FilesManager.createDir("articles");
 	FilesManager.createDir("articles/text");

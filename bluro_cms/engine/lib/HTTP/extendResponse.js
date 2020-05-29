@@ -57,7 +57,7 @@ module.exports = function extendResponse(res) {
 			data,
 			offset,
 			count,
-			actualCount: data ? data.length || 1 : 0,
+			actualCount: data ? data.length : 0,
 		};
 	};
 

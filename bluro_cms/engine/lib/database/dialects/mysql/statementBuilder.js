@@ -127,15 +127,15 @@ class StatementBuilder extends baseStatementBuilder {
 	}
 
 	_declareConstraints(columnsDefinition) {
-		return this._groupValues(
-			columnsDefinition.map((column) => {
-				if (column.foreignKey) {
-					return this._declareForeignKey(column.name, column.foreignKey) + "\n  ";
-				}
+		const clauses = [];
 
-				return "";
-			}),
-		);
+		columnsDefinition.forEach((column) => {
+			if (column.foreignKey) {
+				clauses.push(this._declareForeignKey(column.name, column.foreignKey));
+			}
+		});
+
+		return clauses.join(",\n  ");
 	}
 	//
 	// addConstraint(columnDefinition) {
@@ -172,15 +172,15 @@ class StatementBuilder extends baseStatementBuilder {
 	/**
 	 *
 	 * @param {string} tableName
-	 * @param {string[]} columnsDefinitions
+	 * @param {string[]} columnsNames
 	 */
-	dropColumns(tableName, columnsDefinitions) {
+	dropColumns(tableName, columnsNames) {
 		if (typeof tableName !== "string") {
 			throw new TypeError("String was expected, got " + typeof tableName);
 		}
 
 		let clause = `ALTER TABLE ${this._escapeIdentifiers(tableName)}\n  DROP COLUMN `;
-		clause += columnNames
+		clause += columnsNames
 			.map((columnName) => this._escapeIdentifiers(columnName))
 			.join(",  \n DROP COLUMN ");
 

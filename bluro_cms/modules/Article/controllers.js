@@ -9,12 +9,14 @@ const FILES_LOCATION = {
 async function getArticles(req, res, data) {
 	const count = parseInt(req.query.count) || 10;
 	const offset = parseInt(req.query.offset) || 0;
+	const publishedOnly = req.query.published ? req.query.published === "true" : true;
 	let results;
 
-	const set = await Article.selector
-		.orderBy({ dateOfPublishing: "DESC" })
-		.limit(offset, count)
-		.fetch();
+	const selector = Article.selector.orderBy({ dateOfPublishing: "DESC" }).limit(offset, count);
+	if (publishedOnly) {
+		selector.filter({ state: Article.STATES.PUBLISHED });
+	}
+	const set = await selector.fetch();
 
 	results = await set.getList();
 	res.setCollection(results, offset, count);
@@ -38,15 +40,17 @@ async function getArticle(req, res, data) {
 
 async function createArticle(req, res, data) {
 	await changeAmbiguousVerbose(data);
-	let { publDate, changeDate, description, title, verbose } = data.reqData;
+	let { state, description, title, verbose } = data.reqData;
+	state = state || Article.STATES.PENDING_PUBLISHING;
+
 	const article = {
 		user: data.session.id,
 		verbose: verbose || uuid(),
-		dateOfPublishing: publDate ? new Date(parseInt(changeDate)) : null,
-		dateOfChanging: new Date(parseInt(changeDate)),
+		dateOfPublishing: state === Article.STATES.PUBLISHED ? new Date() : null,
+		dateOfChanging: new Date(),
 		title: title,
 		description: description,
-		state: "PENDING_PUBLISHING",
+		state,
 		textSourceName: data.files["content"] || null,
 		previewImageName: data.files["previewImg"] || null,
 	};
@@ -81,14 +85,14 @@ async function updateArticle(req, res, data) {
 	}
 
 	await changeAmbiguousVerbose(data);
-	let { publDate, changeDate, description, title, verbose, state } = data.reqData;
+	let { description, title, verbose, state } = data.reqData;
 	const article = {
 		verbose: verbose || undefined,
-		dateOfPublishing: publDate ? new Date(parseInt(changeDate)) : undefined,
-		dateOfChanging: new Date(parseInt(changeDate)),
+		dateOfPublishing: state === Article.STATES.PUBLISHED ? new Date() : undefined,
+		dateOfChanging: new Date(),
 		title: title,
 		description: description,
-		state: state,
+		state,
 		textSourceName: data.files["content"],
 		previewImageName: data.files["previewImg"],
 	};
@@ -136,9 +140,9 @@ async function deleteArticle(req, res, data) {
 }
 
 async function changeAmbiguousVerbose(data) {
-	if (data.reqData.id) {
+	if (data.reqData.verbose) {
 		// Check on duplicated verbose name
-		const set = await Article.selector.filter({ verbose: data.reqData.id }).fetch();
+		const set = await Article.selector.filter({ verbose: data.reqData.verbose }).fetch();
 
 		if (set.length !== 0) {
 			data.reqData.verbose += uuid();

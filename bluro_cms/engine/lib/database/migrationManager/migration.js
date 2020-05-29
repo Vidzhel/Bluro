@@ -159,6 +159,7 @@ class Migration extends DependencyResolver {
 				tableName: foreignKey.tableName,
 				onUpdate: foreignKey.onUpdate,
 				onDelete: foreignKey.onDelete,
+				constraintName: foreignKey.constraintName,
 			};
 		}
 
