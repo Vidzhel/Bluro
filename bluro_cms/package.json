@@ -10,10 +10,13 @@
     },
     "license": "ISC",
     "dependencies": {
-      "bcryptjs": "^2.4.3",
-      "colors": "^1.4.0",
-      "mysql": "^2.18.1",
-      "njwt": "^1.0.0"
+        "bcryptjs": "^2.4.3",
+        "busboy": "^0.3.1",
+        "colors": "^1.4.0",
+        "mime-types": "^2.1.27",
+        "mysql": "^2.18.1",
+        "njwt": "^1.0.0",
+        "uuid": "^8.1.0"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",

@@ -4,6 +4,8 @@
 .configs
 node_modules
 logs
+./bluro_cms/files
+migrations
 
 # Logs
 Backend/logs

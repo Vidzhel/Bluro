@@ -44,7 +44,9 @@ class StatementBuilder extends baseStatementBuilder {
 		const columnsDeclaration = this._declareColumns(columnsDefinition);
 		const constraintDeclaration = this._declareConstraints(columnsDefinition);
 		this.addClause(
-			`CREATE TABLE IF NOT EXISTS ${tableName} (\n  ${columnsDeclaration}\n\n  ${constraintDeclaration})`,
+			`CREATE TABLE IF NOT EXISTS ${tableName} (\n  ${columnsDeclaration}${
+				constraintDeclaration ? "," : ""
+			}\n\n  ${constraintDeclaration})`,
 		);
 		return this;
 	}
@@ -128,27 +130,28 @@ class StatementBuilder extends baseStatementBuilder {
 		return this._groupValues(
 			columnsDefinition.map((column) => {
 				if (column.foreignKey) {
-					return this._declareForeignKey(column.columnName, column.foreignKey) + "\n  ";
+					return this._declareForeignKey(column.name, column.foreignKey) + "\n  ";
 				}
 
 				return "";
 			}),
 		);
 	}
+	//
+	// addConstraint(columnDefinition) {
+	//
+	// }
 
-	_declareForeignKey(columnName, { table, model, columnName: foreignColumn }) {
-		if (table && typeof table !== "string") {
-			throw new Error("Table name was expected, got " + typeof table);
-		} else if (model && !(model instanceof Model)) {
-			throw new Error("Model was expected, got " + model);
-		} else if (!model && !table) {
-			throw new Error(
-				"'table' or 'model' property have to be specified to create foreign key",
-			);
+	_declareForeignKey(columnName, { tableName, columnName: foreignColumn, constraintName }) {
+		if (typeof tableName !== "string") {
+			throw new Error("Table name was expected, got " + typeof tableName);
 		}
 
-		const referencedTableName = table || model.tableName;
-		return `FOREIGN KEY ${columnName} REFERENCES ${referencedTableName}(${foreignColumn})`;
+		return `CONSTRAINT ${constraintName} FOREIGN KEY (${this._escapeIdentifiers(
+			columnName,
+		)}) REFERENCES ${this._escapeIdentifiers(tableName)}(${this._escapeIdentifiers(
+			foreignColumn,
+		)})`;
 	}
 
 	dropTable(tableName) {
@@ -163,9 +166,9 @@ class StatementBuilder extends baseStatementBuilder {
 	/**
 	 *
 	 * @param {string} tableName
-	 * @param {string[]} columnNames
+	 * @param {string[]} columnsDefinitions
 	 */
-	dropColumns(tableName, columnNames) {
+	dropColumns(tableName, columnsDefinitions) {
 		if (typeof tableName !== "string") {
 			throw new TypeError("String was expected, got " + typeof tableName);
 		}
@@ -177,6 +180,20 @@ class StatementBuilder extends baseStatementBuilder {
 
 		this.addClause(clause);
 	}
+
+	// _dropConstraints(columnsDefinition) {
+	// 	return this._groupValues(
+	// 		columnsDefinition.map((column) => {
+	// 			if (column.foreignKey) {
+	// 				return this._declareForeignKey(column.name, column.foreignKey) + "\n  ";
+	// 			}
+	//
+	// 			return "";
+	// 		}),
+	// 	);
+	// }
+	//
+	// _dropForeignKey;
 
 	/**
 	 * @param {string|string[]|null} columns - one column, multiple columns or null for any
@@ -282,11 +299,12 @@ class StatementBuilder extends baseStatementBuilder {
 	set(values) {
 		let clause = "SET ";
 
+		const set = [];
 		for (let [key, value] of Object.entries(values)) {
-			clause += ` ${key} = ${value},`;
+			set.push(` ${this._escapeIdentifiers(key)} = ${this._escapeValue(value)}`);
 		}
 
-		clause.splice(clause.length - 1, 1);
+		clause += this._groupValues(set);
 		this.addClause(clause);
 		return this;
 	}
@@ -348,8 +366,8 @@ class StatementBuilder extends baseStatementBuilder {
 		}
 	}
 
-	limit(limit) {
-		this.addClause(`LIMIT ${limit}`);
+	limit(offset, limit) {
+		this.addClause(`LIMIT ${offset ? offset + ", " + limit : limit}`);
 		return this;
 	}
 
@@ -361,10 +379,10 @@ class StatementBuilder extends baseStatementBuilder {
 				if (!ORDER.includes(value)) {
 					throw new Error("Expected DESC or ASC as order determiner, got " + value);
 				}
-				clause += ` ${key} ${value},`;
+				clause += ` ${this._escapeIdentifiers(key)} ${value},`;
 			}
 		}
-		clause.splice(clause.length, 1);
+		clause = clause.substr(0, clause.length - 1);
 		this.addClause(clause);
 		return this;
 	}

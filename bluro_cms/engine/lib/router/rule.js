@@ -186,6 +186,9 @@ class Rule {
 		let stopPropagating = false;
 
 		for (let i = handler_index; i < handlers.length && !stopPropagating; i++) {
+			if (stopPropagating) {
+				break;
+			}
 			const handler = handlers[i];
 
 			try {
@@ -194,8 +197,11 @@ class Rule {
 					stopPropagating = await handler(req, res, data);
 				}
 			} catch (error) {
+				console.log(error);
 				// if no error handler was specified
-				stopPropagating = await this._dispatchError(error, req, res, data, i);
+				const res = await this._dispatchError(error, req, res, data, i);
+				i = res.idx;
+				stopPropagating = res.preventPropagation;
 			}
 		}
 

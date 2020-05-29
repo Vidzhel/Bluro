@@ -4,7 +4,7 @@ const OP = require("./dialects/base/operators");
 
 class QuerySet extends DependencyResolver {
 	/**
-	 * @param {Model} model
+	 * @param {typeof Model} model
 	 * @param {null|any[]} data
 	 */
 	constructor(model, data = null) {
@@ -92,7 +92,7 @@ class QuerySet extends DependencyResolver {
 				return true;
 			});
 		} else {
-			this.statementBuilder.where(this._configureWhereClause(options));
+			this.statementBuilder.where(options);
 		}
 	}
 
@@ -101,26 +101,8 @@ class QuerySet extends DependencyResolver {
 			this._data = this._data.filter((model) => (exclude ? !func(model) : func(model)));
 			return this;
 		} else {
-			this.statementBuilder.table(this.tableName).where(this._configureWhereClause(options));
+			this.statementBuilder.table(this.tableName).where(options);
 		}
-	}
-
-	_configureWhereClause(options, exclude) {
-		const where = [];
-
-		for (const [field, value] of Object.entries(options)) {
-			if (!this._model.hasColumn(field)) {
-				throw new Error(`Model ${this.tableName} doesn't have column ${field}`);
-			}
-
-			where.push({
-				firstValue: field,
-				operator: exclude ? OP.ne : OP.eq,
-				secondValue: value,
-			});
-		}
-
-		return where;
 	}
 
 	/**
@@ -142,6 +124,11 @@ class QuerySet extends DependencyResolver {
 		return this;
 	}
 
+	/**
+	 *
+	 * @param {object} options - object with columns as fields and 'ASC' or 'DESC' as values
+	 * @return {QuerySet}
+	 */
 	orderBy(options) {
 		if (!this._populated) {
 			this.statementBuilder.orderBy(options);
@@ -150,42 +137,87 @@ class QuerySet extends DependencyResolver {
 		return this;
 	}
 
-	// reverse() {
-	// 	if (this._populated) {
-	// 	}
-	// 	return this;
-	// }
-
-	// distinct() {
-	// }
-
-	limit(count) {
+	/**
+	 * @param [offset]
+	 * @param count
+	 * @return {QuerySet}
+	 */
+	limit(offset, count) {
 		if (this._populated) {
-			this._data = this._data.slice(count + 1);
+			this._data = this._data.slice(offset, count + 1);
 			return this;
 		}
+
+		this.statementBuilder.limit(offset, count);
+
+		return this;
 	}
 
-	fetch() {
+	async fetch() {
 		if (!this._populated) {
-			return this.statementBuilder
+			const data = await this.statementBuilder
 				.select()
 				.table(this.tableName)
-				.execute(this.actions.SELECT)
-				.then((data) => {
-					this._data = [];
-					for (const result of data.result) {
-						this._data.push(new this._model(result));
-					}
-					return this;
-				});
+				.execute(this.actions.SELECT);
+
+			this._data = [];
+			for (const result of data.result) {
+				this._data.push(new this._model(result, false));
+			}
+			return this;
 		}
 
 		return this;
 	}
 
-	// selectRelated() {
-	// }
+	/**
+	 *
+	 * @param {Model} thisModel
+	 * @param {string} [columnName] - this table reference key column
+	 * @param {Model} [parentModel] - a table that has foreignKey column that references thisModel
+	 */
+	fetchRelated({ thisModel, columnName, parentTable }) {
+		if (!columnName && !parentTable) {
+			throw new Error("Column name or table name have to be specified");
+		}
+
+		if (columnName) {
+			const foreignKey = this._model._columns[columnName].foreignKey;
+			if (!foreignKey) {
+				throw Error(
+					`Column '${columnName}' isn't foreign key, table '${this._model.tableName}'`,
+				);
+			}
+
+			const model = this._model.getModel(foreignKey.tableName);
+			const referenceColumn = foreignKey.columnName;
+
+			return model.selector
+				.filter({
+					[referenceColumn]: thisModel._data[columnName],
+				})
+				.fetch();
+		} else {
+			// const model = this._model.getModel(parentTable);
+			// if (!model) {
+			// 	throw Error(`Table with name '${parentTable}' doesn't exist`);
+			// }
+			//
+			// let foreignKey;
+			// for (const foreignKey of model.foreignKeys) {
+			// 	if (model._columns[foreignKey].foreignKey.tableName === thisModel.tableName) {
+			// 		foreignKey = model._columns[foreignKey].foreignKey;
+			// 	}
+			// }
+			//
+			// if (!foreignKey) {
+			// 	throw new Error(`Table '${parentTable}' doesn't reference table ${thisModel.tableName}`);
+			// }
+			//
+			// thisModel.selector.
+			// foreignKey.columnName
+		}
+	}
 
 	slice(start, end) {
 		this._data = this._data.slice(start, end);
@@ -207,6 +239,16 @@ class QuerySet extends DependencyResolver {
 
 	get length() {
 		return this._data.length;
+	}
+
+	async getList() {
+		const result = [];
+
+		for (const model of this._data) {
+			result.push(await model.toObject());
+		}
+
+		return result;
 	}
 }
 

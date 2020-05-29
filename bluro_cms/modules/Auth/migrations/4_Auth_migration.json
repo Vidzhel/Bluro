@@ -1,0 +1,1 @@
+{"migrated":true,"initialMigration":false,"tables":[["User",{"migrated":false,"DELETE_COLUMN":{"blogName":true}}]],"name":"4_Auth_migration.json"}

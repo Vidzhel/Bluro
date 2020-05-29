@@ -62,11 +62,16 @@ class ModelDescription {
 			return COMPARE_COLUMNS.DIFFER;
 		}
 
-		const allTypeProps = Object.keys(Object.assign({}, thisColumn.type, otherColumn.type));
-		for (const column of allTypeProps) {
-			if (thisColumn.type[column] !== otherColumn.type[column]) {
-				return COMPARE_COLUMNS.DIFFER;
-			}
+		const thisType = thisColumn.type;
+		const otherType = otherColumn.type;
+
+		if (
+			thisType.id !== otherType.id ||
+			thisType.size !== otherType.size ||
+			thisType.precision !== otherType.precision ||
+			thisType.scale !== otherType.scale
+		) {
+			return COMPARE_COLUMNS.DIFFER;
 		}
 
 		if (

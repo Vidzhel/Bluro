@@ -1,4 +1,5 @@
 const DependencyResolver = require("../iocContainer/DependencyResolver");
+const OP = require("./dialects/base/operators");
 
 class Statement extends DependencyResolver {
 	_tables = [];
@@ -75,57 +76,60 @@ class Statement extends DependencyResolver {
 		if (this.cachedStatement && action === this.cachedAction) {
 			statement = this.cachedStatement;
 		} else {
-			switch (action) {
-				case this.BUILD_ACTIONS.SELECT: {
-					this._buildSelect();
-					break;
+			try {
+				switch (action) {
+					case this.BUILD_ACTIONS.SELECT: {
+						this._buildSelect();
+						break;
+					}
+					case this.BUILD_ACTIONS.INSERT: {
+						this._buildInsert();
+						break;
+					}
+					case this.BUILD_ACTIONS.UPDATE: {
+						this._buildUpdate();
+						break;
+					}
+					case this.BUILD_ACTIONS.DELETE: {
+						this._buildDelete();
+						break;
+					}
+					case this.BUILD_ACTIONS.CREATE_DATABASE: {
+						this._buildCreateDatabase();
+						break;
+					}
+					case this.BUILD_ACTIONS.DROP_DATABASE: {
+						this._buildDropDatabase();
+						break;
+					}
+					case this.BUILD_ACTIONS.CREATE_TABLE: {
+						this._buildCreateTable();
+						break;
+					}
+					case this.BUILD_ACTIONS.DROP_TABLE: {
+						this._buildDropTable();
+						break;
+					}
+					case this.BUILD_ACTIONS.DROP_COLUMN: {
+						this._buildDropColumns();
+						break;
+					}
+					case this.BUILD_ACTIONS.ADD_COLUMN: {
+						this._buildAddColumns();
+						break;
+					}
+					default: {
+						throw new Error(`The given build action doesn't exist (${action})`);
+					}
 				}
-				case this.BUILD_ACTIONS.INSERT: {
-					this._buildInsert();
-					break;
-				}
-				case this.BUILD_ACTIONS.UPDATE: {
-					this._buildUpdate();
-					break;
-				}
-				case this.BUILD_ACTIONS.DELETE: {
-					this._buildDelete();
-					break;
-				}
-				case this.BUILD_ACTIONS.CREATE_DATABASE: {
-					this._buildCreateDatabase();
-					break;
-				}
-				case this.BUILD_ACTIONS.DROP_DATABASE: {
-					this._buildDropDatabase();
-					break;
-				}
-				case this.BUILD_ACTIONS.CREATE_TABLE: {
-					this._buildCreateTable();
-					break;
-				}
-				case this.BUILD_ACTIONS.DROP_TABLE: {
-					this._buildDropTable();
-					break;
-				}
-				case this.BUILD_ACTIONS.DROP_COLUMN: {
-					this._buildDropColumns();
-					break;
-				}
-				case this.BUILD_ACTIONS.ADD_COLUMN: {
-					this._buildAddColumns();
-					break;
-				}
-				default: {
-					throw new Error(`The given build action doesn't exist (${action})`);
-				}
+
+				statement = this.builder.build();
+			} finally {
+				this.cachedStatement = statement;
+				this.cachedAction = action;
+
+				this._clear();
 			}
-			statement = this.builder.build();
-
-			this.cachedStatement = statement;
-			this.cachedAction = action;
-
-			this._clear();
 		}
 
 		return statement;
@@ -146,12 +150,12 @@ class Statement extends DependencyResolver {
 		if (this._tables.length === 0 || this._tables.length > 1) {
 			throw new Error("A table is required to build update statement");
 		}
-		if (this._valuesClause.length === 0) {
-			throw new Error("Values clauses are required to build update statement");
+		if (this._valuesClause.length === 0 || this._valuesClause.length > 1) {
+			throw new Error("One Values clause is required to build update statement");
 		}
 
 		this.builder.update(...this._tables);
-		this.builder.set(this._setClause);
+		this.builder.set(this._valuesClause[0]);
 		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
 		if (this._orderByClause) this.builder.orderBy(this._orderByClause);
 		if (this._limitClause) this.builder.limit(this._limitClause);
@@ -178,8 +182,9 @@ class Statement extends DependencyResolver {
 
 		this.builder.selectFrom(this._selectClause, this._tables[0]);
 		if (this._whereClause.length !== 0) this.builder.where(this._whereClause);
-		if (this._limitClause) this.builder.limit(this._limitClause);
 		if (this._orderByClause) this.builder.orderBy(this._orderByClause);
+		if (this._limitClause)
+			this.builder.limit(this._limitClause.offset, this._limitClause.limit);
 	}
 
 	_buildCreateTable() {
@@ -333,17 +338,17 @@ class Statement extends DependencyResolver {
 		return this;
 	}
 
-	/**
-	 * Overrides the previous set clause values
-	 * @param values - column-value mapping
-	 * @returns {Statement}
-	 */
-	set(values) {
-		this._setClause = values;
-		this._invalidateCache();
-
-		return this;
-	}
+	// /**
+	//  * Overrides the previous set clause values
+	//  * @param values - column-value mapping
+	//  * @returns {Statement}
+	//  */
+	// set(values) {
+	// 	this._setClause = values;
+	// 	this._invalidateCache();
+	//
+	// 	return this;
+	// }
 
 	/**
 	 * If more then one condition will be specified, they'll be concatenated with AND operator
@@ -371,22 +376,63 @@ class Statement extends DependencyResolver {
 	 *     operator: Operators.eq,
 	 *     secondValue: "Hello"
 	 * });
+	 * @example
+	 * // Shortcut form for columnName != value
+	 * where({
+	 *     columnName: value
+	 *     exclude: true
+	 * });
 	 * @returns {Statement}
 	 */
 	where(where) {
-		this._whereClause = this._whereClause.concat(where);
+		this._whereClause = this._whereClause.concat(this._configureWhereClause(where));
 		this._invalidateCache();
 
 		return this;
 	}
 
+	_configureWhereClause(options) {
+		if (
+			options.firstValue &&
+			(options.secondValue || options.innerCondition) &&
+			options.operator
+		) {
+			return options;
+		}
+
+		const where = [];
+
+		for (const [field, value] of Object.entries(options)) {
+			if (typeof value === "object") {
+				if (!(value.operator && value.value)) {
+					throw new Error("Operator and value were expected in filter field expression");
+				}
+
+				where.push({
+					firstValue: field,
+					operator: value.operator,
+					secondValue: value,
+				});
+			} else {
+				where.push({
+					firstValue: field,
+					operator: options.exclude ? OP.ne : OP.eq,
+					secondValue: value,
+				});
+			}
+		}
+
+		return where;
+	}
+
 	/**
 	 * Overrides the previous limit clause
+	 * @param offset
 	 * @param limit
 	 * @returns {Statement}
 	 */
-	limit(limit) {
-		this._limitClause = limit;
+	limit(offset, limit) {
+		this._limitClause = { offset, limit };
 		this._invalidateCache();
 
 		return this;

@@ -243,7 +243,7 @@ class DependencyResolver {
 	 * @param {Function} superClass
 	 */
 	static _isSubclassOrTheClass(base, superClass) {
-		if (base !== null) {
+		if (base !== null && superClass.prototype && base.prototype) {
 			return Object.is(base, superClass) || base.prototype instanceof superClass;
 		}
 

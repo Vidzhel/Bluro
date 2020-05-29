@@ -59,7 +59,13 @@ class Migration extends DependencyResolver {
 	 */
 	static _getMigrations(migrationDirectory) {
 		const migrations = [];
-		const dirHandler = fs.opendirSync(migrationDirectory);
+		let dirHandler;
+		try {
+			dirHandler = fs.opendirSync(migrationDirectory);
+		} catch (e) {
+			fs.mkdirSync(migrationDirectory);
+			dirHandler = fs.opendirSync(migrationDirectory);
+		}
 
 		let file = dirHandler.readSync();
 		while (file) {
@@ -141,15 +147,34 @@ class Migration extends DependencyResolver {
 		foreignKey,
 		name,
 	}) {
+		const formattedType = { id: type.id };
+		if (type.size) {
+			formattedType.size = type.size;
+		}
+		if (type.precision) {
+			formattedType.precision = type.precision;
+		}
+		if (type.scale) {
+			formattedType.scale = type.scale;
+		}
+
+		let formattedForeignKey = null;
+		if (foreignKey) {
+			formattedForeignKey = {
+				columnName: foreignKey.columnName,
+				tableName: foreignKey.tableName,
+			};
+		}
+
 		return {
 			name,
-			type,
+			type: formattedType,
 			default: _default,
 			nullable,
 			autoincrement,
 			primaryKey,
 			unique,
-			foreignKey,
+			foreignKey: formattedForeignKey,
 		};
 	}
 

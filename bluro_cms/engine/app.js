@@ -37,7 +37,7 @@ class App {
 	}
 
 	initServer() {
-		return this.protocol.createServer((req, res) => {
+		return this.protocol.createServer(async (req, res) => {
 			try {
 				Logger.logInfo(`Request received: ${req.url} (${req.method})`, {
 					config: "requests",
@@ -46,11 +46,11 @@ class App {
 				extendRequest(req);
 				extendResponse(res);
 
-				req.onData(async () => {
-					await this.handleData(req, res);
-				});
+				await req.onData(() => this.handleData(req, res));
 			} catch (e) {
-				this.handleError(res, e);
+				await this.handleError(req, res, e);
+			} finally {
+				await FilesManager.clearTemp();
 			}
 		});
 	}
@@ -59,7 +59,7 @@ class App {
 		res.setHeader("Content-Type", "application/json");
 
 		await this.dispatcher.dispatch(req, res);
-		res.send();
+		await res.send();
 
 		Logger.logSuccess(`Request handled: ${req.url} (${req.method})`, {
 			config: "requests",
@@ -67,9 +67,9 @@ class App {
 		});
 	}
 
-	handleError(res, e) {
+	async handleError(req, res, e) {
 		res.code(res.CODES.InternalError);
-		res.send();
+		await res.send();
 
 		Logger.logError(`Request handled with error '${e.name}': ${req.url} (${req.method})`, {
 			config: "requests",
@@ -78,7 +78,6 @@ class App {
 		Logger.logError("Request handled with error", {
 			error: e,
 			config: "errors",
-			prefix: "Unhandled error",
 		});
 	}
 

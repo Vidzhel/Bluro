@@ -16,6 +16,7 @@ class Route extends Rule {
 	}
 
 	async dispatch(req, res, data) {
+		data.params = this.extractedParams;
 		const method = req.method;
 		const handler = this._handlers[method];
 		const temp = Object.assign({}, this._options);
