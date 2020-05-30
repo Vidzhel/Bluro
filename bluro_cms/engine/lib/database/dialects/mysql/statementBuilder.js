@@ -137,10 +137,6 @@ class StatementBuilder extends baseStatementBuilder {
 
 		return clauses.join(",\n  ");
 	}
-	//
-	// addConstraint(columnDefinition) {
-	//
-	// }
 
 	_declareForeignKey(
 		columnName,

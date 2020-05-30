@@ -215,7 +215,7 @@ class Model extends DependencyResolver {
 			}
 
 			foreignKey.tableName = referenceTableName;
-			foreignKey.constraintName = `FK_${this.tableName}_${referenceTableName}`;
+			foreignKey.constraintName = `FK_${this.tableName}_${name}_${referenceTableName}_${columnName}`;
 			this.foreignKeys.push(name);
 		}
 	}
@@ -330,7 +330,7 @@ class Model extends DependencyResolver {
 	 * @param data - data to fill in
 	 * @param isCreated - defines whether you create data or fill with already saved data
 	 */
-	constructor(data = null, isCreated = true) {
+	constructor(data = {}, isCreated = true) {
 		super();
 		this.statementBuilder = this.constructor.statementBuilder;
 		this.ACTIONS = this.constructor.ACTIONS;
@@ -354,12 +354,10 @@ class Model extends DependencyResolver {
 			}
 		} else {
 			if (!data) {
-				throw Error("Data have to be specified");
+				throw Error("Data has to be specified");
 			}
 			this._data = Object.assign({}, this.constructor._defaultData, data);
 		}
-
-		this._validateValues();
 	}
 
 	_declareColumnProperty(column) {
@@ -454,7 +452,7 @@ class Model extends DependencyResolver {
 			const res = validator(value, columnDefinition);
 			if (res.fail) {
 				throw new Error(
-					`Validation error for value "${value}" in the "${this.tableName}" model, column '${columnDefinition.columnName}', description: ${res.description}`,
+					`Validation error for value "${value}" in the "${this.tableName}" model, column '${columnDefinition.name}', description: ${res.description}`,
 				);
 			}
 		}
@@ -669,8 +667,8 @@ class Model extends DependencyResolver {
 	/**
 	 * @param {typeof Model} model
 	 */
-	isDependentOn(model) {
-		for (const foreignKey of this.constructor.foreignKeys) {
+	static isDependentOn(model) {
+		for (const foreignKey of this.foreignKeys) {
 			const columnDefinition = this._columns[foreignKey];
 
 			const thisTableName =
@@ -683,7 +681,7 @@ class Model extends DependencyResolver {
 		return false;
 	}
 
-	async toObject() {
+	async toObject(extract) {
 		const res = {};
 
 		for (const [columnName, val] of Object.entries(this._data)) {

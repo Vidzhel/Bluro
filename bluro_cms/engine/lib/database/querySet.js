@@ -241,11 +241,12 @@ class QuerySet extends DependencyResolver {
 		return this._data.length;
 	}
 
-	async getList() {
+	async getList(extract) {
 		const result = [];
 
 		for (const model of this._data) {
-			result.push(await model.toObject());
+			const object = await model.toObject(extract);
+			result.push(object);
 		}
 
 		return result;

@@ -386,7 +386,8 @@ class Migration extends DependencyResolver {
 	}
 
 	_setColumnDefinition(table, columnName, columnDefinition) {
-		table[MIGRATE_ACTIONS.DEFINE_COLUMN][columnName] = columnDefinition;
+		const columnsDefinitions = table[MIGRATE_ACTIONS.DEFINE_COLUMN];
+		columnsDefinitions[columnName] = columnDefinition;
 	}
 
 	async migrate() {

@@ -19,7 +19,7 @@ class MigrationManager {
 	static async makeMigration(module) {
 		Logger.logInfo("Start making migration", { prefix: "MIGRATION_MANAGER" });
 
-		const models = MigrationManager._prioritiseModels(module.models);
+		const models = module.models;
 		if (models) {
 			const migrations = await Migration.loadMigrations(module);
 			/**
@@ -78,18 +78,6 @@ class MigrationManager {
 				});
 			}
 		}
-	}
-
-	static _prioritiseModels(models) {
-		return models.sort((a, b) => {
-			if (a.isDependentOn(b)) {
-				return -1;
-			} else if (b.isDependentOn(a)) {
-				return 1;
-			}
-
-			return 0;
-		});
 	}
 
 	static _initializeMigration(models, module) {
@@ -151,8 +139,9 @@ class MigrationManager {
 		const comparedModels = {};
 
 		for (const model of models) {
+			const table = migration.tables.get(model.name);
 			comparedModels[model.name] = MigrationManager._compareMigrationWithModel(
-				migration.tables.get(model.name)[Migration.MIGRATE_ACTIONS.DEFINE_COLUMN],
+				table ? table[Migration.MIGRATE_ACTIONS.DEFINE_COLUMN] : null,
 				model,
 			);
 		}

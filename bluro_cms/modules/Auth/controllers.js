@@ -1,4 +1,5 @@
 const User = require("./User");
+const Follower = require("./Follower");
 const bcrypt = require("bcryptjs");
 const jwtGenerator = require("njwt");
 const { v1: uuid } = require("uuid");
@@ -188,6 +189,100 @@ async function deleteProfileController(req, res, data) {
 	});
 }
 
+async function followUserController(req, res, data) {
+	const user = data.params.user;
+
+	if (user.verbose === data.session.verbose) {
+		res.error("You can't follow yourself");
+		res.code(res.CODES.Forbidden);
+		return;
+	}
+
+	const usersSet = await User.selector.filter({ verbose: user }).fetch();
+
+	if (!usersSet.length) {
+		res.error("User doesn't exist");
+		res.code(res.CODES.NotFound);
+		return;
+	}
+	const subscriptionsSet = await Follower.selector
+		.filter({ user: user, follower: data.session.verbose })
+		.fetch();
+
+	if (subscriptionsSet.length) {
+		res.error("You've already subscribed");
+		res.code(res.CODES.Forbidden);
+		return;
+	}
+
+	const follow = new Follower();
+	follow.user = user;
+	follow.follower = data.session.verbose;
+
+	await follow.save();
+}
+
+async function unfollowUserController(req, res, data) {
+	const user = data.params.user;
+
+	const subscriptionsSet = await Follower.selector
+		.filter({ user: user, follower: data.session.verbose })
+		.fetch();
+
+	if (!subscriptionsSet.length) {
+		res.error("You're not subscribed");
+		res.code(res.CODES.Forbidden);
+		return;
+	}
+
+	subscriptionsSet.get(0).del();
+}
+
+async function getFollowersController(req, res, data) {
+	const user = data.params.user;
+	const count = parseInt(req.query.count) || 10;
+	const offset = parseInt(req.query.offset) || 0;
+
+	const subscriptionsSet = await Follower.selector
+		.filter({ user: user })
+		.limit(offset, count)
+		.fetch();
+
+	const list = await subscriptionsSet.getList();
+	const filteredList = [];
+	for (const sub of list) {
+		const filteredObj = {};
+		filteredList.push(filteredObj);
+		for (const [prop, val] of Object.entries(sub.follower)) {
+			filteredObj[prop] = val;
+		}
+	}
+
+	res.setCollection(filteredList, offset, count);
+}
+
+async function getFollowingsController(req, res, data) {
+	const user = data.params.user;
+	const count = parseInt(req.query.count) || 10;
+	const offset = parseInt(req.query.offset) || 0;
+
+	const subscriptionsSet = await Follower.selector
+		.filter({ follower: user })
+		.limit(offset, count)
+		.fetch();
+
+	const list = await subscriptionsSet.getList();
+	const filteredList = [];
+	for (const sub of list) {
+		const filteredObj = {};
+		filteredList.push(filteredObj);
+		for (const [prop, val] of Object.entries(sub.user)) {
+			filteredObj[prop] = val;
+		}
+	}
+	res.setCollection(filteredList, offset, count);
+}
+
 function validateRegister(res, data) {
 	if (!data.login || !data.pass || !data.repPass || !data.email) {
 		res.error("Auth data have to be specified");
@@ -315,3 +410,7 @@ module.exports.getProfileController = getProfileController;
 module.exports.getProfilesController = getProfilesController;
 module.exports.updateProfileController = updateProfileController;
 module.exports.deleteProfileController = deleteProfileController;
+module.exports.followUserController = followUserController;
+module.exports.unfollowUserController = unfollowUserController;
+module.exports.getFollowersController = getFollowersController;
+module.exports.getFollowingsController = getFollowingsController;
