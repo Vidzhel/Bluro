@@ -28,7 +28,7 @@ User.init([
 	},
 	{
 		columnName: "email",
-		type: Model.DATA_TYPES.VARCHAR(20, EMAIL_REGEXP),
+		type: Model.DATA_TYPES.VARCHAR(50, EMAIL_REGEXP),
 	},
 	{
 		columnName: "pass",

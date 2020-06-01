@@ -146,7 +146,7 @@ module.exports = function extendRequest(req) {
 	};
 
 	function findCookie(key, cookies) {
-		const regExp = new RegExp(`;?${key}:(.*);?`);
+		const regExp = new RegExp(`;?${key}:([^;\\s]*);?`);
 		const res = regExp.exec(cookies);
 		if (res) {
 			return res[1] || null;

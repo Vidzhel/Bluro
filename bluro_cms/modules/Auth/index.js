@@ -45,4 +45,29 @@ module.exports = function initAuth(options) {
 	manager.connectRoute("get", "/profiles/{user}/followers", getFollowersController);
 	manager.connectRoute("get", "/profiles/{user}/followings", getFollowingsController);
 	manager.connectRoute("get", "/profiles/{user}/followers/{follower}", isUsersFollower);
+
+	manager.onInit(addRootUser);
 };
+
+async function addRootUser() {
+	const set = await User.selector.filter({ email: "olegtalaver@gmail.com" }).fetch();
+
+	if (set.length) {
+		return;
+	}
+
+	const user = new User();
+
+	user.userName = "Vidzhel";
+	user.verbose = "vidzhel";
+	user.email = "olegtalaver@gmail.com";
+	user.pass = ConfigsManager.getEntry("rootPassword");
+	user.role = User.ROLES.ADMIN;
+	user.img = "default.jpg";
+	user.about =
+		"Be who you are and say what you feel, because those who mind don't matter, and those who matter don't mind.";
+	user.followers = 0;
+	user.following = 0;
+
+	await user.save();
+}

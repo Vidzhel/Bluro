@@ -19,6 +19,7 @@ class ModuleManager {
 			routes: [],
 			rules: [],
 			models: [],
+			onInit: null,
 		};
 	}
 
@@ -53,6 +54,21 @@ class ModuleManager {
 		}
 
 		this.currentModule.models.push(model);
+	}
+
+	/**
+	 * Will be called after a module initialization
+	 * @param callback
+	 */
+	onInit(callback) {
+		if (this.currentModule === null) {
+			throw new Error("You need to start the module initialization first");
+		}
+		if (typeof callback !== "function") {
+			throw new TypeError("Function was expected");
+		}
+
+		this.currentModule.onInit = callback;
 	}
 
 	/**

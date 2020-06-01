@@ -4,13 +4,8 @@ const NotificationService = DependencyResolver.getDependency(null, "Notification
 
 async function getUsersNotificationsRule(req, res, data) {
 	if (data.session) {
-		const receiver = data.session.id;
+		const receiver = data.session.verbose;
 		const set = await Notification.selector.filter({ receiver }).fetch();
-		// const ids = [];
-		//
-		// for (const notification of set) {
-		// 	ids.push(notification.id);
-		// }
 
 		res.setNotifications(await set.getList());
 	}
@@ -46,7 +41,7 @@ async function createNotification(req, res, data) {
 
 async function readNotification(req, res, data) {
 	const receiver_verbose = data.params.receiver_verbose;
-	const notificationId = data.params.id;
+	const notificationId = data.params.notificationId;
 
 	if (!(await checkNotification(receiver_verbose, notificationId, data))) {
 		return;
@@ -57,7 +52,7 @@ async function readNotification(req, res, data) {
 
 async function deleteNotification(req, res, data) {
 	const receiver_verbose = data.params.receiver_verbose;
-	const notificationId = data.params.id;
+	const notificationId = data.params.notificationId;
 
 	if (!(await checkNotification(receiver_verbose, notificationId, data))) {
 		return;

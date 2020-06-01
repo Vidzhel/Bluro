@@ -18,7 +18,7 @@ class NotificationService {
 	}
 
 	async sendMessage(sender, receiver, text) {
-		await this._sendNotification(sender.id, receiver.id);
+		await this._sendNotification(sender.verbose, receiver.verbose, text);
 		await this._sendMail(sender.email, receiver.email, text);
 	}
 
@@ -52,5 +52,10 @@ class NotificationService {
 		});
 	}
 }
+
+DependencyResolver.registerDependency({
+	dependency: NotificationService,
+	singleton: true,
+});
 
 module.exports = NotificationService;

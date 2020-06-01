@@ -32,6 +32,10 @@ async function connectModules(modulesManager, app) {
 		await MigrationManager.applyMigration(module);
 		module.routes.map(app.addRoute.bind(app));
 		module.rules.map(app.addRule.bind(app));
+
+		if (module.onInit) {
+			await module.onInit();
+		}
 	}
 	Logger.logInfo("Modules were connected", { prefix: "MODULES_MANAGER" });
 }

@@ -37,11 +37,11 @@ function cors(req, res, data) {
 
 	// Always required headers
 	if (allowedOrigins.length) {
-		res.setHeader("Access-Control-Allow-Origin", cors.allowedOrigins.join(", "));
+		res.setHeader("Access-Control-Allow-Origin", allowedOrigins.join(", "));
 	}
 
 	if (allowCredentials) {
-		res.setHeader("Access-Control-Allow-Credentials", cors.allowCredentials);
+		res.setHeader("Access-Control-Allow-Credentials", allowCredentials);
 	}
 
 	// Required on option method

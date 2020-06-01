@@ -10,6 +10,12 @@ class Notification extends Model {
 
 Notification.init([
 	{
+		columnName: "id",
+		type: Model.DATA_TYPES.INT(),
+		autoincrement: true,
+		primaryKey: true,
+	},
+	{
 		columnName: "sender",
 		verboseName: "Notification sender",
 		type: Model.DATA_TYPES.VARCHAR(50),
