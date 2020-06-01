@@ -1,18 +1,27 @@
 {
 	"host": "127.0.0.1",
 	"port": "8080",
+
 	"dbhost": "localhost",
 	"database": "bluro",
 	"user": "root",
 	"password": "HardPass123",
 	"connectTimeout": 10000,
+
+	"rootUser": "Incognito",
+	"rootPassword": "hardpass",
+
+	"mailService": "gmail",
+	"mailUser": "olegtalaver@gmail.com",
+	"mailPass": "dsrtqofqxjmvcghk",
+	"mailSubject": "Tech overload blog",
+
 	"modules": ["Auth", "Article", "Comment"],
-	"cors": {
-		"allowedMethods": ["PUT", "DELETE", "POST", "GET"],
-		"allowedOrigins": ["http://localhost:3000"],
-		"allowedHeaders": ["Content-Type", "Cookies"],
-		"exposedHeaders": [],
-		"permissionAge": 86400,
-		"allowCredentials": true
-	}
+
+	"allowedMethods": ["PUT", "DELETE", "POST", "GET"],
+	"allowedOrigins": ["http://localhost:3000"],
+	"allowedHeaders": ["Content-Type", "Cookies"],
+	"exposedHeaders": [],
+	"permissionAge": 86400,
+	"allowCredentials": true
 }

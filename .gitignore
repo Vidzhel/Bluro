@@ -6,6 +6,7 @@ node_modules
 logs
 ./bluro_cms/files
 migrations
+files
 
 # Logs
 Backend/logs

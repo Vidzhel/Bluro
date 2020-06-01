@@ -67,10 +67,10 @@ Overload" was build.
 
 ```json
 {
-	"login": string,
-	"email": string,
-	"pass": string,
-	"repPass": string
+	"login": "login",
+	"email": "email",
+	"pass": "password",
+	"repPass": "repeated password"
 }
 ```
 
@@ -78,14 +78,27 @@ Overload" was build.
 
 ```json
 {
-	"errors": string[],
-	"success": string[],
-	"info": string[]
+	"errors": "list of descriptions of errors",
+	"success": "list of success strings",
+	"info": "list of info strings",
+	"session": {
+		"verbose": "id that is used to get profile info",
+		"userName": "userName",
+		"role": "user role: 'ADMIN', 'USER'",
+		"email": "email"
+	}
 }
 ```
 
 **Codes**  
 201 - Created
+
+### Profiles
+
+**End Points**
+
+-   /profiles/:id - GET, PUT, DELETE - get, update, delete profile
+-   /profiles - GET - get all profiles
 
 ### Articles
 
