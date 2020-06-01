@@ -16,6 +16,7 @@ module.exports = function initAuth(options) {
 	manager.connectRule("post", "/articles", requireAuthorization);
 
 	manager.connectRoute("get", "/articles", controllers.getArticles);
+	manager.connectRoute("get", "profiles/{verbose}/articles", controllers.getArticles);
 	manager.connectRoute("get", "/articles/{id}", controllers.getArticle);
 	manager.connectRoute("post", "/articles", controllers.createArticle);
 	manager.connectRoute("delete", "/articles/{id}", controllers.deleteArticle);

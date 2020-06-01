@@ -3,7 +3,7 @@ const ARTICLE_STATES = {
 	PUBLISHED: "PUBLISHED",
 	PENDING_PUBLISHING: "PENDING_PUBLISHING",
 };
-const VERBOSE_REGEXP = /[0-9a-z-._~]/i;
+const VERBOSE_REGEXP = /^[0-9a-z-._~]*$/i;
 
 class Article extends Model {
 	static STATES = ARTICLE_STATES;

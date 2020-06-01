@@ -1,4 +1,6 @@
 const Article = require("./Article");
+const User = DependencyResolver.getDependency(null, "User");
+
 const { v1: uuid } = require("uuid");
 
 const FILES_LOCATION = {
@@ -10,15 +12,39 @@ async function getArticles(req, res, data) {
 	const count = parseInt(req.query.count) || 10;
 	const offset = parseInt(req.query.offset) || 0;
 	const publishedOnly = req.query.published ? req.query.published === "true" : true;
+	const user = data.params.verbose;
 	let results;
 
-	const selector = Article.selector.orderBy({ dateOfPublishing: "DESC" }).limit(offset, count);
-	if (publishedOnly) {
-		selector.filter({ state: Article.STATES.PUBLISHED });
-	}
-	const set = await selector.fetch();
+	if (!user) {
+		const articlesSet = Article.selector
+			.orderBy({ dateOfPublishing: "DESC" })
+			.limit(offset, count);
+		if (publishedOnly) {
+			articlesSet.filter({ state: Article.STATES.PUBLISHED });
+		}
+		const set = await articlesSet.fetch();
+		results = await set.getList();
+	} else {
+		const usersSet = await User.selector.filter({ verbose: user }).fetch();
+		const userInstance = usersSet.get(0);
 
-	results = await set.getList();
+		if (!usersSet.length) {
+			res.error("User doesn't exist");
+			res.code(res.CODES.NotFound);
+			return;
+		}
+
+		const articlesSet = Article.selector
+			.filter({ user: userInstance.id })
+			.orderBy({ dateOfPublishing: "DESC" })
+			.limit(offset, count);
+		if (publishedOnly) {
+			articlesSet.filter({ state: Article.STATES.PUBLISHED });
+		}
+		const set = await articlesSet.fetch();
+		results = await set.getList();
+	}
+
 	res.setCollection(results, offset, count);
 }
 
@@ -48,8 +74,8 @@ async function createArticle(req, res, data) {
 		verbose: verbose || uuid(),
 		dateOfPublishing: state === Article.STATES.PUBLISHED ? new Date() : null,
 		dateOfChanging: new Date(),
-		title: title,
-		description: description,
+		title,
+		description,
 		state,
 		textSourceName: data.files["content"] || null,
 		previewImageName: data.files["previewImg"] || null,

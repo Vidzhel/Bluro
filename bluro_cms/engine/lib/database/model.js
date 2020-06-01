@@ -330,7 +330,7 @@ class Model extends DependencyResolver {
 	 * @param data - data to fill in
 	 * @param isCreated - defines whether you create data or fill with already saved data
 	 */
-	constructor(data = {}, isCreated = true) {
+	constructor(data = {}, isCreated = true, state = null) {
 		super();
 		this.statementBuilder = this.constructor.statementBuilder;
 		this.ACTIONS = this.constructor.ACTIONS;
@@ -375,7 +375,7 @@ class Model extends DependencyResolver {
 					}
 
 					this._validateValue(validators, value, column);
-					value = this._convertValue(converters, value);
+					value = Model._convertValue(converters, value);
 
 					if (this._data[name] !== value) {
 						this._modifiedColumns.push(name);
@@ -394,7 +394,7 @@ class Model extends DependencyResolver {
 		}
 	}
 
-	_convertValue(converters, value) {
+	static _convertValue(converters, value) {
 		return converters.reduce((accum, curr) => {
 			return curr(accum);
 		}, value);
@@ -591,7 +591,8 @@ class Model extends DependencyResolver {
 			}
 
 			if (val !== undefined) {
-				filteredData[columnName] = val;
+				const converters = this._columns[columnName].converters;
+				filteredData[columnName] = Model._convertValue(converters, val);
 			}
 		}
 

@@ -17,9 +17,13 @@ module.exports = function initAuth(options) {
 		getProfilesController,
 		followUserController,
 		deleteProfileController,
+		isUsersFollower,
 	} = controllers;
 
 	DependencyResolver.registerType({ dependency: requireAuthorizationRule });
+	DependencyResolver.registerType({ dependency: User });
+	FilesManager.createDir("profiles");
+	FilesManager.createDir("profiles/img");
 
 	manager.connectModel(User);
 	manager.connectModel(Follower);
@@ -40,4 +44,5 @@ module.exports = function initAuth(options) {
 	manager.connectRoute("delete", "/profiles/{user}/followers", unfollowUserController);
 	manager.connectRoute("get", "/profiles/{user}/followers", getFollowersController);
 	manager.connectRoute("get", "/profiles/{user}/followings", getFollowingsController);
+	manager.connectRoute("get", "/profiles/{user}/followers/{follower}", isUsersFollower);
 };

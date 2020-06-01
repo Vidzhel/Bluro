@@ -128,6 +128,7 @@ class Statement extends DependencyResolver {
 				this.cachedStatement = statement;
 				this.cachedAction = action;
 
+				this.builder.clear();
 				this._clear();
 			}
 		}

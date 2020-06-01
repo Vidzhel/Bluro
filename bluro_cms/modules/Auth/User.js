@@ -44,6 +44,23 @@ User.init([
 		default: USER_ROLES.USER,
 		possibleValues: Object.values(USER_ROLES),
 	},
+	{
+		columnName: "img",
+		type: Model.DATA_TYPES.VARCHAR(50),
+		validators: Model.CUSTOM_VALIDATORS_GENERATORS.file(),
+	},
+	{
+		columnName: "about",
+		type: Model.DATA_TYPES.VARCHAR(500),
+	},
+	{
+		columnName: "followers",
+		type: Model.DATA_TYPES.INT(),
+	},
+	{
+		columnName: "following",
+		type: Model.DATA_TYPES.INT(),
+	},
 ]);
 
 function hashPass(pass) {

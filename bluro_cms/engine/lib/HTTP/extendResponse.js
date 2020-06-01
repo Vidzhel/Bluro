@@ -41,8 +41,12 @@ module.exports = function extendResponse(res) {
 		res._chunks.info.push(info);
 	};
 
+	res.setNotifications = function (notifications) {
+		res._chunks.notifications = notifications;
+	};
+
 	res.setCookie = function (key, val) {
-		return res.setHeader("Set-Cookie", `${key}:${val}`);
+		res.setHeader("Set-Cookie", `${key}:${val}; Path=/`);
 	};
 
 	res.setCredentials = function (credentials) {

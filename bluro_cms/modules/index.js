@@ -32,33 +32,39 @@ module.exports = function initModules(options) {
 
 // General configs
 function cors(req, res, data) {
-	const cors = ConfigsManager.getEntry("cors");
+	const allowedOrigins = ConfigsManager.getEntry("allowedOrigins");
+	const allowCredentials = ConfigsManager.getEntry("allowCredentials");
 
 	// Always required headers
-	if (cors.allowedOrigins.length) {
+	if (allowedOrigins.length) {
 		res.setHeader("Access-Control-Allow-Origin", cors.allowedOrigins.join(", "));
 	}
 
-	if (cors.allowCredentials) {
+	if (allowCredentials) {
 		res.setHeader("Access-Control-Allow-Credentials", cors.allowCredentials);
 	}
 
 	// Required on option method
 	if (req.method === "OPTIONS") {
-		if (cors.allowedHeaders.length) {
-			res.setHeader("Access-Control-Allow-Headers", cors.allowedHeaders.join(", "));
+		const allowedHeaders = ConfigsManager.getEntry("allowedHeaders");
+		const exposedHeaders = ConfigsManager.getEntry("exposedHeaders");
+		const permissionAge = ConfigsManager.getEntry("permissionAge");
+		const allowedMethods = ConfigsManager.getEntry("allowedMethods");
+
+		if (allowedHeaders.length) {
+			res.setHeader("Access-Control-Allow-Headers", allowedHeaders.join(", "));
 		}
 
-		if (cors.allowedMethods.length) {
-			res.setHeader("Access-Control-Allow-Methods", cors.allowedMethods.join(", "));
+		if (allowedMethods.length) {
+			res.setHeader("Access-Control-Allow-Methods", allowedMethods.join(", "));
 		}
 
-		if (cors.exposedHeaders.length) {
-			res.setHeader("Access-Control-Expose-Headers", cors.exposedHeaders.join(", "));
+		if (exposedHeaders.length) {
+			res.setHeader("Access-Control-Expose-Headers", exposedHeaders.join(", "));
 		}
 
-		if (cors.permissionAge) {
-			res.setHeader("Access-Control-Max-Age", cors.permissionAge);
+		if (permissionAge) {
+			res.setHeader("Access-Control-Max-Age", permissionAge);
 		}
 
 		return true;
@@ -78,6 +84,7 @@ function receivedDataHandler(req, res, data) {
 			}
 		}
 	} else {
+		data.files = {};
 		data.reqData = req.json();
 	}
 }

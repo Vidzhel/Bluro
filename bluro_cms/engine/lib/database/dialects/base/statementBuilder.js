@@ -33,6 +33,10 @@ class StatementBuilder {
 		this._clauses.push(clause);
 	}
 
+	clear() {
+		this._clauses = [];
+	}
+
 	_groupValues(values) {
 		let resultingString;
 		if (typeof values === "string") {
