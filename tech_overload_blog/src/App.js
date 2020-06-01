@@ -1,41 +1,55 @@
 import React from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { Provider } from "react-redux";
 
-import { store } from "./assets/store";
 import { HomePage } from "./pages/Home";
 import { LoggingPage } from "./pages/Logging";
 import { ProfilePage } from "./pages/Profile";
 import { BlogPostPage } from "./pages/BlogPost";
 import { NoMatch } from "./pages/NoMatch";
+import { Header } from "./containers/Header";
 import styled from "styled-components";
+import { connect } from "react-redux";
+import { logIn } from "./actions/session";
+import { ModalsController } from "./containers/ModalsController";
 
-const StyledContainer = styled.div``;
+const StyledContainer = styled.div`
+	a {
+		text-decoration: none;
+		color: black;
+	}
+`;
 
-function App() {
-	return (
-		<Provider store={store}>
+class App extends React.Component {
+	componentDidMount() {
+		this.props.logIn(null, this.props.history);
+	}
+
+	render() {
+		return (
 			<BrowserRouter>
 				<StyledContainer>
+					<ModalsController />
+					<Header />
 					<Switch>
 						<Route exact path="/" component={HomePage} />
 						<Route path="/auth" component={LoggingPage} />
-						<Route
-							path="/profiles/:userId"
-							render={(props) => (
-								<ProfilePage {...props} articles={articles} profile={profile} />
-							)}
-						/>
-						<Route path={"/articles/:articleId"} component={BlogPostPage}>
-							<BlogPostPage text={article} articleInfo={articleInfo} />
-						</Route>
+						<Route path="/profiles/:verbose" component={ProfilePage} />
+						<Route path={"/articles/:verbose"} component={BlogPostPage} />
+						<Route component={NoMatch} path="/not-found" />
 						<Route component={NoMatch} />
 					</Switch>
 				</StyledContainer>
 			</BrowserRouter>
-		</Provider>
-	);
+		);
+	}
 }
+
+const mapDispatchToProps = {
+	logIn,
+};
+
+App = connect(null, mapDispatchToProps)(App);
+export default App;
 
 const profile = {
 	userName: "Someone",
@@ -145,5 +159,3 @@ This is a C# based application powered by .NET and WPF frameworks that provides 
 Пять столетий спустя Lorem Ipsum испытал всплеск популярности с выпуском сухого переноса листов Letraset в. Эти листы надписи можно потереть на любом месте и были быстро приняты художники-графики, принтеры, архитекторов и рекламодателей для их профессионального вида и простоты использования. Letraset включены Lorem Ipsum проходы в арсеналом шрифтов, стилей и размеров, затвердевание место Латинского-эск фразу целиком в печатной и графической индустрии. Те, с вниманием к деталям будет даже поймали дань классического текста в эпизоде Mad Men (S6E1 вокруг 1:18:55 для тех, кто не сделал).Пять столетий спустя Lorem Ipsum испытал всплеск популярности с выпуском сухого переноса листов Letraset в. Эти листы надписи можно потереть на любом месте и были быстро приняты художники-графики, принтеры, архитекторов и рекламодателей для их профессионального вида и простоты использования. Letraset включены Lorem Ipsum проходы в арсеналом шрифтов, стилей и размеров, затвердевание место Латинского-эск фразу целиком в печатной и графической индустрии. Те, с вниманием к деталям будет даже поймали дань классического текста в эпизоде Mad Men (S6E1 вокруг 1:18:55 для тех, кто не сделал).Пять столетий спустя Lorem Ipsum испытал всплеск популярности с выпуском сухого переноса листов Letraset в. Эти листы надписи можно потереть на любом месте и были быстро приняты художники-графики, принтеры, архитекторов и рекламодателей для их профессионального вида и простоты использования. Letraset включены Lorem Ipsum проходы в арсеналом шрифтов, стилей и размеров, затвердевание место Латинского-эск фразу целиком в печатной и графической индустрии. Те, с вниманием к деталям будет даже поймали дань классического текста в эпизоде Mad Men (S6E1 вокруг 1:18:55 для тех, кто не сделал).
 
 `;
-
-export default App;

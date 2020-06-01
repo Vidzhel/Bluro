@@ -1,6 +1,6 @@
 import React from "react";
 import { Auth } from "../containers/Auth";
-import { Route, useRouteMatch, Switch } from "react-router-dom";
+import { Route, useRouteMatch, Switch, Redirect } from "react-router-dom";
 import { SignUpForm } from "../components/SignUpForm";
 import { LoginForm } from "../components/LoginForm";
 import { NoMatch } from "./NoMatch";
@@ -22,14 +22,12 @@ class LoggingPage extends React.Component {
 			errors: {
 				login: null,
 				email: null,
-				blogName: "",
 				password: null,
 				repPassword: null,
 			},
 			values: {
 				login: "",
 				email: "",
-				blogName: "",
 				password: "",
 				repPassword: "",
 				rememberMe: false,
@@ -37,7 +35,6 @@ class LoggingPage extends React.Component {
 			touched: {
 				login: false,
 				email: false,
-				blogName: false,
 				password: false,
 				repPassword: false,
 			},
@@ -86,13 +83,10 @@ class LoggingPage extends React.Component {
 		}
 		const values = this.state.values;
 		const data = {
-			auth: {
-				login: values.login,
-				email: values.email,
-				blogName: values.blogName,
-				pass: values.password,
-				repPass: values.repPassword,
-			},
+			login: values.login,
+			email: values.email,
+			pass: values.password,
+			repPass: values.repPassword,
 		};
 
 		this.props.register(data, this.props.history);
@@ -111,26 +105,6 @@ class LoggingPage extends React.Component {
 				repPassword: true,
 			},
 		});
-
-		if (!NAME_REGEXP.test(login)) {
-			this._setError(
-				"login",
-				"Login must have at least 6 symbols and doesn't include spaces",
-			);
-			return;
-		} else {
-			this._setError("login", "");
-		}
-
-		if (!NAME_REGEXP.test(blogName)) {
-			this._setError(
-				"blogName",
-				"Blog name must have at least 6 symbols and doesn't include spaces",
-			);
-			return;
-		} else {
-			this._setError("blogName", "");
-		}
 
 		if (!EMAIL_REGEXP.test(email)) {
 			this._setError("email", "Wrong email format");
@@ -177,10 +151,8 @@ class LoggingPage extends React.Component {
 
 		const values = this.state.values;
 		const data = {
-			auth: {
-				email: values.email,
-				pass: values.password,
-			},
+			email: values.email,
+			pass: values.password,
 		};
 
 		this.props.logIn(data, this.props.history);
@@ -226,6 +198,9 @@ class LoggingPage extends React.Component {
 	render() {
 		return (
 			<Switch>
+				<Route exact path={`${this.props.match.url}/`}>
+					<Redirect to={this.props.match.url + "/signup"} />
+				</Route>
 				<Route path={`${this.props.match.url}/login`}>
 					<Auth
 						{...this.state}
@@ -259,7 +234,7 @@ const mapDispatchToProps = {
 
 const mapStateToProps = (state) => {
 	return {
-		resultMessage: getSessionError(state) || getSessionInfo(state),
+		resultMessage: getSessionError(state) || getSessionInfo(state) || getSessionInfo(state),
 		resultError: !!getSessionError(state),
 	};
 };

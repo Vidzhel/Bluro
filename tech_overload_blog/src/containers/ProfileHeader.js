@@ -6,6 +6,7 @@ import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
 import { SmallButton } from "../components/SmallButton";
 import PropTypes from "prop-types";
+import { configs } from "../assets/configs";
 
 const Header = styled.div`
 	padding: 20px 0;
@@ -33,7 +34,18 @@ const StyledButton = styled(SmallButton)`
 `;
 
 export function ProfileHeader(props) {
-	const { userName, onFollowClicked, aboutUser, followers, following, imgSrc } = props;
+	const {
+		userName,
+		onFollowClicked,
+		onUnfollowClicked,
+		about,
+		followers,
+		following,
+		img,
+		isCurrentUser,
+		isFollowing,
+	} = props;
+
 	return (
 		<Header>
 			<Container>
@@ -44,11 +56,22 @@ export function ProfileHeader(props) {
 						sm={{ order: 1, span: 8 }}>
 						<div className="d-flex align-items-center">
 							<h1>{userName}</h1>
-							<StyledButton onClick={onFollowClicked} size="sm">
-								Follow
-							</StyledButton>
+							{!isCurrentUser ? (
+								isFollowing ? (
+									<StyledButton
+										onClick={onUnfollowClicked}
+										size="sm"
+										variant="dark">
+										Unfollow
+									</StyledButton>
+								) : (
+									<StyledButton onClick={onFollowClicked} size="sm">
+										Follow
+									</StyledButton>
+								)
+							) : null}
 						</div>
-						<p>{aboutUser}</p>
+						<p>{about}</p>
 						<Stats className="d-flex">
 							<div>{following} Following</div>
 							<div>{followers} Followers</div>
@@ -58,7 +81,11 @@ export function ProfileHeader(props) {
 						className="d-flex flex-row align-items-center justify-content-center"
 						xs={{ order: 1 }}
 						sm={{ order: 2, span: 4 }}>
-						<ProfileImage src={imgSrc} roundedCircle alt="Creator profile" />
+						<ProfileImage
+							src={`${configs.resources.profileImage}${img}`}
+							roundedCircle
+							alt="Creator profile"
+						/>
 					</Col>
 				</Row>
 			</Container>
@@ -69,8 +96,10 @@ export function ProfileHeader(props) {
 ProfileHeader.propTypes = {
 	userName: PropTypes.string.isRequired,
 	onFollowClicked: PropTypes.func.isRequired,
-	aboutUser: PropTypes.string.isRequired,
+	onUnfollowClicked: PropTypes.func.isRequired,
+	about: PropTypes.string,
 	followers: PropTypes.number.isRequired,
 	following: PropTypes.number.isRequired,
-	imgSrc: PropTypes.string.isRequired,
+	img: PropTypes.string.isRequired,
+	isFollowing: PropTypes.bool.isRequired,
 };

@@ -1,16 +1,18 @@
-import { takeLatest, call, put, race, delay } from "redux-saga/effects";
-import { SES_SYNC, SES_ASYNC } from "../assets/actionTypes/session";
-import config from "../assets/configs.json";
-
-const TIMEOUT = 60000;
+import { takeLatest, call, put, take } from "redux-saga/effects";
+import { SES_ASYNC, SES_SYNC } from "../assets/actionTypes/session";
+import { ART_ASYNC, ART_SYNC } from "../assets/actionTypes/articles";
+import { configs } from "../assets/configs";
+import { makeRequest, setCookie, HISTORY } from "./utilities";
 
 export function* sessionWatcher() {
 	yield takeLatest(SES_SYNC.LOGIN, loginFlow);
 	yield takeLatest(SES_SYNC.SIGN_UP, signUpFlow);
+	yield takeLatest(SES_SYNC.SHOW_UPDATE_STORY_MODAL, showUpdateStoryModal);
+	yield takeLatest(SES_SYNC.LOG_OUT, logOut);
 }
 
 function* loginFlow(action) {
-	const { failure, reason } = yield call(tryFetch, TIMEOUT, config.endpoints.login, {
+	const { failure } = yield call(makeRequest, configs.endpoints.login, {
 		method: "POST",
 		body: JSON.stringify({
 			...action.data,
@@ -18,21 +20,12 @@ function* loginFlow(action) {
 	});
 
 	if (!failure) {
-		yield put({
-			type: SES_ASYNC.LOGIN_ASYNC_SUCCESS,
-			message: "You've been successfully logged in",
-		});
-		action.history.push("/");
-	} else {
-		yield put({
-			type: SES_ASYNC.LOGIN_ASYNC_FAILURE,
-			message: reason,
-		});
+		HISTORY.push("/");
 	}
 }
 
 function* signUpFlow(action) {
-	const { failure, reason } = yield call(tryFetch, TIMEOUT, config.endpoints.register, {
+	const { failure } = yield call(makeRequest, configs.endpoints.register, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -43,89 +36,19 @@ function* signUpFlow(action) {
 	});
 
 	if (!failure) {
-		yield put({
-			type: SES_ASYNC.LOGIN_ASYNC_SUCCESS,
-			message: "You've been successfully registered",
-		});
-		action.history.push("/auth/login");
-	} else {
-		yield put({
-			type: SES_ASYNC.LOGIN_ASYNC_FAILURE,
-			message: reason,
-		});
+		HISTORY.push("/auth/login");
 	}
 }
 
-function* tryFetch(timeout, endpoint, requestData) {
-	const controller = new AbortController();
-	const { signal } = controller;
-	let res, wasTimeout, reason, data, failure;
-	failure = false;
-
-	if (!requestData.headers) {
-		requestData.headers = {};
-	}
-
-	requestData.headers = {
-		...requestData.headers,
-		"Content-Type": "application/json",
-	};
-
-	try {
-		const raceRes = yield race([
-			call(fetch, endpoint, {
-				...requestData,
-				signal,
-				mode: "cors",
-				redirect: "follow",
-				credentials: "include",
-			}),
-			delay(timeout, true),
-		]);
-
-		res = raceRes[0];
-		wasTimeout = raceRes[1] || false;
-
-		if (wasTimeout) {
-			failure = true;
-			reason = "Connection timeout";
-			controller.abort();
-		}
-	} catch (e) {
-		console.log(e);
-		reason = "Error occurred";
-	}
-
-	if (res) {
-		return yield call(handleResponse, res, wasTimeout, reason, data, failure);
-	} else {
-		failure = true;
-		reason = "Server error";
-
-		return { res: null, wasTimeout, reason, data: null, failure };
-	}
+function* logOut() {
+	setCookie("token", "");
+	yield put({ type: SES_ASYNC.LOG_OUT_ASYNC });
 }
 
-async function handleResponse(res, wasTimeout, reason, data, failure) {
-	// For some reason an exception Illegal... is thrown when you 'call' res.json with saga effect
-	return await res.json().then((body) => {
-		data = body;
-
-		if (res && res.ok) {
-			reason = body.success.join(" ");
-		} else {
-			failure = true;
-			if (wasTimeout) {
-				reason = "Connection timeout";
-			} else {
-				reason = body.errors.join(" ");
-			}
-
-			if (!reason) {
-				reason = "Unknown error occurred";
-			}
-		}
-
-		return { res, wasTimeout, reason, data, failure };
+function* showUpdateStoryModal(action) {
+	yield put({
+		type: ART_ASYNC.LOAD_ARTICLE_TO_EDIT_ASYNC,
+		article: action.data,
 	});
+	yield put({ type: SES_ASYNC.SHOW_UPDATE_STORY_MODAL_ASYNC });
 }

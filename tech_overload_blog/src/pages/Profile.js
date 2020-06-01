@@ -6,7 +6,14 @@ import Tabs from "react-bootstrap/Tabs";
 import Tab from "react-bootstrap/Tab";
 import styled from "styled-components";
 import { BigImageArticlePreview } from "../components/BigImageArticlePreview";
-import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { getChosenProfile } from "../assets/selectors/profile";
+import { getFetchedArticles } from "../assets/selectors/articles";
+import { getProfileInfo } from "../actions/profile";
+import { getUsersArticles } from "../actions/articles";
+import { ChangeProfile } from "../containers/ChangerProfile";
+import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
+import { showUpdateStoryModal } from "../actions/session";
 
 const StyledTabs = styled(Tabs)`
 	border-top-width: 0 !important;
@@ -30,45 +37,130 @@ const StyledTabs = styled(Tabs)`
 	}
 `;
 
-export function ProfilePage(props) {
-	const { articles, profile } = props;
-	return (
-		<NarrowLayout>
-			<ProfileHeader {...profile} />
-			<StyledTabs defaultActiveKey="profile" id="uncontrolled-tab-example">
-				<Tab transition={false} eventKey="profile" title="Profile">
-					<VerticalList>
-						{articles.map((article) => {
-							return <BigImageArticlePreview {...article} history={props.history} />;
-						})}
-					</VerticalList>
-				</Tab>
-				<Tab transition={false} eventKey="settings" title="Settings">
-					hello
-				</Tab>
-			</StyledTabs>
-		</NarrowLayout>
-	);
+const StyledMessage = styled.div``;
+
+class ProfilePage extends React.Component {
+	constructor() {
+		super();
+
+		this.state = {
+			publishedArticles: [],
+			unpublishedArticles: [],
+		};
+	}
+	componentDidMount = () => {
+		const userVerbose = this.props.match.params.verbose;
+		this.props.getProfileInfo(userVerbose);
+		this.props.getUsersArticles(userVerbose, false);
+	};
+
+	handleFollow = () => {
+		console.log("Followed");
+	};
+
+	handleUnfollow = () => {
+		console.log("Unfollowed");
+	};
+
+	handleChangeArticle = (article) => {
+		this.props.showUpdateStoryModal(article);
+	};
+
+	render() {
+		const { articles, profile } = this.props;
+
+		if (!profile) {
+			return null;
+		}
+
+		const publishedArticles = [];
+		const unpublishedArticles = [];
+
+		articles.forEach((article) => {
+			if (article.state === ARTICLE_STATE_PUBLISH) {
+				publishedArticles.push(article);
+			} else {
+				unpublishedArticles.push(article);
+			}
+		});
+
+		return (
+			<NarrowLayout>
+				<ProfileHeader
+					{...profile}
+					onFollowClicked={this.handleFollow}
+					onUnfollowClicked={this.handleUnfollow}
+				/>
+				<StyledTabs defaultActiveKey="profile" id="uncontrolled-tab-example">
+					<Tab transition={false} eventKey="profile" title="Profile">
+						{publishedArticles.length ? (
+							<VerticalList>
+								{publishedArticles.map((article) => {
+									return (
+										<BigImageArticlePreview
+											article={article}
+											userName={profile.userName}
+											userImgSrc={profile.img}
+											userVerbose={profile.verbose}
+											onChangeArticleClicked={this.handleChangeArticle}
+											key={article.verbose}
+										/>
+									);
+								})}
+							</VerticalList>
+						) : (
+							<StyledMessage className="mt-5 d-flex justify-content-center">
+								Nothing to show yet
+							</StyledMessage>
+						)}
+					</Tab>
+					{profile.isCurrentUser ? (
+						<Tab transition={false} eventKey="settings" title="Settings">
+							<ChangeProfile />
+						</Tab>
+					) : null}
+					{profile.isCurrentUser ? (
+						<Tab transition={false} eventKey="drafts" title="Drafts">
+							{unpublishedArticles.length ? (
+								<VerticalList>
+									{unpublishedArticles.map((article) => {
+										return (
+											<BigImageArticlePreview
+												article={article}
+												userName={profile.userName}
+												userImgSrc={profile.img}
+												userVerbose={profile.verbose}
+												onChangeArticleClicked={this.handleChangeArticle}
+												key={article.verbose}
+											/>
+										);
+									})}
+								</VerticalList>
+							) : (
+								<StyledMessage className="mt-5 d-flex justify-content-center">
+									Nothing to show yet
+								</StyledMessage>
+							)}
+						</Tab>
+					) : null}
+				</StyledTabs>
+			</NarrowLayout>
+		);
+	}
 }
 
-ProfilePage.propTypes = {
-	articles: PropTypes.arrayOf(
-		PropTypes.exact({
-			previewImgSrc: PropTypes.string.isRequired,
-			userImgSrc: PropTypes.string.isRequired,
-			articleSrc: PropTypes.string.isRequired,
-			date: PropTypes.string.isRequired,
-			userName: PropTypes.string.isRequired,
-			title: PropTypes.string.isRequired,
-			description: PropTypes.string.isRequired,
-		}),
-	),
-	profile: PropTypes.exact({
-		userName: PropTypes.string.isRequired,
-		onFollowClicked: PropTypes.func.isRequired,
-		aboutUser: PropTypes.string.isRequired,
-		followers: PropTypes.number.isRequired,
-		following: PropTypes.number.isRequired,
-		imgSrc: PropTypes.string.isRequired,
-	}),
+const mapStateToProps = (state) => {
+	return {
+		profile: getChosenProfile(state),
+		articles: getFetchedArticles(state),
+	};
 };
+
+const mapDispatchToProps = {
+	getProfileInfo,
+	getUsersArticles,
+	showUpdateStoryModal,
+};
+
+ProfilePage = connect(mapStateToProps, mapDispatchToProps)(ProfilePage);
+export { ProfilePage };

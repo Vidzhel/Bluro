@@ -3,8 +3,8 @@ import Image from "react-bootstrap/Image";
 import styled from "styled-components";
 
 const StyledImage = styled(Image)`
-	width: 40px;
-	height: 40px;
+	width: ${(props) => props.width || 40}px;
+	height: ${(props) => props.height || 40}px;
 	object-fit: cover;
 `;
 

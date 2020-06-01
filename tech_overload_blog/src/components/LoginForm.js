@@ -3,7 +3,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import PropTypes from "prop-types";
-import { SignUpForm } from "./SignUpForm";
+import { Link } from "react-router-dom";
 
 export const LoginForm = (props) => {
 	const [validated, setValidated] = useState(false);
@@ -35,8 +35,8 @@ export const LoginForm = (props) => {
 	return (
 		<div>
 			<h2>Login</h2>
-			<Form noValidate onSubmit={handleSubmit}>
-				<Form.Group controlId="formBasicEmail">
+			<Form noValidate onSubmit={handleSubmit} className="mb-1">
+				<Form.Group>
 					<Form.Label>Email address</Form.Label>
 					<Form.Control
 						onChange={handleChange}
@@ -50,7 +50,7 @@ export const LoginForm = (props) => {
 					<Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
 				</Form.Group>
 
-				<Form.Group controlId="formBasicPassword">
+				<Form.Group>
 					<Form.Label>Password</Form.Label>
 					<Form.Control
 						name="password"
@@ -78,6 +78,9 @@ export const LoginForm = (props) => {
 					Login
 				</Button>
 			</Form>
+
+			<Link to="/auth/signup">Don't have an account?</Link>
+
 			{alert}
 		</div>
 	);
