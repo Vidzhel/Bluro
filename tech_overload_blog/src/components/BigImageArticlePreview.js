@@ -49,15 +49,19 @@ const ClickableIcon = styled(BsPencilSquare)`
 `;
 
 export function BigImageArticlePreview(props) {
-	const { userName, userImgSrc, article, userVerbose, onChangeArticleClicked } = props;
 	const {
+		article,
+		onChangeArticleClicked,
 		previewImageName,
 		isCurrentUserArticle,
 		verbose,
-		dateOfPublishing,
+		dateOfPublishingString,
 		title,
 		description,
-	} = article;
+		user,
+	} = props;
+
+	const { userName, img: userImgSrc, verbose: userVerbose } = user;
 
 	return (
 		<StyledContainer>
@@ -72,7 +76,7 @@ export function BigImageArticlePreview(props) {
 
 					<div className="profileInfo">
 						<div className="name">{userName}</div>
-						<div className="date">{dateOfPublishing}</div>
+						<div className="date">{dateOfPublishingString}</div>
 					</div>
 				</Link>
 
@@ -102,9 +106,7 @@ BigImageArticlePreview.propTypes = {
 		dateOfPublishing: PropTypes.string.isRequired,
 		title: PropTypes.string.isRequired,
 		description: PropTypes.string.isRequired,
+		user: PropTypes.object.isRequired,
 	}),
 	onChangeArticleClicked: PropTypes.func.isRequired,
-	userVerbose: PropTypes.string.isRequired,
-	userImgSrc: PropTypes.string.isRequired,
-	userName: PropTypes.string.isRequired,
 };

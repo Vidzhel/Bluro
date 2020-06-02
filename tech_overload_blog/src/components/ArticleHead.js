@@ -13,9 +13,12 @@ import Badge from "react-bootstrap/Badge";
 const StyledContainer = styled(Container)`
 	padding: 0;
 	margin-bottom: 40px;
+	font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
 
 	div.title > h1 {
 		margin: 40px 0 20px 0;
+		border: none;
+		text-transform: capitalize;
 		line-height: 48px;
 		font-weight: 400 !important;
 		font-size: 40px !important;
@@ -44,17 +47,8 @@ const UserInfo = styled.div`
 `;
 
 export function ArticleHead(props) {
-	const {
-		date,
-		onFollowClicked,
-		userName,
-		title,
-		userImgSrc,
-		state,
-		onUnfollowClicked,
-		isFollowing,
-		isCurrentUser,
-	} = props;
+	const { date, onFollowClicked, title, state, onUnfollowClicked, user } = props.article;
+	const { userName, img: userImgSrc, verbose: userVerbose, isFollowing, isCurrentUser } = user;
 
 	return (
 		<StyledContainer>

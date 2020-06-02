@@ -23,21 +23,20 @@ function* getProfileInfo(action) {
 	);
 
 	if (!failure) {
-		data.entry.isCurrentUser = yield call(isCurrentUser, data.entry.verbose);
-
-		// if (!data.entry.isCurrentUser) {
-		data.entry.isFollowing = yield call(isUsersFollower, action.verbose);
-		// } else {
-		// 	data.entry.isFollowing = false;
-		// }
-
-		yield put({ type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC, profile: data.entry });
+		yield put({
+			type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC,
+			profile: yield call(processUserData, data.entry),
+		});
 	}
 }
 
 function* isUsersFollower(user) {
 	const store = yield select();
 	const currentUser = yield call(getCurrentUserInfo, store);
+
+	if (!currentUser) {
+		return false;
+	}
 
 	const { failure, data } = yield call(
 		makeRequest,
@@ -116,4 +115,15 @@ function* isChosenUser(verbose) {
 	const store = yield select();
 	const currentUser = yield call(getChosenProfile, store);
 	return currentUser.verbose === verbose;
+}
+
+export function* processUserData(user) {
+	user.isCurrentUser = yield call(isCurrentUser, user.verbose);
+
+	// if (!data.entry.isCurrentUser) {
+	user.isFollowing = yield call(isUsersFollower, user.verbose);
+	// } else {
+	// 	data.entry.isFollowing = false;
+	// }
+	return user;
 }

@@ -98,10 +98,7 @@ class ProfilePage extends React.Component {
 								{publishedArticles.map((article) => {
 									return (
 										<BigImageArticlePreview
-											article={article}
-											userName={profile.userName}
-											userImgSrc={profile.img}
-											userVerbose={profile.verbose}
+											{...article}
 											onChangeArticleClicked={this.handleChangeArticle}
 											key={article.verbose}
 										/>
@@ -126,10 +123,7 @@ class ProfilePage extends React.Component {
 									{unpublishedArticles.map((article) => {
 										return (
 											<BigImageArticlePreview
-												article={article}
-												userName={profile.userName}
-												userImgSrc={profile.img}
-												userVerbose={profile.verbose}
+												{...article}
 												onChangeArticleClicked={this.handleChangeArticle}
 												key={article.verbose}
 											/>

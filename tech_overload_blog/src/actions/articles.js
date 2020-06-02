@@ -32,7 +32,7 @@ export function deleteArticle(articleVerbose) {
 
 export function openArticle(verbose) {
 	return {
-		type: ART_ASYNC.OPEN_ARTICLE_ASYNC,
+		type: ART_SYNC.OPEN_ARTICLE,
 		verbose,
 	};
 }
@@ -42,4 +42,8 @@ export function fetchArticleContent(fileName) {
 		type: ART_SYNC.FETCH_ARTICLES_CONTENT,
 		fileName,
 	};
+}
+
+export function fetchChunkOfArticles() {
+	return { type: ART_SYNC.FETCH_CHUNK_OF_ARTICLES };
 }

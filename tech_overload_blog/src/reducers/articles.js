@@ -6,6 +6,7 @@ const defaultState = {
 	editing: null,
 	openedArticle: null,
 	openedArticleContent: null,
+	offset: 0,
 };
 
 export function articles(state = defaultState, action) {
@@ -51,11 +52,18 @@ export function articles(state = defaultState, action) {
 			break;
 		}
 		case ART_ASYNC.OPEN_ARTICLE_ASYNC: {
-			newState.openedArticle = newState.fetched[action.verbose];
+			newState.openedArticle = action.article;
 			break;
 		}
 		case ART_ASYNC.FETCH_ARTICLES_CONTENT_ASYNC: {
 			newState.openedArticleContent = action.content;
+			break;
+		}
+		case ART_ASYNC.FETCH_CHUNK_OF_ARTICLES_ASYNC: {
+			newState.offset += action.articles.length;
+			for (const article of action.articles) {
+				newState.fetched[article.verbose] = article;
+			}
 			break;
 		}
 	}

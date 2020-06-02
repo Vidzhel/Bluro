@@ -1,18 +1,35 @@
 import React from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
+import { configs } from "../assets/configs";
+import { Link } from "react-router-dom";
 
 const StyledContainer = styled.div`
 	margin: 30px auto;
+	max-height: 130px;
+	overflow: hidden;
 
 	&:hover {
 		cursor: pointer;
 	}
 `;
 
-const PreviewImage = styled.img`
-	object-fit: cover;
+const StyledTitle = styled(Link)`
+	display: block;
+	font-size: 15px;
+	text-transform: capitalize;
 `;
+
+const PreviewImage = styled(Link)`
+	display: block;
+
+	img {
+		object-fit: cover;
+		height: 100%;
+		width: 100%;
+	}
+`;
+
 const About = styled.div`
 	margin-right: 20px;
 	width: 100%;
@@ -41,44 +58,44 @@ const About = styled.div`
 `;
 
 export function SmallImageArticlePreview(props) {
+	// const { userName, userImgSrc, article, userVerbose, onChangeArticleClicked } = props;
 	const {
-		articleSrc,
-		date,
-		description,
-		overline,
-		previewImgSrc,
+		previewImageName,
+		isCurrentUserArticle,
+		verbose,
+		dateOfPublishingString,
 		title,
-		userName,
-		history,
+		description,
+		user,
 	} = props;
-
-	function navigateToArticle() {
-		history.push(articleSrc);
-	}
+	const { verbose: userVerbose, userName } = user;
 
 	return (
-		<StyledContainer onClick={navigateToArticle} className="d-flex">
+		<StyledContainer className="d-flex flex-column flex-md-row">
 			<About>
-				<div className="overline">{overline}</div>
-				<h2 className="title">{title}</h2>
-				<div className="description">{description}</div>
+				<StyledTitle to={`/articles/${verbose}`} className="title">
+					{title}
+				</StyledTitle>
+				<Link to={`/articles/${verbose}`} className="description">
+					{description}
+				</Link>
 				<div className="d-flex flex-column info">
-					<div>{userName}</div>
-					<div>{date}</div>
+					<Link to={`/profiles/${userVerbose}`}>{userName}</Link>
+					<div>{dateOfPublishingString}</div>
 				</div>
 			</About>
-			<PreviewImage src={previewImgSrc} />
+			<PreviewImage to={`/articles/${verbose}`}>
+				<img src={configs.resources.articleImage + previewImageName} alt="" />
+			</PreviewImage>
 		</StyledContainer>
 	);
 }
 
 SmallImageArticlePreview.propTypes = {
-	previewImgSrc: PropTypes.string.isRequired,
-	articleSrc: PropTypes.string.isRequired,
-	date: PropTypes.string.isRequired,
-	userName: PropTypes.string.isRequired,
+	previewImageName: PropTypes.string.isRequired,
+	verbose: PropTypes.string.isRequired,
+	dateOfPublishingString: PropTypes.string.isRequired,
+	// userName: PropTypes.string.isRequired,
 	title: PropTypes.string.isRequired,
 	description: PropTypes.string.isRequired,
-	overline: PropTypes.string.isRequired,
-	history: PropTypes.object.isRequired,
 };

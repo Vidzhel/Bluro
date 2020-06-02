@@ -17,7 +17,7 @@ async function getArticles(req, res, data) {
 
 	if (!user) {
 		const articlesSet = Article.selector
-			.orderBy({ dateOfPublishing: "DESC" })
+			.orderBy({ dateOfPublishing: "ASC" })
 			.limit(offset, count);
 		if (publishedOnly) {
 			articlesSet.filter({ state: Article.STATES.PUBLISHED });

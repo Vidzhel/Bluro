@@ -4,10 +4,15 @@
 achieve - build something interesting and learn useful skills. As a part of the project a blog "Tech
 Overload" was build.
 
+Backend uses **no express** and **no sequelize or other ORMs** only bare bones, only hardcore
+
+Frontend on the other hand make use of **React and bunch of other dependencies** to simplify
+development
+
 ## Content
 
--   [Blog that was built with the use of Bluro](##TechOverload)
-    -   [API overview](##API)
+-   [Blog that was built with the use of Bluro](#TechOverload)
+    -   [API overview](#API)
 
 ---
 
@@ -18,19 +23,30 @@ Overload" was build.
 ### API endpoints
 
 -   Authentication
-    -   /signup - POST - register account [see](###Authentication)
-    -   /login - POST - user authentication [see](###Registration)
+    -   POST /signup - register account [see](#Authentication)
+    -   POST /login - user authentication [see](#Registration)
 -   Articles
-    -   /articles - GET - get collection of articles
-    -   /articles/:id - GET - get article by id or verbose name (if exists)
-    -   /articles - POST - create new article
-    -   /articles/:id - PUT - update article by id or verbose name (if exists)
-    -   /articles/:id - DELETE - delete article by id or verbose name (if exists)
+    -   GET /articles - get collection of articles
+    -   GET /articles/:verbose - get article by id or verbose name (if exists)
+    -   POST /articles - create new article
+    -   PUT /articles/:verbose - update article by id or verbose name (if exists)
+    -   DELETE /articles/:verbose - delete article by id or verbose name (if exists)
 -   Profiles
-    -   /profiles - GET - get collection of profiles
-    -   /profiles/:id - GET - get article by id or verbose name (if exists)
+    -   GET /profiles - get collection of profiles
+    -   GET /profiles/:verbose - get article by id or verbose name (if exists)
+    -   PUT /profiles/:verbose - update profile
+    -   DELETE /profiles/:verbose - delete profile
+    -   GET /profiles/:user/followers - get followers of an user
+    -   GET /profiles/:user/followers/:follower - is a 'follower' follows an user
+    -   GET /profiles/:user/followings - get subscriptions of an user
+    -   POST /profiles/:user/followers - follow an user
+    -   DELETE /profiles/:user/followers - stop following an user
 
 ### Authentication
+
+**Endpoints**
+
+POST /login
 
 **Requests**
 
@@ -46,14 +62,15 @@ Overload" was build.
 ```json
 {
 	"session": {
-		"userName": string,
-		"email": string,
-		"role": string
+		"verbose": "id that is used to get profile info",
+		"userName": "userName",
+		"role": "user role: 'ADMIN', 'USER'",
+		"email": "email"
 	},
 
-	"errors": string[],
-	"success": string[],
-	"info": string[]
+	"errors": "list of descriptions of errors",
+	"success": "list of success strings",
+	"info": "list of info strings"
 }
 ```
 
@@ -62,6 +79,10 @@ Overload" was build.
 403 - Wrong username or password
 
 ### Registration
+
+**Endpoints**
+
+POST /signup
 
 **Request**
 
@@ -81,6 +102,7 @@ Overload" was build.
 	"errors": "list of descriptions of errors",
 	"success": "list of success strings",
 	"info": "list of info strings",
+
 	"session": {
 		"verbose": "id that is used to get profile info",
 		"userName": "userName",
@@ -91,22 +113,81 @@ Overload" was build.
 ```
 
 **Codes**  
-201 - Created
+201 - Created  
+400 - Invalid data was provided 403 - An user with the same name
 
 ### Profiles
 
-**End Points**
+**Endpoints**
 
--   /profiles/:id - GET, PUT, DELETE - get, update, delete profile
--   /profiles - GET - get all profiles
+-   /profiles/:verbose - GET - get profile by id - responses with an entry
+-   /profiles - GET - get all profiles - responses with collection
+
+Query parameters `count` and `offset` may be specified to get a part of collection, default 10 and 0
+respectively
+
+**Endpoints**
+
+-   /profiles/:verbose - PUT - update profile with parameters
+
+Headers: `Content-Type: multipart/form-data` OR `json` (if you need to update profile image, request
+update with the use of multipart form data content type header)
+
+Files:
+
+-   `[img]` - new profile image
+
+**Request**
+
+```json
+{
+	"[verbose]": "new id that is used to get profile info",
+	"[userName]": "new use name",
+	"[role]": "new user role: 'ADMIN', 'USER'",
+	"[email]": "new email",
+	"[pass]": "new pass",
+	"[repPass]": "repeat new pass",
+	"[about]": "new about user"
+}
+```
+
+`NOTE:` all of the request parameters are optional and may be omitted if you don't want you update
+them. Role can only be changed by admins. To change password you need to specify both passwords.
+Only an user and an admin can change the user's profile info
+
+400 - Bad data  
+403 - User with the same verbose has already been registered 404 - User not found  
+200 - OK
+
+**Endpoints**
+
+-   /profiles/:verbose - DELETE - delete profile
+
+`NOTE:` Only an user and an admin can delete the user's profile info
+
+**Endpoints**
+
+-   /profiles/:verbose/followers - GET - get user's followers - returns collection
+-   /profiles/:verbose/followings - GET - get user's subscriptions - returns collection
+-   /profiles/:verbose/followers/:verbose - GET - is an user follows another user - returns entry
+
+200 - OK
+
+**Endpoints**
+
+-   /profiles/:verbose/followers - POST - subscribe for an user
+-   /profiles/:verbose/followers - DELETE - unsubscribe from an user
+
+404 - User not found  
+403 - You're not subscribed or you've already subscribed 200 - OK
 
 ### Articles
 
 #### Modify article (create or update)
 
-**End point**
+**Endpoints**
 
--   /articles/:id - PUT - modify
+-   /articles/:verbose - PUT - modify
 -   /articles - POST - create
 
 **Request**
@@ -151,8 +232,8 @@ least one has to be specified
 
 GET
 
--   /articles/:id
--   /articles?count=number
+-   /articles/:verbose
+-   /articles
 
 Query parameters `count` and `offset` may be specified to get a part of collection, default 10 and 0
 respectively

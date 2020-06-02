@@ -11,7 +11,7 @@ export const HISTORY = createBrowserHistory();
 export function* isCurrentUser(verbose) {
 	const store = yield select();
 	const currentUser = yield call(getCurrentUserInfo, store);
-	return currentUser.verbose === verbose;
+	return currentUser && currentUser.verbose === verbose;
 }
 
 export function findCookie(key) {
