@@ -23,6 +23,10 @@ class Route extends Rule {
 		data = Object.assign(temp, data);
 
 		await handler(req, res, data);
+		Logger.logInfo(`Route '${this.mountingPath}', handled by '${handler.name}'`, {
+			config: "requests",
+			prefix: "REQUEST",
+		});
 	}
 }
 

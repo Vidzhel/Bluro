@@ -19,5 +19,13 @@ export function getArticleContent(state) {
 }
 
 export function getArticlesOffset(state) {
-	return state.articles.offset;
+	return Object.values(state.articles.fetched).length;
+}
+
+export function getArticleComments(state) {
+	return Object.values(state.articles.openedArticleComments);
+}
+
+export function getArticlesCommentsOffset(state) {
+	return Object.values(state.articles.openedArticleComments).length;
 }

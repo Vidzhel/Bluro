@@ -12,7 +12,7 @@ class Article extends Model {
 Article.init([
 	{
 		columnName: "verbose",
-		type: Model.DATA_TYPES.VARCHAR(50, VERBOSE_REGEXP),
+		type: Model.DATA_TYPES.VARCHAR(100, VERBOSE_REGEXP),
 		unique: true,
 	},
 	{

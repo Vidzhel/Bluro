@@ -13,10 +13,16 @@ module.exports = function initAuth(options) {
 		deleteNotification,
 		createNotification,
 		getUsersNotificationsRule,
+		notifyFollowers,
 	} = controllers;
 
 	manager.connectRule("all", "/", getUsersNotificationsRule, { sensitive: false });
 	manager.connectRule("post", "/profiles/{receiver_verbose}/notifications", requireAuthorization);
+	manager.connectRule(
+		"post",
+		"/profiles/{receiver_verbose}/followers/notifications",
+		requireAuthorization,
+	);
 	manager.connectRule(
 		["delete", "put"],
 		"/profiles/{receiver_verbose}/notifications/{notificationId}",
@@ -24,6 +30,11 @@ module.exports = function initAuth(options) {
 	);
 
 	manager.connectRoute("post", "/profiles/{receiver_verbose}/notifications", createNotification);
+	manager.connectRoute(
+		"post",
+		"/profiles/{receiver_verbose}/followers/notifications",
+		notifyFollowers,
+	);
 	manager.connectRoute(
 		"put",
 		"/profiles/{receiver_verbose}/notifications/{notificationId}",

@@ -1,5 +1,6 @@
 import { SES_ASYNC } from "../assets/actionTypes/session";
 import { copyObject } from "./utilities";
+import { NOTIFICATION_STATUS_READ } from "../assets/constants";
 
 const defaultState = {
 	error: "",
@@ -12,6 +13,8 @@ const defaultState = {
 	isUpdateStoryModal: false,
 
 	makingRequest: false,
+
+	notifications: [],
 };
 
 export function session(state = defaultState, action) {
@@ -81,6 +84,27 @@ export function session(state = defaultState, action) {
 		case SES_ASYNC.LOG_OUT_ASYNC: {
 			newState.currentUser = null;
 			break;
+		}
+		case SES_ASYNC.UPDATE_NOTIFICATIONS_ASYNC: {
+			if (action.notifications) {
+				newState.notifications = [];
+
+				for (const notification of action.notifications) {
+					newState.notifications.push(notification);
+				}
+			}
+			break;
+		}
+		case SES_ASYNC.READ_NOTIFICATION_ASYNC: {
+			if (newState.notifications[action.id]) {
+				newState.notifications[action.id].status = NOTIFICATION_STATUS_READ;
+			}
+			break;
+		}
+		case SES_ASYNC.DELETE_NOTIFICATION_ASYNC: {
+			if (newState.notifications[action.id]) {
+				delete newState.notifications[action.id];
+			}
 		}
 	}
 

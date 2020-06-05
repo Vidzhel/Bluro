@@ -15,3 +15,11 @@ export function getShowStoryModal(store) {
 export function getIsUpdateStoryModal(store) {
 	return store.session.isUpdateStoryModal;
 }
+
+export function isUserRegistered(store) {
+	return !!store.session.currentUser;
+}
+
+export function getNotifications(store) {
+	return store.session.notifications;
+}

@@ -10,7 +10,7 @@ import { connect } from "react-redux";
 import { getChosenProfile } from "../assets/selectors/profile";
 import { getFetchedArticles } from "../assets/selectors/articles";
 import { getProfileInfo } from "../actions/profile";
-import { getUsersArticles } from "../actions/articles";
+import { getArticles } from "../actions/articles";
 import { ChangeProfile } from "../containers/ChangerProfile";
 import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
 import { showUpdateStoryModal } from "../actions/session";
@@ -98,7 +98,7 @@ class ProfilePage extends React.Component {
 								{publishedArticles.map((article) => {
 									return (
 										<BigImageArticlePreview
-											{...article}
+											article={article}
 											onChangeArticleClicked={this.handleChangeArticle}
 											key={article.verbose}
 										/>
@@ -123,7 +123,7 @@ class ProfilePage extends React.Component {
 									{unpublishedArticles.map((article) => {
 										return (
 											<BigImageArticlePreview
-												{...article}
+												article={article}
 												onChangeArticleClicked={this.handleChangeArticle}
 												key={article.verbose}
 											/>
@@ -152,7 +152,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = {
 	getProfileInfo,
-	getUsersArticles,
+	getUsersArticles: getArticles,
 	showUpdateStoryModal,
 };
 

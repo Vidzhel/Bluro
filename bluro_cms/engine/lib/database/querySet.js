@@ -58,7 +58,7 @@ class QuerySet extends DependencyResolver {
 	filter(options) {
 		if (typeof options === "function") {
 			this._filterFunction(options, false);
-		} else if (typeof options === "object") {
+		} else if (typeof options === "object" || typeof options[Symbol.iterator] === "function") {
 			this._filterOptions(options, false);
 		} else {
 			throw new TypeError("Expected function or object, got " + typeof options);
@@ -217,6 +217,22 @@ class QuerySet extends DependencyResolver {
 			// thisModel.selector.
 			// foreignKey.columnName
 		}
+	}
+
+	processFilterParameters(params) {
+		const filter = [];
+
+		for (const [name, val] of Object.entries(params)) {
+			if (this._model.hasColumn(name)) {
+				filter.push({
+					firstValue: name,
+					operator: this._model.OP.like,
+					secondValue: `%${val}%`,
+				});
+			}
+		}
+
+		return filter;
 	}
 
 	slice(start, end) {

@@ -118,7 +118,8 @@ async function getProfilesController(req, res) {
 	const offset = parseInt(req.query.offset) || 0;
 	let results;
 
-	const set = await User.selector.limit(offset, count).fetch();
+	const params = User.selector.processFilterParameters(req.query);
+	const set = await User.selector.filter(params).limit(offset, count).fetch();
 
 	results = await set.getList();
 	res.setCollection(results, offset, count);

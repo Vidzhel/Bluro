@@ -1,19 +1,16 @@
 import React from "react";
 import { VerticalList } from "../components/VerticalList";
 import { connect } from "react-redux";
-import { fetchChunkOfArticles } from "../actions/articles";
+import { getArticles } from "../actions/articles";
 import { getFetchedArticles } from "../assets/selectors/articles";
 import { SmallImageArticlePreview } from "../components/SmallmageArticlePreview";
 import { BigImageArticlePreview } from "../components/BigImageArticlePreview";
+import { showUpdateStoryModal } from "../actions/session";
 
 class HomePage extends React.Component {
 	componentDidMount() {
-		this.props.fetchChunkOfArticles();
+		this.props.getArticles(null);
 		this.loadedAllTheArticles = false;
-	}
-
-	componentWillUnmount() {
-		console.log("Unmount");
 	}
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
@@ -25,15 +22,23 @@ class HomePage extends React.Component {
 	loadMoreArticles = () => {
 		if (!this.loadedAllTheArticles) {
 			this.loadedAllTheArticles = true;
-			this.props.fetchChunkOfArticles();
+			this.props.getArticles(null, true, false);
 		}
+	};
+
+	handleArticleChange = (article) => {
+		this.props.showUpdateStoryModal(article);
 	};
 
 	render() {
 		return (
 			<VerticalList onBottomReached={this.loadMoreArticles}>
 				{this.props.articles.map((article) => (
-					<BigImageArticlePreview {...article} key={article.verbose} />
+					<BigImageArticlePreview
+						article={article}
+						key={article.verbose}
+						onChangeArticleClicked={this.handleArticleChange}
+					/>
 				))}
 			</VerticalList>
 		);
@@ -47,7 +52,8 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = {
-	fetchChunkOfArticles,
+	showUpdateStoryModal,
+	getArticles,
 };
 
 HomePage = connect(mapStateToProps, mapDispatchToProps)(HomePage);

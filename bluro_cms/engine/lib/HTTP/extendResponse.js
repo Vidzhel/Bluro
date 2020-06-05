@@ -65,6 +65,10 @@ module.exports = function extendResponse(res) {
 		};
 	};
 
+	res.setIdentifiers = function (identifiers) {
+		res._chunks.identifiers = identifiers;
+	};
+
 	res.setEntry = function (entry) {
 		res._chunks.entry = entry;
 	};

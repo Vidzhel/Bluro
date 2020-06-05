@@ -386,9 +386,15 @@ class Statement extends DependencyResolver {
 	 * @returns {Statement}
 	 */
 	where(where) {
-		this._whereClause = this._whereClause.concat(this._configureWhereClause(where));
-		this._invalidateCache();
+		if (typeof where[Symbol.iterator] === "function") {
+			for (const condition of where) {
+				this._whereClause = this._whereClause.concat(this._configureWhereClause(condition));
+			}
+		} else {
+			this._whereClause = this._whereClause.concat(this._configureWhereClause(where));
+		}
 
+		this._invalidateCache();
 		return this;
 	}
 

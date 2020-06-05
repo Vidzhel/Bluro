@@ -173,6 +173,13 @@ class Rule {
 			// if error handler
 			if (handler.length > 3) {
 				const preventPropagation = await handler(error, req, res, data);
+				Logger.logInfo(
+					`Error '${error}', rule '${this.mountingPath}', handled by '${handler.name}'`,
+					{
+						config: "requests",
+						prefix: "REQUEST",
+					},
+				);
 				return { idx: handler_index, preventPropagation };
 			}
 		}
@@ -195,6 +202,10 @@ class Rule {
 				// if a handler is a request handler
 				if (!(handler.length > 3)) {
 					stopPropagating = await handler(req, res, data);
+					Logger.logInfo(`Rule '${this.mountingPath}', handled by '${handler.name}'`, {
+						config: "requests",
+						prefix: "REQUEST",
+					});
 				}
 			} catch (error) {
 				console.log(error);

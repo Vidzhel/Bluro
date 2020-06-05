@@ -43,6 +43,11 @@ Notification.init([
 		type: Model.DATA_TYPES.VARCHAR(600),
 	},
 	{
+		columnName: "title",
+		verboseName: "Notification title",
+		type: Model.DATA_TYPES.VARCHAR(50),
+	},
+	{
 		columnName: "status",
 		verboseName: "Notification status",
 		type: Model.DATA_TYPES.VARCHAR(5),

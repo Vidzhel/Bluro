@@ -4,8 +4,15 @@ import { NarrowLayout } from "../components/NarrowLayout";
 import { Article } from "../components/Article";
 import styled from "styled-components";
 import { connect } from "react-redux";
-import { openArticle, fetchArticleContent } from "../actions/articles";
-import { getArticleContent, getOpenedArticle } from "../assets/selectors/articles";
+import { openArticle, getArticlesComments, fetchNextChunkOfComments } from "../actions/articles";
+import {
+	getArticleComments,
+	getArticleContent,
+	getOpenedArticle,
+} from "../assets/selectors/articles";
+import { ChangeComment } from "../containers/ChangeComment";
+import { VerticalList } from "../components/VerticalList";
+import { Comment } from "../components/Comment";
 
 const StyledLayout = styled(NarrowLayout)`
 	& > div {
@@ -16,10 +23,15 @@ const StyledLayout = styled(NarrowLayout)`
 class BlogPostPage extends React.Component {
 	componentDidMount = () => {
 		this.props.openArticle(this.props.match.params.verbose);
+		this.props.getArticlesComments(this.props.match.params.verbose);
 	};
 
 	handleFollowClicked = () => {};
 	handleUnfollowClicked = () => {};
+
+	loadMoreComments = () => {
+		this.props.fetchNextChunkOfComments(this.props.match.params.verbose);
+	};
 
 	render() {
 		if (!this.props.article || !this.props.text) {
@@ -36,6 +48,18 @@ class BlogPostPage extends React.Component {
 					onUnfollowClicked={this.handleUnfollowClicked}
 				/>
 				<Article text={this.props.text} />
+				<ChangeComment articleVerbose={article.verbose} />
+				<VerticalList onBottomReached={this.loadMoreComments}>
+					{this.props.comments.map((comment) => {
+						return (
+							<Comment
+								{...comment}
+								key={comment.id}
+								articleVerbose={article.verbose}
+							/>
+						);
+					})}
+				</VerticalList>
 			</StyledLayout>
 		);
 	}
@@ -45,11 +69,14 @@ const mapStateToProps = (store) => {
 	return {
 		article: getOpenedArticle(store),
 		text: getArticleContent(store),
+		comments: getArticleComments(store),
 	};
 };
 
 const mapDispatchToProps = {
 	openArticle,
+	getArticlesComments,
+	fetchNextChunkOfComments,
 };
 
 BlogPostPage = connect(mapStateToProps, mapDispatchToProps)(BlogPostPage);

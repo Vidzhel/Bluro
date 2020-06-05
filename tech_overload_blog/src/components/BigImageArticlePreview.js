@@ -49,18 +49,17 @@ const ClickableIcon = styled(BsPencilSquare)`
 `;
 
 export function BigImageArticlePreview(props) {
+	const { onChangeArticleClicked, article } = props;
+
 	const {
-		article,
-		onChangeArticleClicked,
+		description,
+		title,
+		user,
+		dateOfPublishingString,
 		previewImageName,
 		isCurrentUserArticle,
 		verbose,
-		dateOfPublishingString,
-		title,
-		description,
-		user,
-	} = props;
-
+	} = article;
 	const { userName, img: userImgSrc, verbose: userVerbose } = user;
 
 	return (
@@ -103,7 +102,7 @@ BigImageArticlePreview.propTypes = {
 		previewImageName: PropTypes.string.isRequired,
 		isCurrentUserArticle: PropTypes.bool.isRequired,
 		verbose: PropTypes.string.isRequired,
-		dateOfPublishing: PropTypes.string.isRequired,
+		dateOfPublishingString: PropTypes.string.isRequired,
 		title: PropTypes.string.isRequired,
 		description: PropTypes.string.isRequired,
 		user: PropTypes.object.isRequired,

@@ -3,8 +3,9 @@ import { sendForm, makeRequest, isCurrentUser } from "./utilities";
 import { configs } from "../assets/configs";
 import { PROF_ASYNC, PROF_SYNC } from "../assets/actionTypes/profile";
 import { getCurrentUserInfo } from "../assets/selectors/session";
-import { SES_ASYNC } from "../assets/actionTypes/session";
 import { getChosenProfile } from "../assets/selectors/profile";
+import { createNotification } from "../actions/session";
+import { FOLLOW_NOTIFICATION, UNFOLLOW_NOTIFICATION } from "../assets/constants";
 
 export function* profileWatcher() {
 	yield takeLatest(PROF_SYNC.GET_PROFILE_INFO, getProfileInfo);
@@ -81,6 +82,10 @@ function* followUser(action) {
 	);
 
 	if (!failure) {
+		const store = select();
+		const currentUser = yield call(getCurrentUserInfo, store);
+		createNotification(action.verbose, FOLLOW_NOTIFICATION(currentUser.userName));
+
 		const isChosen = yield call(isChosenUser, action.verbose);
 		if (isChosen) {
 			yield put({
@@ -101,6 +106,10 @@ function* unfollowUser(action) {
 	);
 
 	if (!failure) {
+		const store = select();
+		const currentUser = yield call(getCurrentUserInfo, store);
+		createNotification(action.verbose, UNFOLLOW_NOTIFICATION(currentUser.userName));
+
 		const isChosen = yield call(isChosenUser, action.verbose);
 		if (isChosen) {
 			yield put({

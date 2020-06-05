@@ -30,6 +30,7 @@ async function createCommentController(req, res, data) {
 
 	const comment = new Comment(commentData, true);
 	await comment.save();
+	res.setIdentifiers({ id: comment.id });
 }
 
 async function updateComment(req, res, data) {
@@ -94,6 +95,7 @@ async function getComments(req, res, data) {
 	const articleVerbose = data.params.article;
 	const count = parseInt(req.query.count) || 10;
 	const offset = parseInt(req.query.offset) || 0;
+	const filterParams = Comment.selector.processFilterParameters(req.query);
 
 	if (articleVerbose) {
 		const articlesSet = await Article.selector.filter({ verbose: articleVerbose }).fetch();
@@ -103,9 +105,10 @@ async function getComments(req, res, data) {
 			return;
 		}
 		const article = articlesSet.get(0);
+		filterParams.push({ article: article.id });
 
 		const commentsSet = await Comment.selector
-			.filter({ article: article.id })
+			.filter(filterParams)
 			.orderBy({ creationDate: "DESC" })
 			.limit(offset, count)
 			.fetch();
@@ -114,6 +117,7 @@ async function getComments(req, res, data) {
 	} else {
 		const commentsSet = await Comment.selector
 			.orderBy({ creationDate: "DESC" })
+			.filter(filterParams)
 			.limit(offset, count)
 			.fetch();
 

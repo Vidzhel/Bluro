@@ -22,6 +22,7 @@ module.exports = function initAuth(options) {
 
 	DependencyResolver.registerType({ dependency: requireAuthorizationRule });
 	DependencyResolver.registerType({ dependency: User });
+	DependencyResolver.registerType({ dependency: Follower });
 	FilesManager.createDir("profiles");
 	FilesManager.createDir("profiles/img");
 

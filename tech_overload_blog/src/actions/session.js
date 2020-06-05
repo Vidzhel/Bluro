@@ -38,3 +38,26 @@ export function showUpdateStoryModal(articleData) {
 		data: articleData,
 	};
 }
+
+export function createNotification(userVerbose, { title, message }) {
+	return {
+		type: SES_SYNC.CREATE_NOTIFICATION,
+		userVerbose,
+		title,
+		message,
+	};
+}
+
+export function readNotification(id) {
+	return {
+		type: SES_SYNC.READ_NOTIFICATION,
+		id,
+	};
+}
+
+export function deleteNotification(id) {
+	return {
+		type: SES_SYNC.DELETE_NOTIFICATION,
+		id,
+	};
+}

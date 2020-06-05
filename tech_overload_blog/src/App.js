@@ -21,7 +21,7 @@ const StyledContainer = styled.div`
 
 class App extends React.Component {
 	componentDidMount() {
-		this.props.logIn(null, this.props.history);
+		this.props.logIn(null);
 	}
 
 	render() {

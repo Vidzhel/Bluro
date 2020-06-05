@@ -13,16 +13,20 @@ async function getArticles(req, res, data) {
 	const offset = parseInt(req.query.offset) || 0;
 	const publishedOnly = req.query.published ? req.query.published === "true" : true;
 	const user = data.params.verbose;
+	const filterParams = Article.selector.processFilterParameters(req.query);
 	let results;
 
+	if (publishedOnly) {
+		filterParams.push({ state: Article.STATES.PUBLISHED });
+	}
+
 	if (!user) {
-		const articlesSet = Article.selector
+		const set = await Article.selector
 			.orderBy({ dateOfPublishing: "ASC" })
-			.limit(offset, count);
-		if (publishedOnly) {
-			articlesSet.filter({ state: Article.STATES.PUBLISHED });
-		}
-		const set = await articlesSet.fetch();
+			.limit(offset, count)
+			.filter(filterParams)
+			.fetch();
+
 		results = await set.getList();
 	} else {
 		const usersSet = await User.selector.filter({ verbose: user }).fetch();
@@ -34,14 +38,13 @@ async function getArticles(req, res, data) {
 			return;
 		}
 
-		const articlesSet = Article.selector
+		const set = await Article.selector
 			.filter({ user: userInstance.id })
 			.orderBy({ dateOfPublishing: "DESC" })
-			.limit(offset, count);
-		if (publishedOnly) {
-			articlesSet.filter({ state: Article.STATES.PUBLISHED });
-		}
-		const set = await articlesSet.fetch();
+			.limit(offset, count)
+			.filter(filterParams)
+			.fetch();
+
 		results = await set.getList();
 	}
 
@@ -94,6 +97,11 @@ async function createArticle(req, res, data) {
 	const articleInstance = new Article(article);
 	await articleInstance.save();
 
+	res.setIdentifiers({
+		textSourceName: data.files["content"],
+		previewImageName: data.files["previewImg"],
+		verbose: articleInstance.verbose,
+	});
 	res.code(res.CODES.Created);
 }
 
@@ -105,8 +113,9 @@ async function updateArticle(req, res, data) {
 			verbose: id,
 		})
 		.fetch();
+	const articleInstance = set.get(0);
 
-	if (!(await checkRights(res, set.get(0), data))) {
+	if (!(await checkRights(res, articleInstance, data))) {
 		return;
 	}
 
@@ -138,6 +147,11 @@ async function updateArticle(req, res, data) {
 	}
 
 	await Article.update(article, { verbose: id });
+	res.setIdentifiers({
+		textSourceName: data.files["content"],
+		previewImageName: data.files["previewImg"],
+		verbose: article.verbose || articleInstance.verbose,
+	});
 }
 
 async function deleteArticle(req, res, data) {

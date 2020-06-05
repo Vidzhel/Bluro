@@ -5,13 +5,16 @@ import { getCurrentUserInfo } from "../assets/selectors/session";
 
 const TIMEOUT = 60000;
 const COOKIE_REGEXP = (key) => `(;?${key}:).*;?`;
+const MINUTE = 60000;
+const HOUR = MINUTE * 60;
+const DAY = HOUR * 24;
 
 export const HISTORY = createBrowserHistory();
 
 export function* isCurrentUser(verbose) {
 	const store = yield select();
 	const currentUser = yield call(getCurrentUserInfo, store);
-	return currentUser && currentUser.verbose === verbose;
+	return !!currentUser && currentUser.verbose === verbose;
 }
 
 export function findCookie(key) {
@@ -56,40 +59,9 @@ export function* sendForm(endpoint, requestData, data) {
 }
 
 export function* makeRequest(endpoint, requestData) {
-	//
-	// const controller = new AbortController();
-	// const { signal } = controller;
-	// let res, wasTimeout, reason, failure;
-	// failure = false;
-
 	yield put({ type: SES_ASYNC.START_MAKING_REQUEST_ASYNC });
 
 	let { res, reason, failure, wasTimeout } = yield call(fetchData, endpoint, requestData);
-	//
-	// try {
-	// 	const raceRes = yield race([
-	// 		call(fetch, endpoint, {
-	// 			...requestData,
-	// 			signal,
-	// 			mode: "cors",
-	// 			redirect: "follow",
-	// 			credentials: "include",
-	// 		}),
-	// 		delay(TIMEOUT, true),
-	// 	]);
-	//
-	// 	res = raceRes[0];
-	// 	wasTimeout = raceRes[1] || false;
-	//
-	// 	if (wasTimeout) {
-	// 		failure = true;
-	// 		reason = "Connection timeout";
-	// 		controller.abort();
-	// 	}
-	// } catch (e) {
-	// 	console.log(e);
-	// 	reason = "Error occurred";
-	// }
 
 	if (res) {
 		const results = yield call(handleResponse, res, wasTimeout, reason, failure);
@@ -161,10 +133,6 @@ function* handleResponse(res, wasTimeout, reason, failure) {
 	const body = yield call(res.json.bind(res));
 	const data = body;
 
-	if (res && res.status === 404) {
-		HISTORY.push("/not-found");
-	}
-
 	yield call(regularHandler, body);
 
 	if (res && res.ok) {
@@ -194,6 +162,10 @@ function* handleResponse(res, wasTimeout, reason, failure) {
 
 function* regularHandler(body) {
 	yield put({ type: SES_ASYNC.UPDATE_SESSION_ASYNC, session: body.session });
+	yield put({
+		type: SES_ASYNC.UPDATE_NOTIFICATIONS_ASYNC,
+		notifications: processNotifications(body.notifications),
+	});
 
 	if (body.errors.length) {
 		yield put({
@@ -212,3 +184,54 @@ function* regularHandler(body) {
 		});
 	}
 }
+
+function processNotifications(notifications) {
+	if (!notifications) {
+		return;
+	}
+
+	return notifications.map((notification) => {
+		return {
+			...notification,
+			dateString: toShortDate(notification.date),
+		};
+	});
+}
+
+export function toShortDate(date) {
+	date = new Date(date);
+
+	const difference = Date.now() - date;
+	if (difference < MINUTE) {
+		return "Less then a minute ago";
+	}
+
+	if (difference < HOUR) {
+		return "Less than a hour ago";
+	}
+
+	if (difference < DAY) {
+		const hours = date.getHours();
+		const minutes = date.getMinutes();
+		return `${hours < 10 ? "0" + hours.toString() : hours}:${
+			minutes < 10 ? "0" + minutes.toString() : minutes
+		}`;
+	}
+
+	return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+const months = [
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"May",
+	"June",
+	"July",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec",
+];

@@ -5,11 +5,11 @@ import { ChangeStoryFrom } from "../components/ChangeStoryModal";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import {
-	VERBOSE_REGEXP,
-	IMAGE_EXTENSION_REGEXP,
-	CONTENT_EXTENSION_REGEXP,
 	ARTICLE_STATE_DRAFT,
 	ARTICLE_STATE_PUBLISH,
+	CONTENT_EXTENSION_REGEXP,
+	IMAGE_EXTENSION_REGEXP,
+	VERBOSE_REGEXP,
 } from "../assets/constants";
 import { createArticle, deleteArticle, updateArticle } from "../actions/articles";
 
@@ -46,14 +46,19 @@ class StoryModal extends React.Component {
 		this.setData = false;
 	}
 
-	componentDidUpdate = () => {
-		if (this.props.article && !this.setData) {
+	componentDidUpdate = (prevProps) => {
+		const { article, showModal } = this.props;
+		if (prevProps.showModal !== showModal) {
+			this.setData = false;
+		}
+
+		if (!this.setData) {
 			this.setData = true;
 			this.setState({
 				values: {
-					title: this.props.article.title,
-					verbose: this.props.article.verbose,
-					description: this.props.article.description,
+					title: (article && article.title) || "",
+					verbose: (article && article.verbose) || "",
+					description: (article && article.description) || "",
 				},
 			});
 		}
@@ -276,7 +281,7 @@ class StoryModal extends React.Component {
 		return {
 			title: values.title,
 			verbose: values.verbose,
-			description: values.verbose,
+			description: values.description,
 			state,
 			previewImg: this.previewImgFile.current.files[0],
 			content: this.contentFile.current.files[0],
@@ -332,10 +337,10 @@ class StoryModal extends React.Component {
 StoryModal.propTypes = {
 	isUpdateStory: PropTypes.bool.isRequired,
 	article: PropTypes.shape({
-		isPublished: PropTypes.bool.isRequired,
 		title: PropTypes.string.isRequired,
 		verbose: PropTypes.string.isRequired,
 		description: PropTypes.string.isRequired,
+		state: PropTypes.string.isRequired,
 	}),
 	handleClose: PropTypes.func.isRequired,
 	showModal: PropTypes.bool.isRequired,

@@ -17,27 +17,28 @@ class NotificationService {
 		});
 	}
 
-	async sendMessage(sender, receiver, text) {
-		await this._sendNotification(sender.verbose, receiver.verbose, text);
-		await this._sendMail(sender.email, receiver.email, text);
+	async sendMessage(sender, receiver, text, title) {
+		await this._sendNotification(sender.verbose, receiver.verbose, text, title);
+		await this._sendMail(sender.email, receiver.email, text, title);
 	}
 
-	async _sendNotification(senderId, receiverId, text) {
+	async _sendNotification(senderId, receiverId, text, title) {
 		const notification = new Notification();
 		notification.sender = senderId;
 		notification.receiver = receiverId;
 		notification.message = text;
+		notification.title = title;
 		notification.status = Notification.STATUS.SENT;
 		notification.date = new Date();
 
 		await notification.save();
 	}
 
-	_sendMail(from, to, text) {
+	_sendMail(from, to, text, title) {
 		const mailOptions = {
 			from,
 			to,
-			subject: this.subject,
+			subject: this.subject + " - " + title,
 			text,
 		};
 

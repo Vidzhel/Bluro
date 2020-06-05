@@ -9,11 +9,20 @@ import PropTypes from "prop-types";
 import { configs } from "../assets/configs";
 import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
 import Badge from "react-bootstrap/Badge";
+import { Link } from "react-router-dom";
 
 const StyledContainer = styled(Container)`
 	padding: 0;
 	margin-bottom: 40px;
-	font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
+
+	.row {
+		margin-right: 0;
+		margin-left: 0;
+	}
+
+	.markdown {
+		font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
+	}
 
 	div.title > h1 {
 		margin: 40px 0 20px 0;
@@ -47,7 +56,14 @@ const UserInfo = styled.div`
 `;
 
 export function ArticleHead(props) {
-	const { date, onFollowClicked, title, state, onUnfollowClicked, user } = props.article;
+	const {
+		dateOfPublishingString: date,
+		onFollowClicked,
+		title,
+		state,
+		onUnfollowClicked,
+		user,
+	} = props.article;
 	const { userName, img: userImgSrc, verbose: userVerbose, isFollowing, isCurrentUser } = user;
 
 	return (
@@ -59,6 +75,7 @@ export function ArticleHead(props) {
 				<Col className="d-flex justify-content-between">
 					<UserInfo className="d-flex align-items-center">
 						<SmallProfileImage
+							to={`/profiles/${userVerbose}`}
 							src={`${configs.resources.profileImage}/${userImgSrc}`}
 						/>
 						<div>
@@ -97,13 +114,5 @@ export function ArticleHead(props) {
 }
 
 ArticleHead.propTypes = {
-	title: PropTypes.string.isRequired,
-	userName: PropTypes.string.isRequired,
-	userImgSrc: PropTypes.string.isRequired,
-	date: PropTypes.string.isRequired,
-	onFollowClicked: PropTypes.func.isRequired,
-	onUnfollowClicked: PropTypes.func.isRequired,
-	state: PropTypes.string.isRequired,
-	isFollowing: PropTypes.bool.isRequired,
-	isCurrentUser: PropTypes.bool.isRequired,
+	article: PropTypes.object.isRequired,
 };

@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8080";
+const BASE = process.env["api"] || "http://localhost:8080";
 const BASE_RESOURCES = `${BASE}/files`;
 
 const configs = {
@@ -9,6 +9,10 @@ const configs = {
 		profiles: `${BASE}/profiles`,
 		userArticles: (userVerbose) => `${BASE}/profiles/${userVerbose}/articles`,
 		articles: `${BASE}/articles`,
+		articleComments: (articleVerbose) => `${BASE}/articles/${articleVerbose}/comments`,
+		comments: `${BASE}/comments`,
+		userNotifications: (userVerbose) => `${BASE}/profiles/${userVerbose}/notifications`,
+		notifyFollowers: (userVerbose) => `${BASE}/profiles/${userVerbose}/followers/notifications`,
 	},
 	resources: {
 		profileImage: `${BASE_RESOURCES}/profiles/img/`,

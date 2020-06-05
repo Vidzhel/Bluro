@@ -6,7 +6,7 @@ const defaultState = {
 	editing: null,
 	openedArticle: null,
 	openedArticleContent: null,
-	offset: 0,
+	openedArticleComments: {},
 };
 
 export function articles(state = defaultState, action) {
@@ -19,6 +19,12 @@ export function articles(state = defaultState, action) {
 	switch (action.type) {
 		case ART_ASYNC.GET_USERS_ARTICLES_ASYNC: {
 			newState.fetched = {};
+			for (const article of action.articles) {
+				newState.fetched[article.verbose] = article;
+			}
+			break;
+		}
+		case ART_ASYNC.FETCH_CHUNK_OF_ARTICLES_ASYNC: {
 			for (const article of action.articles) {
 				newState.fetched[article.verbose] = article;
 			}
@@ -59,10 +65,31 @@ export function articles(state = defaultState, action) {
 			newState.openedArticleContent = action.content;
 			break;
 		}
-		case ART_ASYNC.FETCH_CHUNK_OF_ARTICLES_ASYNC: {
-			newState.offset += action.articles.length;
-			for (const article of action.articles) {
-				newState.fetched[article.verbose] = article;
+		case ART_ASYNC.GET_ARTICLE_COMMENTS_ASYNC: {
+			newState.openedArticleComments = {};
+			for (const comment of action.comments) {
+				newState.openedArticleComments[comment.id] = comment;
+			}
+			break;
+		}
+		case ART_ASYNC.FETCH_CHUNK_OF_ARTICLE_COMMENTS_ASYNC: {
+			for (const comment of action.comments) {
+				newState.openedArticleComments[comment.id] = comment;
+			}
+			break;
+		}
+		case ART_ASYNC.UPDATE_COMMENT_ASYNC:
+			if (newState.openedArticleComments[action.comment.id]) {
+				newState.openedArticleComments[action.comment.id].content = action.comment.content;
+			}
+			break;
+		case ART_ASYNC.CREATE_COMMENT_ASYNC: {
+			newState.openedArticleComments[action.comment.id] = action.comment;
+			break;
+		}
+		case ART_ASYNC.DELETE_COMMENT_ASYNC: {
+			if (newState.openedArticleComments[action.id]) {
+				delete newState.openedArticleComments[action.id];
 			}
 			break;
 		}

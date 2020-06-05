@@ -1,6 +1,7 @@
 const Notification = require("./Notification");
 const User = DependencyResolver.getDependency(null, "User");
 const NotificationService = DependencyResolver.getDependency(null, "NotificationService");
+const Follower = DependencyResolver.getDependency(null, "Follower");
 
 async function getUsersNotificationsRule(req, res, data) {
 	if (data.session) {
@@ -17,15 +18,16 @@ async function createNotification(req, res, data) {
 	const receiverSet = await User.selector.filter({ verbose: receiver_verbose }).fetch();
 	const receiver = receiverSet.get(0);
 	const text = data.reqData.message;
-
-	if (data.session.role !== User.ROLES.ADMIN) {
-		res.error("You don't have rights to create notifications");
-		res.code(res.CODES.Forbidden);
-		return;
-	}
+	const title = data.reqData.title;
 
 	if (!text || text > 600) {
 		res.error("Notification text has to be specified and be no more than 600 symbols");
+		res.code(res.CODES.BadReq);
+		return;
+	}
+
+	if (!title || title > 50) {
+		res.error("Notification title has to be specified and be no more than 50 symbols");
 		res.code(res.CODES.BadReq);
 		return;
 	}
@@ -36,7 +38,37 @@ async function createNotification(req, res, data) {
 		return;
 	}
 
-	await NotificationService.sendMessage(data.session, receiver, text);
+	await NotificationService.sendMessage(data.session, receiver, text, title);
+}
+
+async function notifyFollowers(req, res, data) {
+	const text = data.reqData.message;
+	const title = data.reqData.title;
+
+	if (!text || text > 600) {
+		res.error("Notification text has to be specified and be no more than 600 symbols");
+		res.code(res.CODES.BadReq);
+		return;
+	}
+
+	if (!title || title > 50) {
+		res.error("Notification title has to be specified and be no more than 50 symbols");
+		res.code(res.CODES.BadReq);
+		return;
+	}
+
+	if (!receiver) {
+		res.error("User doesn't exist");
+		res.code(res.CODES.NotFound);
+		return;
+	}
+
+	const sender = data.session;
+	const set = await Follower.selector.filter({ user: sender.verbose }).fetch();
+
+	for (const follow of set) {
+		await NotificationService.sendMessage(sender, follow.follower, text, title);
+	}
 }
 
 async function readNotification(req, res, data) {
@@ -93,3 +125,4 @@ exports.getUsersNotificationsRule = getUsersNotificationsRule;
 exports.createNotification = createNotification;
 exports.deleteNotification = deleteNotification;
 exports.readNotification = readNotification;
+exports.notifyFollowers = notifyFollowers;
