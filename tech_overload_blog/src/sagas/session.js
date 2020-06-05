@@ -2,8 +2,9 @@ import { takeLatest, call, put, select } from "redux-saga/effects";
 import { SES_ASYNC, SES_SYNC } from "../assets/actionTypes/session";
 import { ART_ASYNC } from "../assets/actionTypes/articles";
 import { configs } from "../assets/configs";
-import { makeRequest, setCookie, HISTORY } from "./utilities";
+import { makeRequest, setCookie } from "./utilities";
 import { getCurrentUserInfo } from "../assets/selectors/session";
+import { HISTORY } from "../assets/constants";
 
 export function* sessionWatcher() {
 	yield takeLatest(SES_SYNC.LOGIN, loginFlow);

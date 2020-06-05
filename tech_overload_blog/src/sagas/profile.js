@@ -2,10 +2,11 @@ import { call, takeLatest, put, select } from "redux-saga/effects";
 import { sendForm, makeRequest, isCurrentUser } from "./utilities";
 import { configs } from "../assets/configs";
 import { PROF_ASYNC, PROF_SYNC } from "../assets/actionTypes/profile";
-import { getCurrentUserInfo } from "../assets/selectors/session";
+import { getCurrentUserInfo, isUserLoggedIn } from "../assets/selectors/session";
 import { getChosenProfile } from "../assets/selectors/profile";
 import { createNotification } from "../actions/session";
 import { FOLLOW_NOTIFICATION, UNFOLLOW_NOTIFICATION } from "../assets/constants";
+import { HISTORY } from "../assets/constants";
 
 export function* profileWatcher() {
 	yield takeLatest(PROF_SYNC.GET_PROFILE_INFO, getProfileInfo);
@@ -73,6 +74,14 @@ function* updateProfile(action) {
 }
 
 function* followUser(action) {
+	const store = yield select();
+	const isLoggedIn = yield call(isUserLoggedIn, store);
+
+	if (!isLoggedIn) {
+		HISTORY.push("/auth/login");
+		return;
+	}
+
 	const { failure } = yield call(
 		makeRequest,
 		`${configs.endpoints.profiles}/${action.verbose}/followers`,
@@ -82,15 +91,14 @@ function* followUser(action) {
 	);
 
 	if (!failure) {
-		const store = select();
+		const store = yield select();
 		const currentUser = yield call(getCurrentUserInfo, store);
 		createNotification(action.verbose, FOLLOW_NOTIFICATION(currentUser.userName));
 
 		const isChosen = yield call(isChosenUser, action.verbose);
 		if (isChosen) {
 			yield put({
-				type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC,
-				profile: { isFollowing: true },
+				type: PROF_ASYNC.FOLLOW_USER_ASYNC,
 			});
 		}
 	}
@@ -106,15 +114,14 @@ function* unfollowUser(action) {
 	);
 
 	if (!failure) {
-		const store = select();
+		const store = yield select();
 		const currentUser = yield call(getCurrentUserInfo, store);
 		createNotification(action.verbose, UNFOLLOW_NOTIFICATION(currentUser.userName));
 
 		const isChosen = yield call(isChosenUser, action.verbose);
 		if (isChosen) {
 			yield put({
-				type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC,
-				profile: { isFollowing: false },
+				type: PROF_ASYNC.UNFOLLOW_USER_ASYNC,
 			});
 		}
 	}

@@ -23,6 +23,17 @@ export function profile(state = defaultState, action) {
 					newState.chosenProfile[name] = val;
 				}
 			}
+			break;
+		}
+		case PROF_ASYNC.FOLLOW_USER_ASYNC: {
+			newState.chosenProfile.followers += 1;
+			newState.chosenProfile.isFollowing = true;
+			break;
+		}
+		case PROF_ASYNC.UNFOLLOW_USER_ASYNC: {
+			newState.chosenProfile.followers -= 1;
+			newState.chosenProfile.isFollowing = false;
+			break;
 		}
 	}
 

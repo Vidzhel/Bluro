@@ -56,14 +56,8 @@ const UserInfo = styled.div`
 `;
 
 export function ArticleHead(props) {
-	const {
-		dateOfPublishingString: date,
-		onFollowClicked,
-		title,
-		state,
-		onUnfollowClicked,
-		user,
-	} = props.article;
+	const { onFollowClicked, onUnfollowClicked } = props;
+	const { dateOfPublishingString: date, title, state, user } = props.article;
 	const { userName, img: userImgSrc, verbose: userVerbose, isFollowing, isCurrentUser } = user;
 
 	return (
@@ -84,13 +78,15 @@ export function ArticleHead(props) {
 								{!isCurrentUser ? (
 									isFollowing ? (
 										<SmallButton
-											onClick={onUnfollowClicked}
+											onClick={() => onUnfollowClicked(userVerbose)}
 											size="sm"
 											variant="dark">
 											Unfollow
 										</SmallButton>
 									) : (
-										<SmallButton onClick={onFollowClicked} size="sm">
+										<SmallButton
+											onClick={() => onFollowClicked(userVerbose)}
+											size="sm">
 											Follow
 										</SmallButton>
 									)

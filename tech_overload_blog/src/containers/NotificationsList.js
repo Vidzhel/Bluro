@@ -5,6 +5,7 @@ import { deleteNotification, readNotification } from "../actions/session";
 import { Notification } from "../components/Notification";
 import { NOTIFICATION_STATUS_READ } from "../assets/constants";
 import styled from "styled-components";
+import PropTypes from "prop-types";
 
 const StyledContainer = styled.div`
 	width: 400px;
@@ -18,8 +19,7 @@ const FakeMessage = styled.div`
 `;
 
 class NotificationsList extends React.Component {
-	handleNotificationDeletion = (id, ...other) => {
-		console.log(id, other);
+	handleNotificationDeletion = (id) => {
 		this.props.deleteNotification(id);
 	};
 	handleNotificationRead = (id) => {
@@ -38,8 +38,8 @@ class NotificationsList extends React.Component {
 								date={notification.dateString}
 								message={notification.message}
 								hasRead={notification.status === NOTIFICATION_STATUS_READ}
-								onRead={this.handleNotificationDeletion.bind(this, notification.id)}
-								onDelete={this.handleNotificationRead}
+								onRead={() => this.handleNotificationRead(notification.id)}
+								onDelete={() => this.handleNotificationDeletion(notification.id)}
 							/>
 						);
 					})
@@ -56,9 +56,9 @@ const mapDispatchToProps = {
 	deleteNotification,
 };
 
-const mapStateToProps = (store) => {
-	return { notifications: getNotifications(store) };
+NotificationsList.propTypes = {
+	notifications: PropTypes.array.isRequired,
 };
 
-NotificationsList = connect(mapStateToProps, mapDispatchToProps)(NotificationsList);
+NotificationsList = connect(null, mapDispatchToProps)(NotificationsList);
 export { NotificationsList };

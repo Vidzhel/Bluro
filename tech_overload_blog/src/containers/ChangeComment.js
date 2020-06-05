@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { WriteCommentForm } from "../components/WriteCommentForm";
 import { createComment, deleteComment, updateComment } from "../actions/articles";
 import PropTypes from "prop-types";
-import { isUserRegistered } from "../assets/selectors/session";
+import { isUserLoggedIn } from "../assets/selectors/session";
 import Button from "react-bootstrap/Button";
 
 const StyledContainer = styled.div`
@@ -162,7 +162,7 @@ const mapDispatchToProps = {
 
 const mapStateToProps = (store) => {
 	return {
-		isUserRegistered: isUserRegistered(store),
+		isUserRegistered: isUserLoggedIn(store),
 	};
 };
 

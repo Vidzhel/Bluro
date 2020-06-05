@@ -13,6 +13,7 @@ import {
 import { ChangeComment } from "../containers/ChangeComment";
 import { VerticalList } from "../components/VerticalList";
 import { Comment } from "../components/Comment";
+import { followUser, unfollowUser } from "../actions/profile";
 
 const StyledLayout = styled(NarrowLayout)`
 	& > div {
@@ -26,8 +27,12 @@ class BlogPostPage extends React.Component {
 		this.props.getArticlesComments(this.props.match.params.verbose);
 	};
 
-	handleFollowClicked = () => {};
-	handleUnfollowClicked = () => {};
+	handleFollowClicked = (userVerbose) => {
+		this.props.followUser(userVerbose);
+	};
+	handleUnfollowClicked = (userVerbose) => {
+		this.props.unfollowUser(userVerbose);
+	};
 
 	loadMoreComments = () => {
 		this.props.fetchNextChunkOfComments(this.props.match.params.verbose);
@@ -77,6 +82,8 @@ const mapDispatchToProps = {
 	openArticle,
 	getArticlesComments,
 	fetchNextChunkOfComments,
+	followUser,
+	unfollowUser,
 };
 
 BlogPostPage = connect(mapStateToProps, mapDispatchToProps)(BlogPostPage);

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch } from "react-router-dom";
 
 import { HomePage } from "./pages/Home";
 import { LoggingPage } from "./pages/Logging";
@@ -12,6 +12,7 @@ import { connect } from "react-redux";
 import { logIn } from "./actions/session";
 import { ModalsController } from "./containers/ModalsController";
 import { SearchPage } from "./pages/Search";
+import { HISTORY } from "./assets/constants";
 
 const StyledContainer = styled.div`
 	a {
@@ -27,7 +28,7 @@ class App extends React.Component {
 
 	render() {
 		return (
-			<BrowserRouter>
+			<Router history={HISTORY}>
 				<StyledContainer>
 					<ModalsController />
 					<Header />
@@ -40,7 +41,7 @@ class App extends React.Component {
 						<Route component={NotFoundPage} />
 					</Switch>
 				</StyledContainer>
-			</BrowserRouter>
+			</Router>
 		);
 	}
 }

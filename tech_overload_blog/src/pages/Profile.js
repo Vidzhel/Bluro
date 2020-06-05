@@ -9,7 +9,7 @@ import { BigImageArticlePreview } from "../components/BigImageArticlePreview";
 import { connect } from "react-redux";
 import { getChosenProfile } from "../assets/selectors/profile";
 import { getFetchedArticles } from "../assets/selectors/articles";
-import { getProfileInfo } from "../actions/profile";
+import { followUser, getProfileInfo, unfollowUser } from "../actions/profile";
 import { getArticles } from "../actions/articles";
 import { ChangeProfile } from "../containers/ChangerProfile";
 import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
@@ -51,15 +51,15 @@ class ProfilePage extends React.Component {
 	componentDidMount = () => {
 		const userVerbose = this.props.match.params.verbose;
 		this.props.getProfileInfo(userVerbose);
-		this.props.getUsersArticles(userVerbose, false);
+		this.props.getArticles(userVerbose, false);
 	};
 
-	handleFollow = () => {
-		console.log("Followed");
+	handleFollow = (userVerbose) => {
+		this.props.followUser(userVerbose);
 	};
 
-	handleUnfollow = () => {
-		console.log("Unfollowed");
+	handleUnfollow = (userVerbose) => {
+		this.props.unfollowUser(userVerbose);
 	};
 
 	handleChangeArticle = (article) => {
@@ -152,8 +152,10 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = {
 	getProfileInfo,
-	getUsersArticles: getArticles,
+	getArticles,
 	showUpdateStoryModal,
+	followUser,
+	unfollowUser,
 };
 
 ProfilePage = connect(mapStateToProps, mapDispatchToProps)(ProfilePage);

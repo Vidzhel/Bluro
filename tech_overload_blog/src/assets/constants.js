@@ -1,3 +1,6 @@
+import { createBrowserHistory } from "history";
+
+const HISTORY = createBrowserHistory();
 const VERBOSE_REGEXP = /^[0-9a-z-._~]*$/i;
 
 const IMAGE_EXTENSION_REGEXP = /^.*\.(jpg|jpeg|bmp|gif|png)$/i;
@@ -55,4 +58,5 @@ export {
 	UNFOLLOW_NOTIFICATION,
 	NEW_PUBLICATION_NOTIFICATION,
 	NEW_COMMENT_NOTIFICATION,
+	HISTORY,
 };

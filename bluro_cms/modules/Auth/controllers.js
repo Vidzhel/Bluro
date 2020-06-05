@@ -284,7 +284,7 @@ async function unfollowUserController(req, res, data) {
 	}
 
 	subscriptionsSet.get(0).del();
-	user.followers -= 1;
+	userInstance.followers -= 1;
 	await userInstance.save();
 }
 

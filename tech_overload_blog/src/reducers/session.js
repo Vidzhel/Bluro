@@ -14,7 +14,7 @@ const defaultState = {
 
 	makingRequest: false,
 
-	notifications: [],
+	notifications: {},
 };
 
 export function session(state = defaultState, action) {
@@ -87,10 +87,10 @@ export function session(state = defaultState, action) {
 		}
 		case SES_ASYNC.UPDATE_NOTIFICATIONS_ASYNC: {
 			if (action.notifications) {
-				newState.notifications = [];
+				newState.notifications = {};
 
 				for (const notification of action.notifications) {
-					newState.notifications.push(notification);
+					newState.notifications[notification.id] = notification;
 				}
 			}
 			break;

@@ -10,6 +10,7 @@ import { GiOverlordHelm } from "react-icons/gi";
 import { configs } from "../assets/configs";
 import PropTypes from "prop-types";
 import { NotificationsList } from "../containers/NotificationsList";
+import { NOTIFICATION_STATUS_SENT } from "../assets/constants";
 
 const StyledNav = styled.div`
 	width: 100%;
@@ -133,99 +134,110 @@ const UserInfo = styled.div`
 	}
 `;
 
-export function Navbar(props) {
-	const {
-		height,
-		transparent,
-		profile,
-		handleCreateStory,
-		handleLogOut,
-		notifications,
-		showSearchIcon,
-	} = props;
+export class Navbar extends React.Component {
+	render() {
+		const {
+			height,
+			transparent,
+			profile,
+			handleCreateStory,
+			handleLogOut,
+			notifications,
+		} = this.props;
 
-	return (
-		<StyledBootNavbar bg="light" expand={true} transparent={transparent} height={height}>
-			<Brand href="/" className="d-flex align-items-center">
-				<StyledLogo size="2em" className="mr-2" />
-				<span className="d-none d-sm-block">Tech overload</span>
-			</Brand>
-			<BootstrapNavbar.Collapse id="basic-navbar-nav">
-				<StyledNav className="d-flex pl-1 pl-md-5 justify-content-md-between justify-content-end  align-items-center">
-					<Links className="d-none d-sm-flex align-items-center">
-						<Link to="/">Home</Link>
-						{!profile && <Link to="/auth">Become a member</Link>}
-					</Links>
+		let unreadNotifications = 0;
+		for (const notification of notifications) {
+			if (notification.status === NOTIFICATION_STATUS_SENT) {
+				unreadNotifications++;
+			}
+		}
 
-					<Options className="d-flex align-items-center">
-						<Link to="/search" className="search">
-							<BsSearch />
-						</Link>
+		return (
+			<StyledBootNavbar bg="light" expand={true} transparent={transparent} height={height}>
+				<Brand href="/" className="d-flex align-items-center">
+					<StyledLogo size="2em" className="mr-2" />
+					<span className="d-none d-sm-block">Tech overload</span>
+				</Brand>
+				<BootstrapNavbar.Collapse id="basic-navbar-nav">
+					<StyledNav className="d-flex pl-1 pl-md-5 justify-content-md-between justify-content-end  align-items-center">
+						<Links className="d-none d-sm-flex align-items-center">
+							<Link to="/">Home</Link>
+							{!profile && <Link to="/auth">Become a member</Link>}
+						</Links>
 
-						{profile && (
-							<UserInfo className="d-flex align-items-center mo">
-								<div className="notifications">
-									{notifications && notifications.length ? (
-										<NotificationsCount>
-											{notifications.length}
-										</NotificationsCount>
-									) : null}
+						<Options className="d-flex align-items-center">
+							<Link to="/search" className="search">
+								<BsSearch />
+							</Link>
+
+							{profile && (
+								<UserInfo className="d-flex align-items-center mo">
+									<div className="notifications">
+										{unreadNotifications ? (
+											<NotificationsCount>
+												{unreadNotifications}
+											</NotificationsCount>
+										) : null}
+										<Dropdown>
+											<Dropdown.Toggle
+												as={CustomToggle}
+												variant="success"
+												id="dropdown-basic">
+												<BsBell className="mr-4 ml-4" size="1.2em" />
+											</Dropdown.Toggle>
+
+											<Dropdown.Menu alignRight={true}>
+												<NotificationsList notifications={notifications} />
+											</Dropdown.Menu>
+										</Dropdown>
+									</div>
 									<Dropdown>
 										<Dropdown.Toggle
 											as={CustomToggle}
 											variant="success"
 											id="dropdown-basic">
-											<BsBell className="mr-4 ml-4" size="1.2em" />
+											<StyledProfileImage
+												src={configs.resources.profileImage + profile.img}
+											/>
 										</Dropdown.Toggle>
 
 										<Dropdown.Menu alignRight={true}>
-											<NotificationsList />
+											<Dropdown.Item
+												to={`/profiles/${profile.verbose}`}
+												as={SmallProfile}
+												className="d-flex align-items-center">
+												<div className="left">
+													<SmallProfileImage
+														width={50}
+														height={50}
+														src={
+															configs.resources.profileImage +
+															profile.img
+														}
+													/>
+												</div>
+												<div className="right">
+													<div className="userName">
+														{profile.userName}
+													</div>
+													<div className="email">{profile.email}</div>
+												</div>
+											</Dropdown.Item>
+											<Dropdown.Divider />
+											<StyledItem onClick={handleCreateStory}>
+												Create story
+											</StyledItem>
+											<StyledItem onClick={handleLogOut}>Log out</StyledItem>
 										</Dropdown.Menu>
 									</Dropdown>
-								</div>
-								<Dropdown>
-									<Dropdown.Toggle
-										as={CustomToggle}
-										variant="success"
-										id="dropdown-basic">
-										<StyledProfileImage
-											src={configs.resources.profileImage + profile.img}
-										/>
-									</Dropdown.Toggle>
-
-									<Dropdown.Menu alignRight={true}>
-										<Dropdown.Item
-											to={`/profiles/${profile.verbose}`}
-											as={SmallProfile}
-											className="d-flex align-items-center">
-											<div className="left">
-												<SmallProfileImage
-													width={50}
-													height={50}
-													src={
-														configs.resources.profileImage + profile.img
-													}
-												/>
-											</div>
-											<div className="right">
-												<div className="userName">{profile.userName}</div>
-												<div className="email">{profile.email}</div>
-											</div>
-										</Dropdown.Item>
-										<Dropdown.Divider />
-										<StyledItem onClick={handleCreateStory}>
-											Create story
-										</StyledItem>
-										<StyledItem onClick={handleLogOut}>Log out</StyledItem>
-									</Dropdown.Menu>
-								</Dropdown>
-							</UserInfo>
-						)}
-					</Options>
-				</StyledNav>
-			</BootstrapNavbar.Collapse>
-		</StyledBootNavbar>
-	);
+								</UserInfo>
+							)}
+						</Options>
+					</StyledNav>
+				</BootstrapNavbar.Collapse>
+			</StyledBootNavbar>
+		);
+	}
 }
 
 Navbar.propTypes = {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Navbar } from "../components/Navbar";
 import { connect } from "react-redux";
-import { getCurrentUserInfo } from "../assets/selectors/session";
+import { getCurrentUserInfo, getNotifications } from "../assets/selectors/session";
 import { logOut, showCreateStoryModal } from "../actions/session";
 
 class Header extends React.Component {
@@ -23,9 +23,10 @@ class Header extends React.Component {
 	}
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (store) => {
 	return {
-		profile: getCurrentUserInfo(state),
+		profile: getCurrentUserInfo(store),
+		notifications: getNotifications(store),
 	};
 };
 

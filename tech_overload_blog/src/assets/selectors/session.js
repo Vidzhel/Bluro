@@ -6,7 +6,7 @@ export function getSessionInfo(store) {
 }
 
 export function getCurrentUserInfo(store) {
-	return store.session.currentUser;
+	return store.session && store.session.currentUser;
 }
 
 export function getShowStoryModal(store) {
@@ -16,10 +16,10 @@ export function getIsUpdateStoryModal(store) {
 	return store.session.isUpdateStoryModal;
 }
 
-export function isUserRegistered(store) {
+export function isUserLoggedIn(store) {
 	return !!store.session.currentUser;
 }
 
 export function getNotifications(store) {
-	return store.session.notifications;
+	return Object.values(store.session.notifications);
 }

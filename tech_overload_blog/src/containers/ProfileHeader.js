@@ -42,6 +42,7 @@ export function ProfileHeader(props) {
 		followers,
 		following,
 		img,
+		verbose,
 		isCurrentUser,
 		isFollowing,
 	} = props;
@@ -59,13 +60,15 @@ export function ProfileHeader(props) {
 							{!isCurrentUser ? (
 								isFollowing ? (
 									<StyledButton
-										onClick={onUnfollowClicked}
+										onClick={() => onUnfollowClicked(verbose)}
 										size="sm"
 										variant="dark">
 										Unfollow
 									</StyledButton>
 								) : (
-									<StyledButton onClick={onFollowClicked} size="sm">
+									<StyledButton
+										onClick={() => onFollowClicked(verbose)}
+										size="sm">
 										Follow
 									</StyledButton>
 								)
@@ -95,6 +98,7 @@ export function ProfileHeader(props) {
 
 ProfileHeader.propTypes = {
 	userName: PropTypes.string.isRequired,
+	verbose: PropTypes.string.isRequired,
 	onFollowClicked: PropTypes.func.isRequired,
 	onUnfollowClicked: PropTypes.func.isRequired,
 	about: PropTypes.string,

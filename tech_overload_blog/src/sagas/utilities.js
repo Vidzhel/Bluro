@@ -1,6 +1,5 @@
 import { call, delay, put, race, select } from "redux-saga/effects";
 import { SES_ASYNC } from "../assets/actionTypes/session";
-import { createBrowserHistory } from "history";
 import { getCurrentUserInfo } from "../assets/selectors/session";
 
 const TIMEOUT = 60000;
@@ -9,8 +8,6 @@ const MINUTE = 60000;
 const HOUR = MINUTE * 60;
 const DAY = HOUR * 24;
 export const CHUNK_DATA_COUNT = 5;
-
-export const HISTORY = createBrowserHistory();
 
 export function* isCurrentUser(verbose) {
 	const store = yield select();

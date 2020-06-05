@@ -502,11 +502,11 @@ class Model extends DependencyResolver {
 			try {
 				const { result } = await this.statementBuilder
 					.table(this.tableName)
-					.set(this._mapChangedColumnsToValues())
+					.values(this._mapChangedColumnsToValues())
 					.where({
 						firstValue: this.primaryKey,
 						operator: Model.OP.eq,
-						secondValue: this._columns[this.primaryKey],
+						secondValue: this._data[this.primaryKey],
 					})
 					.execute(this.ACTIONS.UPDATE);
 
