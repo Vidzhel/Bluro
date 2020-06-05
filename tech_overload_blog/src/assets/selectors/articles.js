@@ -1,5 +1,5 @@
 export function getFetchedArticles(state) {
-	return Object.values(state.articles.fetched);
+	return Array.from(state.articles.fetched.values());
 }
 
 export function getFetchedArticle(state, verbose) {
@@ -19,13 +19,13 @@ export function getArticleContent(state) {
 }
 
 export function getArticlesOffset(state) {
-	return Object.values(state.articles.fetched).length;
+	return state.articles.fetched.size;
 }
 
 export function getArticleComments(state) {
-	return Object.values(state.articles.openedArticleComments);
+	return Array.from(state.articles.openedArticleComments.values());
 }
 
 export function getArticlesCommentsOffset(state) {
-	return Object.values(state.articles.openedArticleComments).length;
+	return state.articles.openedArticleComments.size;
 }

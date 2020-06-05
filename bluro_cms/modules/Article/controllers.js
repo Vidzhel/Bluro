@@ -22,7 +22,7 @@ async function getArticles(req, res, data) {
 
 	if (!user) {
 		const set = await Article.selector
-			.orderBy({ dateOfPublishing: "ASC" })
+			.orderBy({ dateOfPublishing: "DESC" })
 			.limit(offset, count)
 			.filter(filterParams)
 			.fetch();

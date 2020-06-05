@@ -21,7 +21,7 @@ import {
 import { processUserData } from "./profile";
 import { getCurrentUserInfo } from "../assets/selectors/session";
 import {
-	ARTICLE_STATE_PUBLISH,
+	ARTICLE_STATE_PUBLISHED,
 	FOLLOW_NOTIFICATION,
 	NEW_COMMENT_NOTIFICATION,
 	NEW_PUBLICATION_NOTIFICATION,
@@ -116,7 +116,7 @@ function* createArticle({ data: articleData }) {
 		const userData = yield call(getCurrentUserInfo, state);
 
 		const chosenUser = yield call(getChosenProfile, state);
-		const isUserChosen = yield call(isCurrentUser, chosenUser.verbose);
+		const isUserChosen = chosenUser ? yield call(isCurrentUser, chosenUser.verbose) : false;
 
 		yield fork(makeRequest, `${configs.endpoints.notifyFollowers(userData.verbose)}}`, {
 			method: "POST",
@@ -125,7 +125,10 @@ function* createArticle({ data: articleData }) {
 			),
 		});
 
-		if (isUserChosen && articleData.state === ARTICLE_STATE_PUBLISH) {
+		if (
+			isUserChosen ||
+			(chosenUser === null && articleData.state === ARTICLE_STATE_PUBLISHED)
+		) {
 			articleData.verbose = data.identifiers.verbose;
 			articleData.textSourceName = data.identifiers.textSourceName;
 			articleData.previewImageName = data.identifiers.previewImageName;
@@ -325,18 +328,39 @@ function* convertArticlesData(articles) {
 	const processedArticles = [];
 
 	for (const article of articles) {
+		article.sortyByPublicationDate = article.state === ARTICLE_STATE_PUBLISHED;
 		processedArticles.push(yield call(convertArticleData, article));
 	}
 
+	processedArticles.sort(
+		sortArticleByDate("dateOfPublishing", "dateOfChanging", "sortyByPublicationDate"),
+	);
 	return processedArticles;
 }
 
 function* convertArticleData(article) {
 	return {
 		...article,
+		dateOfPublishing: new Date(article.dateOfPublishing),
+		dateOfChanging: new Date(article.dateOfChanging),
 		dateOfPublishingString: toShortDate(article.dateOfPublishing),
 		dateOfChangingString: toShortDate(article.dateOfChanging),
 		isCurrentUserArticle: yield call(isCurrentUser, article.user.verbose),
 		user: yield call(processUserData, article.user),
+	};
+}
+
+function sortArticleByDate(firstDateField, secondDateField, useFirstDateFieldField) {
+	return function (a, b) {
+		const dateFieldA = a[useFirstDateFieldField] ? firstDateField : secondDateField;
+		const dateFieldB = b[useFirstDateFieldField] ? firstDateField : secondDateField;
+
+		if (a[dateFieldA] > b[dateFieldB]) {
+			return -1;
+		} else if (a[dateFieldA] < b[dateFieldB]) {
+			return 1;
+		}
+
+		return 0;
 	};
 }

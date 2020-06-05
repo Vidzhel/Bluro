@@ -115,6 +115,10 @@ const NotificationsCount = styled.div`
 	right: 20px;
 	top: 0;
 	z-index: 2;
+
+	&:hover {
+		cursor: pointer;
+	}
 `;
 
 const UserInfo = styled.div`

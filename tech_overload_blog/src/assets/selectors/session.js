@@ -26,5 +26,5 @@ export function isUserLoggedIn(store) {
 }
 
 export function getNotifications(store) {
-	return Object.values(store.session.notifications);
+	return Array.from(store.session.notifications.values());
 }

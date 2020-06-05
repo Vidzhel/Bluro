@@ -6,7 +6,10 @@ const Follower = DependencyResolver.getDependency(null, "Follower");
 async function getUsersNotificationsRule(req, res, data) {
 	if (data.session) {
 		const receiver = data.session.verbose;
-		const set = await Notification.selector.filter({ receiver }).fetch();
+		const set = await Notification.selector
+			.orderBy({ date: "DESC" })
+			.filter({ receiver })
+			.fetch();
 
 		res.setNotifications(await set.getList());
 	}
@@ -54,12 +57,6 @@ async function notifyFollowers(req, res, data) {
 	if (!title || title > 50) {
 		res.error("Notification title has to be specified and be no more than 50 symbols");
 		res.code(res.CODES.BadReq);
-		return;
-	}
-
-	if (!receiver) {
-		res.error("User doesn't exist");
-		res.code(res.CODES.NotFound);
 		return;
 	}
 

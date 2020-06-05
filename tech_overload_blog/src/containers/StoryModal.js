@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import {
 	ARTICLE_STATE_DRAFT,
-	ARTICLE_STATE_PUBLISH,
+	ARTICLE_STATE_PUBLISHED,
 	CONTENT_EXTENSION_REGEXP,
 	IMAGE_EXTENSION_REGEXP,
 	VERBOSE_REGEXP,
@@ -325,7 +325,10 @@ class StoryModal extends React.Component {
 					</Button>
 					<Button
 						variant="success"
-						onClick={this.handleArticlesModification.bind(this, ARTICLE_STATE_PUBLISH)}>
+						onClick={this.handleArticlesModification.bind(
+							this,
+							ARTICLE_STATE_PUBLISHED,
+						)}>
 						Publish
 					</Button>
 				</Modal.Footer>

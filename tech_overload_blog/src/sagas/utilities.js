@@ -218,7 +218,7 @@ export function toShortDate(date) {
 	}
 
 	if (difference < HOUR) {
-		return "Less than a hour ago";
+		return "Less than an hour ago";
 	}
 
 	if (difference < DAY) {

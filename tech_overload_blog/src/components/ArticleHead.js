@@ -7,7 +7,7 @@ import { SmallButton } from "./SmallButton";
 import { SmallProfileImage } from "./SmallProfileImage";
 import PropTypes from "prop-types";
 import { configs } from "../assets/configs";
-import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
+import { ARTICLE_STATE_PUBLISHED } from "../assets/constants";
 import Badge from "react-bootstrap/Badge";
 import { Link } from "react-router-dom";
 
@@ -57,7 +57,7 @@ const UserInfo = styled.div`
 
 export function ArticleHead(props) {
 	const { onFollowClicked, onUnfollowClicked } = props;
-	const { dateOfPublishingString: date, title, state, user } = props.article;
+	const { dateOfPublishingString, dateOfChangingString, title, state, user } = props.article;
 	const { userName, img: userImgSrc, verbose: userVerbose, isFollowing, isCurrentUser } = user;
 
 	return (
@@ -90,7 +90,7 @@ export function ArticleHead(props) {
 											Follow
 										</SmallButton>
 									)
-								) : state === ARTICLE_STATE_PUBLISH ? (
+								) : state === ARTICLE_STATE_PUBLISHED ? (
 									<Badge variant="success" className="d-flex align-items-center">
 										Published
 									</Badge>
@@ -100,7 +100,11 @@ export function ArticleHead(props) {
 									</Badge>
 								)}
 							</div>
-							<div className="date">{date}</div>
+							<div className="date">
+								{state === ARTICLE_STATE_PUBLISHED
+									? dateOfPublishingString
+									: dateOfChangingString}
+							</div>
 						</div>
 					</UserInfo>
 				</Col>

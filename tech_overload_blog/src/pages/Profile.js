@@ -12,7 +12,7 @@ import { getFetchedArticles } from "../assets/selectors/articles";
 import { followUser, getProfileInfo, unfollowUser } from "../actions/profile";
 import { getArticles } from "../actions/articles";
 import { ChangeProfile } from "../containers/ChangerProfile";
-import { ARTICLE_STATE_PUBLISH } from "../assets/constants";
+import { ARTICLE_STATE_PUBLISHED } from "../assets/constants";
 import { showUpdateStoryModal } from "../actions/session";
 
 const StyledTabs = styled(Tabs)`
@@ -77,7 +77,7 @@ class ProfilePage extends React.Component {
 		const unpublishedArticles = [];
 
 		articles.forEach((article) => {
-			if (article.state === ARTICLE_STATE_PUBLISH) {
+			if (article.state === ARTICLE_STATE_PUBLISHED) {
 				publishedArticles.push(article);
 			} else {
 				unpublishedArticles.push(article);

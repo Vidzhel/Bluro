@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { configs } from "../assets/configs";
 import { BsPencilSquare } from "react-icons/bs";
+import { ARTICLE_STATE_PUBLISHED } from "../assets/constants";
 
 const StyledContainer = styled.div`
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
@@ -59,6 +60,8 @@ export function BigImageArticlePreview(props) {
 		previewImageName,
 		isCurrentUserArticle,
 		verbose,
+		dateOfChangingString,
+		state,
 	} = article;
 	const { userName, img: userImgSrc, verbose: userVerbose } = user;
 
@@ -75,7 +78,11 @@ export function BigImageArticlePreview(props) {
 
 					<div className="profileInfo">
 						<div className="name">{userName}</div>
-						<div className="date">{dateOfPublishingString}</div>
+						<div className="date">
+							{state === ARTICLE_STATE_PUBLISHED
+								? dateOfPublishingString
+								: dateOfChangingString}
+						</div>
 					</div>
 				</Link>
 
@@ -103,6 +110,7 @@ BigImageArticlePreview.propTypes = {
 		isCurrentUserArticle: PropTypes.bool.isRequired,
 		verbose: PropTypes.string.isRequired,
 		dateOfPublishingString: PropTypes.string.isRequired,
+		dateOfChangingString: PropTypes.string.isRequired,
 		title: PropTypes.string.isRequired,
 		description: PropTypes.string.isRequired,
 		user: PropTypes.object.isRequired,
