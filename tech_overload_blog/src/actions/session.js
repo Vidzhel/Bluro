@@ -26,9 +26,21 @@ export function showCreateStoryModal() {
 	};
 }
 
+export function showDeleteProfileModal() {
+	return {
+		type: SES_ASYNC.SHOW_DELETE_PROFILE_MODAL_ASYNC,
+	};
+}
+
 export function hideStoryModal() {
 	return {
 		type: SES_ASYNC.HIDE_STORY_MODAL_ASYNC,
+	};
+}
+
+export function hideDeleteProfileModal() {
+	return {
+		type: SES_ASYNC.HIDE_DELETE_PROFILE_MODAL_ASYNC,
 	};
 }
 

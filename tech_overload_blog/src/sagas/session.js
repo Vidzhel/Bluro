@@ -5,6 +5,7 @@ import { configs } from "../assets/configs";
 import { makeRequest, setCookie } from "./utilities";
 import { getCurrentUserInfo } from "../assets/selectors/session";
 import { HISTORY } from "../assets/constants";
+import { PROF_ASYNC } from "../assets/actionTypes/profile";
 
 export function* sessionWatcher() {
 	yield takeLatest(SES_SYNC.LOGIN, loginFlow);
@@ -50,6 +51,7 @@ function* signUpFlow(action) {
 function* logOut() {
 	setCookie("token", "");
 	yield put({ type: SES_ASYNC.LOG_OUT_ASYNC });
+	yield put({ type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC, profile: { isCurrentUser: false } });
 }
 
 function* showUpdateStoryModal(action) {

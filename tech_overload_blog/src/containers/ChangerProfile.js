@@ -2,8 +2,9 @@ import React from "react";
 import styled from "styled-components";
 import { ChangerProfileDataForm } from "../components/ChangeProfileDataForm";
 import { connect } from "react-redux";
-import { updateProfile } from "../actions/profile";
+import { deleteProfile, updateProfile } from "../actions/profile";
 import { VERBOSE_REGEXP, EMAIL_REGEXP, IMAGE_EXTENSION_REGEXP } from "../assets/constants";
+import { showDeleteProfileModal } from "../actions/session";
 
 const StyledContainer = styled.div`
 	margin-top: 50px;
@@ -192,11 +193,16 @@ export class ChangeProfile extends React.Component {
 		return true;
 	};
 
+	handleDeleteProfile = () => {
+		this.props.showDeleteProfileModal();
+	};
+
 	render() {
 		return (
 			<StyledContainer>
 				<ChangerProfileDataForm
 					{...this.state}
+					onDeleteProfile={this.handleDeleteProfile}
 					fileInput={this.fileInput}
 					handleChange={this.handleChange}
 					handleSubmit={this.handleUpdateSubmit}
@@ -208,6 +214,7 @@ export class ChangeProfile extends React.Component {
 
 const mapDispatchToProps = {
 	updateProfile,
+	showDeleteProfileModal,
 };
 
 ChangeProfile = connect(null, mapDispatchToProps)(ChangeProfile);

@@ -11,6 +11,7 @@ const defaultState = {
 
 	showStoryModal: false,
 	isUpdateStoryModal: false,
+	showDeleteProfileModal: false,
 
 	makingRequest: false,
 
@@ -105,6 +106,14 @@ export function session(state = defaultState, action) {
 			if (newState.notifications[action.id]) {
 				delete newState.notifications[action.id];
 			}
+			break;
+		}
+		case SES_ASYNC.SHOW_DELETE_PROFILE_MODAL_ASYNC: {
+			newState.showDeleteProfileModal = true;
+			break;
+		}
+		case SES_ASYNC.HIDE_DELETE_PROFILE_MODAL_ASYNC: {
+			newState.showDeleteProfileModal = false;
 		}
 	}
 

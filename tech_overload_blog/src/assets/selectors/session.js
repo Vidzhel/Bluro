@@ -12,8 +12,13 @@ export function getCurrentUserInfo(store) {
 export function getShowStoryModal(store) {
 	return store.session.showStoryModal;
 }
+
 export function getIsUpdateStoryModal(store) {
 	return store.session.isUpdateStoryModal;
+}
+
+export function getShowDeleteProfileModal(store) {
+	return store.session.showDeleteProfileModal;
 }
 
 export function isUserLoggedIn(store) {

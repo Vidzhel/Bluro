@@ -4,7 +4,15 @@ import Button from "react-bootstrap/Button";
 import PropTypes from "prop-types";
 
 export const ChangerProfileDataForm = (props) => {
-	const { errors, handleSubmit, handleChange, values, touched, fileInput } = props;
+	const {
+		errors,
+		handleSubmit,
+		handleChange,
+		values,
+		touched,
+		fileInput,
+		onDeleteProfile,
+	} = props;
 
 	return (
 		<div>
@@ -103,6 +111,10 @@ export const ChangerProfileDataForm = (props) => {
 					Update
 				</Button>
 			</Form>
+
+			<Button variant="danger" block onClick={onDeleteProfile}>
+				Delete
+			</Button>
 		</div>
 	);
 };
@@ -136,5 +148,6 @@ ChangerProfileDataForm.propTypes = {
 	}),
 	handleChange: PropTypes.func.isRequired,
 	handleSubmit: PropTypes.func.isRequired,
+	onDeleteProfile: PropTypes.func.isRequired,
 	loading: PropTypes.bool.isRequired,
 };

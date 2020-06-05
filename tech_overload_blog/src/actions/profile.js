@@ -14,6 +14,12 @@ export function updateProfile(data) {
 	};
 }
 
+export function deleteProfile(data) {
+	return {
+		type: PROF_SYNC.DELETE_PROFILE,
+	};
+}
+
 export function followUser(userVerbose) {
 	return {
 		type: PROF_SYNC.FOLLOW_USER,

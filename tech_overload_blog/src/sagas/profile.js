@@ -7,10 +7,12 @@ import { getChosenProfile } from "../assets/selectors/profile";
 import { createNotification } from "../actions/session";
 import { FOLLOW_NOTIFICATION, UNFOLLOW_NOTIFICATION } from "../assets/constants";
 import { HISTORY } from "../assets/constants";
+import { SES_SYNC } from "../assets/actionTypes/session";
 
 export function* profileWatcher() {
 	yield takeLatest(PROF_SYNC.GET_PROFILE_INFO, getProfileInfo);
 	yield takeLatest(PROF_SYNC.UPDATE_PROFILE, updateProfile);
+	yield takeLatest(PROF_SYNC.DELETE_PROFILE, deleteProfile);
 	yield takeLatest(PROF_SYNC.FOLLOW_USER, followUser);
 	yield takeLatest(PROF_SYNC.UNFOLLOW_USER, unfollowUser);
 }
@@ -70,6 +72,24 @@ function* updateProfile(action) {
 
 	if (!failure) {
 		yield put({ type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC, profile: action.data });
+	}
+}
+
+function* deleteProfile() {
+	const store = yield select();
+	const currentUser = getCurrentUserInfo(store);
+
+	const { failure } = yield call(
+		makeRequest,
+		`${configs.endpoints.profiles}/${currentUser.verbose}`,
+		{
+			method: "DELETE",
+		},
+	);
+
+	if (!failure) {
+		HISTORY.push("/");
+		yield put({ type: SES_SYNC.LOG_OUT });
 	}
 }
 
