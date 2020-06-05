@@ -23,6 +23,7 @@
     "react/prop-types": "off",
     "no-class-assign": "off",
     "no-unescaped-entities": "off",
-    "react/display-name": "off"
+    "react/display-name": "off",
+    "no-empty": "off"
   }
 }

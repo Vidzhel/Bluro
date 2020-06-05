@@ -134,7 +134,15 @@ const UserInfo = styled.div`
 `;
 
 export function Navbar(props) {
-	const { height, transparent, profile, handleCreateStory, handleLogOut, notifications } = props;
+	const {
+		height,
+		transparent,
+		profile,
+		handleCreateStory,
+		handleLogOut,
+		notifications,
+		showSearchIcon,
+	} = props;
 
 	return (
 		<StyledBootNavbar bg="light" expand={true} transparent={transparent} height={height}>

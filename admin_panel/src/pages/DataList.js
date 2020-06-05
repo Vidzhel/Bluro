@@ -80,7 +80,7 @@ class DataList extends React.Component {
 			this.query = query;
 
 			this.searchParams = { [param]: val };
-			this.fetchData(true, this.searchParams);
+			this.props.fetchData(true, this.searchParams);
 		}
 	}
 
@@ -111,8 +111,6 @@ class DataList extends React.Component {
 
 DataList.propTypes = {
 	searchOptions: PropTypes.object.isRequired,
-	// onSearch: PropTypes.func.isRequired,
-	// loadMoreData: PropTypes.func.isRequired,
 	fetchData: PropTypes.func.isRequired,
 };
 

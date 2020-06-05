@@ -1,6 +1,15 @@
 import { call, put, takeLatest, select, fork } from "redux-saga/effects";
 import { ART_SYNC, ART_ASYNC } from "../assets/actionTypes/articles";
-import { makeRequest, sendForm, isCurrentUser, fetchFile, toShortDate } from "./utilities";
+import {
+	makeRequest,
+	sendForm,
+	isCurrentUser,
+	fetchFile,
+	toShortDate,
+	getOffset,
+	formatQueryString,
+	CHUNK_DATA_COUNT,
+} from "./utilities";
 import { configs } from "../assets/configs";
 import { getChosenProfile } from "../assets/selectors/profile";
 import {
@@ -20,8 +29,6 @@ import {
 } from "../assets/constants";
 import { createNotification } from "../actions/session";
 
-const COUNT_TO_FETCH = 5;
-
 export function* articlesWatcher() {
 	yield takeLatest(ART_SYNC.GET_USERS_ARTICLES, getUsersArticles);
 
@@ -39,19 +46,14 @@ export function* articlesWatcher() {
 	yield takeLatest(ART_SYNC.DELETE_COMMENT, deleteComment);
 }
 
-function* getUsersArticles({ verbose, onlyPublishedArticles, fromStart }) {
-	let query = `?count=${COUNT_TO_FETCH}`;
-	query += onlyPublishedArticles ? "" : "&published=false";
-
-	if (!fromStart) {
-		const store = yield select();
-		const offset = yield call(getArticlesOffset, store);
-		query += `&offset=${offset}`;
-	}
+function* getUsersArticles({ verbose, onlyPublishedArticles, fromStart, params }) {
+	const offset = yield call(getOffset, fromStart, getArticlesOffset);
+	let queryString = formatQueryString(offset, params);
+	queryString += onlyPublishedArticles ? "" : "&published=false";
 
 	const endpoint = verbose
-		? `${configs.endpoints.userArticles(verbose)}${query}`
-		: `${configs.endpoints.articles}${query}`;
+		? `${configs.endpoints.userArticles(verbose)}${queryString}`
+		: `${configs.endpoints.articles}${queryString}`;
 
 	const { failure, data } = yield call(makeRequest, endpoint, {
 		method: "GET",
@@ -260,7 +262,7 @@ function* deleteComment({ commentId }) {
 }
 
 function* getArticleComments({ verbose }) {
-	const query = `?count=${COUNT_TO_FETCH}`;
+	const query = `?count=${CHUNK_DATA_COUNT}`;
 
 	const { failure, data } = yield call(
 		makeRequest,
@@ -282,7 +284,7 @@ function* fetchChunkOfArticlesComments({ verbose }) {
 	const store = yield select();
 	const offset = yield call(getArticlesCommentsOffset, store);
 
-	const query = `?count=${COUNT_TO_FETCH}&offset=${offset}`;
+	const query = `?count=${CHUNK_DATA_COUNT}&offset=${offset}`;
 
 	const { failure, data } = yield call(
 		makeRequest,

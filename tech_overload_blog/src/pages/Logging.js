@@ -3,16 +3,13 @@ import { Auth } from "../containers/Auth";
 import { Route, useRouteMatch, Switch, Redirect } from "react-router-dom";
 import { SignUpForm } from "../components/SignUpForm";
 import { LoginForm } from "../components/LoginForm";
-import { NoMatch } from "./NoMatch";
+import { NotFoundPage } from "./NotFoundPage";
 import { logIn, register } from "../actions/session";
 import { connect } from "react-redux";
 import { getSessionError, getSessionInfo } from "../assets/selectors/session";
+import { EMAIL_REGEXP } from "../assets/constants";
 
 const NAME_REGEXP = RegExp(/^\S{6,}$/);
-const EMAIL_REGEXP = RegExp(
-	/^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/,
-	"i",
-);
 
 class LoggingPage extends React.Component {
 	constructor(props) {
@@ -221,7 +218,7 @@ class LoggingPage extends React.Component {
 						form={SignUpForm}
 					/>
 				</Route>
-				<Route component={NoMatch} />
+				<Route component={NotFoundPage} />
 			</Switch>
 		);
 	}

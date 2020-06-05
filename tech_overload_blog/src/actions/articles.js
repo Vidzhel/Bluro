@@ -1,11 +1,17 @@
 import { ART_ASYNC, ART_SYNC } from "../assets/actionTypes/articles";
 
-export function getArticles(userVerbose, onlyPublishedArticles = true, fromStart = true) {
+export function getArticles(
+	userVerbose,
+	onlyPublishedArticles = true,
+	fromStart = true,
+	searchParams,
+) {
 	return {
 		type: ART_SYNC.GET_USERS_ARTICLES,
 		verbose: userVerbose,
 		onlyPublishedArticles,
 		fromStart,
+		params: searchParams,
 	};
 }
 

@@ -5,12 +5,13 @@ import { HomePage } from "./pages/Home";
 import { LoggingPage } from "./pages/Logging";
 import { ProfilePage } from "./pages/Profile";
 import { BlogPostPage } from "./pages/BlogPost";
-import { NoMatch } from "./pages/NoMatch";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { Header } from "./containers/Header";
 import styled from "styled-components";
 import { connect } from "react-redux";
 import { logIn } from "./actions/session";
 import { ModalsController } from "./containers/ModalsController";
+import { SearchPage } from "./pages/Search";
 
 const StyledContainer = styled.div`
 	a {
@@ -35,8 +36,8 @@ class App extends React.Component {
 						<Route path="/auth" component={LoggingPage} />
 						<Route path="/profiles/:verbose" component={ProfilePage} />
 						<Route path={"/articles/:verbose"} component={BlogPostPage} />
-						<Route component={NoMatch} path="/not-found" />
-						<Route component={NoMatch} />
+						<Route path={"/search"} component={SearchPage} />
+						<Route component={NotFoundPage} />
 					</Switch>
 				</StyledContainer>
 			</BrowserRouter>

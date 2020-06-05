@@ -8,6 +8,7 @@ const COOKIE_REGEXP = (key) => `(;?${key}:).*;?`;
 const MINUTE = 60000;
 const HOUR = MINUTE * 60;
 const DAY = HOUR * 24;
+export const CHUNK_DATA_COUNT = 5;
 
 export const HISTORY = createBrowserHistory();
 
@@ -198,6 +199,19 @@ function processNotifications(notifications) {
 	});
 }
 
+export function formatQueryString(dataOffset = 0, searchParams = null) {
+	let query = `?count=${CHUNK_DATA_COUNT}`;
+	query += `&offset=${dataOffset}`;
+
+	if (searchParams) {
+		for (const [name, val] of Object.entries(searchParams)) {
+			query += `&${name}=${val}`;
+		}
+	}
+
+	return query;
+}
+
 export function toShortDate(date) {
 	date = new Date(date);
 
@@ -219,6 +233,16 @@ export function toShortDate(date) {
 	}
 
 	return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+export function* getOffset(start, offsetGetter) {
+	let offset = 0;
+	if (!start) {
+		const store = yield select();
+		offset = yield call(offsetGetter, store);
+	}
+
+	return offset;
 }
 
 const months = [
