@@ -19,7 +19,7 @@ class User extends Model {
 User.init([
 	{
 		columnName: "userName",
-		type: Model.DATA_TYPES.VARCHAR(10),
+		type: Model.DATA_TYPES.VARCHAR(50),
 	},
 	{
 		columnName: "verbose",

@@ -73,3 +73,10 @@ export function deleteNotification(id) {
 		id,
 	};
 }
+
+export function deleteMessage(id) {
+	return {
+		type: SES_ASYNC.DELETE_MESSAGE_ASYNC,
+		id,
+	};
+}

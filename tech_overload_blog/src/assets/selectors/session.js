@@ -1,8 +1,13 @@
-export function getSessionError(store) {
-	return store.session.error;
+export function getSessionErrors(store) {
+	return Object.values(store.session.error);
 }
+
 export function getSessionInfo(store) {
-	return store.session.info;
+	return Object.values(store.session.info);
+}
+
+export function getSessionSuccess(store) {
+	return Object.values(store.session.success);
 }
 
 export function getCurrentUserInfo(store) {

@@ -6,7 +6,6 @@ import { LoginForm } from "../components/LoginForm";
 import { NotFoundPage } from "./NotFoundPage";
 import { logIn, register } from "../actions/session";
 import { connect } from "react-redux";
-import { getSessionError, getSessionInfo } from "../assets/selectors/session";
 import { EMAIL_REGEXP } from "../assets/constants";
 
 const NAME_REGEXP = RegExp(/^\S{6,}$/);
@@ -90,7 +89,7 @@ class LoggingPage extends React.Component {
 	};
 
 	validateReg = () => {
-		const { login, email, blogName, password, repPassword } = this.state.values;
+		const { login, email, password, repPassword } = this.state.values;
 
 		this.setState({
 			touched: {
@@ -102,6 +101,13 @@ class LoggingPage extends React.Component {
 				repPassword: true,
 			},
 		});
+
+		if (!login || login.length > 50 || login.length < 5) {
+			this._setError("login", "Login has to be at least 0 and at most 50 symbol in length");
+			return;
+		} else {
+			this._setError("login", "");
+		}
 
 		if (!EMAIL_REGEXP.test(email)) {
 			this._setError("email", "Wrong email format");
@@ -229,13 +235,6 @@ const mapDispatchToProps = {
 	register,
 };
 
-const mapStateToProps = (state) => {
-	return {
-		resultMessage: getSessionError(state) || getSessionInfo(state) || getSessionInfo(state),
-		resultError: !!getSessionError(state),
-	};
-};
-
-LoggingPage = connect(mapStateToProps, mapDispatchToProps)(LoggingPage);
+LoggingPage = connect(null, mapDispatchToProps)(LoggingPage);
 
 export { LoggingPage };

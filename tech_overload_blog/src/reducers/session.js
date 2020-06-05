@@ -3,9 +3,9 @@ import { copyObject } from "./utilities";
 import { NOTIFICATION_STATUS_READ } from "../assets/constants";
 
 const defaultState = {
-	error: "",
-	success: "",
-	info: "",
+	error: {},
+	success: {},
+	info: {},
 
 	currentUser: null,
 
@@ -18,6 +18,8 @@ const defaultState = {
 	notifications: new Map(),
 };
 
+let MESSAGE_ID = 0;
+
 export function session(state = defaultState, action) {
 	if (!SES_ASYNC[action.type]) {
 		return state;
@@ -26,21 +28,24 @@ export function session(state = defaultState, action) {
 
 	switch (action.type) {
 		case SES_ASYNC.FAILURE: {
-			newState.error = action.message;
-			newState.success = "";
-			newState.info = "";
+			newState.error[MESSAGE_ID] = { message: action.message, id: MESSAGE_ID };
+			MESSAGE_ID++;
 			break;
 		}
 		case SES_ASYNC.SUCCESS: {
-			newState.error = "";
-			newState.success = action.message;
-			newState.info = "";
+			newState.success[MESSAGE_ID] = { message: action.message, id: MESSAGE_ID };
+			MESSAGE_ID++;
 			break;
 		}
 		case SES_ASYNC.INFO: {
-			newState.error = "";
-			newState.success = "";
-			newState.info = action.message;
+			newState.info[MESSAGE_ID] = { message: action.message, id: MESSAGE_ID };
+			MESSAGE_ID++;
+			break;
+		}
+		case SES_ASYNC.DELETE_MESSAGE_ASYNC: {
+			delete newState.info[action.id];
+			delete newState.success[action.id];
+			delete newState.error[action.id];
 			break;
 		}
 		case SES_ASYNC.UPDATE_SESSION_ASYNC: {

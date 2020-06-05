@@ -61,7 +61,7 @@ function* updateProfile(action) {
 	const store = yield select();
 	const currentUser = getCurrentUserInfo(store);
 
-	const { failure } = yield call(
+	const { failure, data } = yield call(
 		sendForm,
 		`${configs.endpoints.profiles}/${currentUser.verbose}`,
 		{
@@ -71,6 +71,7 @@ function* updateProfile(action) {
 	);
 
 	if (!failure) {
+		action.data.img = data.identifiers.img;
 		yield put({ type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC, profile: action.data });
 	}
 }

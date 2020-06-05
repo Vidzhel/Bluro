@@ -122,6 +122,13 @@ export class ChangeProfile extends React.Component {
 			},
 		});
 
+		if (values.login && values.login.length > 50) {
+			this._setError("login", "Can't contain more than 50 symbols");
+			return;
+		} else {
+			this._setError("login", "");
+		}
+
 		if ((values.password || values.repPassword) && !(values.password && values.repPassword)) {
 			this._setError("password", "Both passwords have to be specified");
 			this._setError("repPassword", "Both passwords have to be specified");

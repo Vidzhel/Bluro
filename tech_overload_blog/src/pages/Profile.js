@@ -40,8 +40,8 @@ const StyledTabs = styled(Tabs)`
 const StyledMessage = styled.div``;
 
 class ProfilePage extends React.Component {
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 
 		this.state = {
 			publishedArticles: [],

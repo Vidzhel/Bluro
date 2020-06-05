@@ -1,6 +1,7 @@
 import { call, delay, put, race, select } from "redux-saga/effects";
 import { SES_ASYNC } from "../assets/actionTypes/session";
 import { getCurrentUserInfo } from "../assets/selectors/session";
+import { HISTORY } from "../assets/constants";
 
 const TIMEOUT = 60000;
 const COOKIE_REGEXP = (key) => `(;?${key}:).*;?`;
@@ -132,6 +133,10 @@ function* handleResponse(res, wasTimeout, reason, failure) {
 	const data = body;
 
 	yield call(regularHandler, body);
+
+	if (res.status === 404) {
+		HISTORY.push("/not-found");
+	}
 
 	if (res && res.ok) {
 		reason = body.success.join(" ");

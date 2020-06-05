@@ -5,7 +5,7 @@ const StyledContainer = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	height: 100vh;
+	height: calc(100vh - 100px);
 
 	.code {
 		font-size: 30px;

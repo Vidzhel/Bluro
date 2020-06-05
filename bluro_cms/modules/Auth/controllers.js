@@ -188,6 +188,7 @@ async function updateProfileController(req, res, data) {
 
 	if (img) {
 		await FilesManager.persistTempFile(img, USER_IMAGES_LOCATION);
+		res.setIdentifiers({ img });
 	}
 
 	// If that user was updated, set new credentials

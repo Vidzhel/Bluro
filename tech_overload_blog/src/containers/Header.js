@@ -5,9 +5,34 @@ import { getCurrentUserInfo, getNotifications } from "../assets/selectors/sessio
 import { logOut, showCreateStoryModal } from "../actions/session";
 
 class Header extends React.Component {
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			fixedTop: true,
+		};
+	}
+
+	componentDidMount() {
+		window.addEventListener("scroll", this.handlePageScrolling);
+	}
+
+	handlePageScrolling = () => {
+		if (window.pageYOffset > 0) {
+			this.setState({
+				fixedTop: false,
+			});
+		} else {
+			this.setState({
+				fixedTop: true,
+			});
+		}
+	};
+
 	handleLogOut = () => {
 		this.props.logOut();
 	};
+
 	handleCreateStory = () => {
 		this.props.showCreateStoryModal();
 	};
@@ -18,6 +43,7 @@ class Header extends React.Component {
 				{...this.props}
 				handleLogOut={this.handleLogOut}
 				handleCreateStory={this.handleCreateStory}
+				fixedTop={this.state.fixedTop}
 			/>
 		);
 	}

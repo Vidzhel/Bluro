@@ -17,8 +17,12 @@ const StyledNav = styled.div`
 `;
 
 const StyledBootNavbar = styled(BootstrapNavbar)`
-	box-shadow: ${(props) => (!props.transparent ? "0 -5px 10px #000" : "none")};
-	min-height: ${(props) => props.height || 80}px;
+	box-shadow: ${(props) => (!props.fixedTop ? "0 -5px 10px #000" : "none")};
+	height: ${(props) => (!props.fixedTop ? 60 : 100)}px;
+	background-color: ${(props) => (!props.fixedTop ? "" : "transparent !important")};
+
+	transition: box-shadow 0.3s ease-in-out, height 0.3s ease-in-out,
+		background-color 0.3s ease-in-out;
 
 	.search {
 		margin-bottom: 2px !important;
@@ -115,6 +119,7 @@ const NotificationsCount = styled.div`
 	right: 20px;
 	top: 0;
 	z-index: 2;
+	pointer-events: none;
 
 	&:hover {
 		cursor: pointer;
@@ -140,14 +145,7 @@ const UserInfo = styled.div`
 
 export class Navbar extends React.Component {
 	render() {
-		const {
-			height,
-			transparent,
-			profile,
-			handleCreateStory,
-			handleLogOut,
-			notifications,
-		} = this.props;
+		const { fixedTop, profile, handleCreateStory, handleLogOut, notifications } = this.props;
 
 		let unreadNotifications = 0;
 		for (const notification of notifications) {
@@ -157,7 +155,12 @@ export class Navbar extends React.Component {
 		}
 
 		return (
-			<StyledBootNavbar bg="light" expand={true} transparent={transparent} height={height}>
+			<StyledBootNavbar
+				className="px-md-5"
+				fixed="top"
+				bg="light"
+				expand={true}
+				fixedTop={fixedTop}>
 				<Brand href="/" className="d-flex align-items-center">
 					<StyledLogo size="2em" className="mr-2" />
 					<span className="d-none d-sm-block">Tech overload</span>
@@ -245,8 +248,7 @@ export class Navbar extends React.Component {
 }
 
 Navbar.propTypes = {
-	height: PropTypes.number,
-	transparent: PropTypes.bool,
+	fixedTop: PropTypes.bool.isRequired,
 	profile: PropTypes.object,
 	handleCreateStory: PropTypes.func.isRequired,
 	handleLogOut: PropTypes.func.isRequired,

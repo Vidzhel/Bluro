@@ -13,8 +13,11 @@ import { logIn } from "./actions/session";
 import { ModalsController } from "./containers/ModalsController";
 import { SearchPage } from "./pages/Search";
 import { HISTORY } from "./assets/constants";
+import { MessagesController } from "./containers/MessagesController";
 
 const StyledContainer = styled.div`
+	margin-top: 100px;
+
 	a {
 		text-decoration: none;
 		color: black;
@@ -31,6 +34,7 @@ class App extends React.Component {
 			<Router history={HISTORY}>
 				<StyledContainer>
 					<ModalsController />
+					<MessagesController />
 					<Header />
 					<Switch>
 						<Route exact path="/" component={HomePage} />
@@ -38,6 +42,7 @@ class App extends React.Component {
 						<Route path="/profiles/:verbose" component={ProfilePage} />
 						<Route path={"/articles/:verbose"} component={BlogPostPage} />
 						<Route path={"/search"} component={SearchPage} />
+						<Route path={"/not-found"} component={NotFoundPage} />
 						<Route component={NotFoundPage} />
 					</Switch>
 				</StyledContainer>
