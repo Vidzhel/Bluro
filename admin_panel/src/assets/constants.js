@@ -1,3 +1,7 @@
+import {createBrowserHistory} from "history";
+
+const HISTORY = createBrowserHistory();
+
 const BLOCK_USER_NOTIFICATION = (cause) => {
 	return {
 		title: "Your account has been banned",
@@ -12,15 +16,16 @@ const BLOCK_ARTICLE_NOTIFICATION = (articleTitle, cause) => {
 	}
 }
 
-const BLOCK_COMMENT_NOTIFICATION = (articleTitle, cause) => {
+const BLOCK_COMMENT_NOTIFICATION = (userName, cause) => {
 	return {
 		title: "Your article has been deleted",
-		message: `Your comment under '${articleTitle}' has been removed due to non-compliance: ` + cause
+		message: `Your comment under '${userName}'\`s article has been removed due to non-compliance: ` + cause
 	}
 }
 
-export const constants = {
+export  {
 	BLOCK_ARTICLE_NOTIFICATION,
 	BLOCK_COMMENT_NOTIFICATION,
-	BLOCK_USER_NOTIFICATION
+	BLOCK_USER_NOTIFICATION,
+	HISTORY
 }

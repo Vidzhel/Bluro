@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
+import { Router, Redirect, Route, Switch } from "react-router-dom";
 import { MainFrame } from "./pages/ManeFrame";
 import { UsersPage } from "./pages/Users";
 import { NotFoundPage } from "./pages/NotFound";
@@ -8,6 +8,8 @@ import { hasAccess } from "./assets/selectors/selectors";
 import { auth } from "./actions/actions";
 import { ArticlesPage } from "./pages/Articles";
 import { CommentsPage } from "./pages/Comments";
+import { HISTORY } from "./assets/constants";
+import {MessagesController} from "./components/MessagesController";
 
 class App extends React.Component {
 	componentDidMount = () => {
@@ -18,28 +20,29 @@ class App extends React.Component {
 		const hasAccess = this.props.hasAccess;
 
 		return (
-			<BrowserRouter>
+			<Router history={HISTORY}>
+				<MessagesController />
 				<Switch>
 					{hasAccess ? (
 						<div>
-							<Route exact path="/">
-								<Redirect to="/users" />
+							<Route exact path="/admin">
+								<Redirect to="/admin/users" />
 							</Route>
-							<Route path="/users">
+							<Route path="/admin/users">
 								<MainFrame page={<UsersPage />} />
 							</Route>
-							<Route path="/articles">
+							<Route path="/admin/articles">
 								<MainFrame page={<ArticlesPage />} />
 							</Route>
-							<Route path="/comments">
+							<Route path="/admin/comments">
 								<MainFrame page={<CommentsPage />} />
 							</Route>
 						</div>
 					) : null}
 
-					<Route path="/" component={NotFoundPage} />
+					<Route path="/admin" component={NotFoundPage} />
 				</Switch>
-			</BrowserRouter>
+			</Router>
 		);
 	}
 }

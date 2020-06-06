@@ -1,5 +1,4 @@
 const BASE = process.env["host"] || "http://localhost:8080";
-const BLOG_BASE = process.env["host"] || "http://localhost:3000";
 
 const configs = {
 	endpoints: {
@@ -11,7 +10,9 @@ const configs = {
 		notifyUser: (userVerbose) => `${BASE}/profiles/${userVerbose}/notifications`,
 	},
 	blogEndpoints: {
-		profiles: `${BLOG_BASE}/profiles`,
+		profiles: `/profiles`,
+		articles: `/articles`,
+		comments: `/comments`,
 	}
 };
 

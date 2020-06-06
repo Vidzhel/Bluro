@@ -5,6 +5,7 @@ import {getArticles} from "../assets/selectors/selectors";
 import { deleteArticle, fetchArticles } from "../actions/actions";
 import { ListItem } from "../components/ListItem";
 import { configs } from "../assets/configs";
+import {HISTORY} from "../assets/constants";
 
 class ArticlesPage extends React.Component {
 	constructor(props) {
@@ -28,7 +29,7 @@ class ArticlesPage extends React.Component {
 	};
 
 	handleOpenArticle = ({ articleVerbose }) => {
-		this.props.history.push(`${configs.endpoints.articles}/${articleVerbose}`);
+		HISTORY.push(`${configs.blogEndpoints.articles}/${articleVerbose}`);
 	};
 
 	getArticlesAdditionalData = (article) => {

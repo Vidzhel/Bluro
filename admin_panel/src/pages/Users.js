@@ -5,6 +5,7 @@ import { getUsers } from "../assets/selectors/selectors";
 import { fetchUsers, deleteUser, sendNotification } from "../actions/actions";
 import { ListItem } from "../components/ListItem";
 import { configs } from "../assets/configs";
+import {HISTORY} from "../assets/constants";
 
 class UsersPage extends React.Component {
 	constructor(props) {
@@ -33,7 +34,7 @@ class UsersPage extends React.Component {
 	};
 
 	handleOpenUserProfile = ({userVerbose}) => {
-		// this.props.history.push(`${configs.endpoints.profiles}/${userVerbose}`);
+		HISTORY.push(`${configs.blogEndpoints.profiles}/${userVerbose}`);
 	};
 
 	getUsersAdditionalData = (user) => {
@@ -60,9 +61,9 @@ class UsersPage extends React.Component {
 							isUserItem={true}
 							id={{userVerbose: user.verbose}}
 							additionalInfo={this.getUsersAdditionalData(user)}
-							onNotification={this.handleSendNotification(user.verbose)}
-							onDelete={this.handleDeleteUser(user.verbose)}
-							onInfo={this.handleOpenUserProfile(user.verbose)}
+							onNotification={this.handleSendNotification}
+							onDelete={this.handleDeleteUser}
+							onInfo={this.handleOpenUserProfile}
 						/>
 					);
 				})}

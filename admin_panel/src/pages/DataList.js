@@ -4,10 +4,10 @@ import { SearchForm } from "../components/SearchForm";
 import PropTypes from "prop-types";
 import { VerticalList } from "../components/VerticalList";
 import qs from "qs";
+import {HISTORY} from "../assets/constants";
 
 const StyledContainer = styled.div`
 	margin-top: 20px;
-	margin-right: 10px;
 `;
 
 class DataList extends React.Component {
@@ -29,7 +29,7 @@ class DataList extends React.Component {
 		const parameters = {};
 
 		try {
-			const query = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
+			const query = qs.parse(window.location.search, { ignoreQueryPrefix: true });
 			this.query = query["search"];
 
 			query["search"].split(";").forEach((value) => {
@@ -76,7 +76,7 @@ class DataList extends React.Component {
 	search = (param, val) => {
 		const query = `?search=${param}:${val}`;
 		if (this.query !== query) {
-			this.props.history.push(this.props.location.pathname + query);
+			HISTORY.push(window.location.pathname + query);
 			this.query = query;
 
 			this.searchParams = { [param]: val };

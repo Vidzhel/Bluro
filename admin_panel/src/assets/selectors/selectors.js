@@ -23,3 +23,15 @@ export function getComments(store) {
 export function hasAccess(store) {
 	return store.session && store.session.role === "ADMIN";
 }
+
+export function getSessionErrors(store) {
+	return Object.values(store.error);
+}
+
+export function getSessionInfo(store) {
+	return Object.values(store.info);
+}
+
+export function getSessionSuccess(store) {
+	return Object.values(store.success);
+}

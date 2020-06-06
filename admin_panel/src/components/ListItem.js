@@ -22,7 +22,7 @@ const StyledContainer = styled.div`
 
 	.header {
 		border-bottom: 1px solid #ced4da;
-		
+
 		.title {
 			padding: 6px 12px;
 		}
@@ -98,13 +98,12 @@ export class ListItem extends React.Component {
 			return;
 		}
 
-
 		this.setState({
 			values: {
 				...this.state.values,
 				cause: "",
-			}
-		})
+			},
+		});
 
 		this._setError("cause", "");
 		this.props.onDelete(this.props.id, cause);
@@ -146,9 +145,9 @@ export class ListItem extends React.Component {
 			values: {
 				...this.state.values,
 				title: "",
-				message: ""
-			}
-		})
+				message: "",
+			},
+		});
 
 		this.props.onNotification(this.props.id, title, message);
 	};
@@ -184,9 +183,12 @@ export class ListItem extends React.Component {
 					<div className="flex-grow-1 title" onClick={this.handleExpand}>
 						{title}
 					</div>
-					<div className="button info" onClick={onInfo}>
-						Info
-					</div>
+					{onInfo ? (
+						<div className="button info" onClick={() => onInfo(this.props.id)}>
+							Info
+						</div>
+					) : null}
+
 					<div className="button block" onClick={this.handleDelete}>
 						Block
 					</div>
@@ -269,9 +271,9 @@ export class ListItem extends React.Component {
 ListItem.propTypes = {
 	additionalInfo: PropTypes.object.isRequired,
 	onDelete: PropTypes.func.isRequired,
-	onInfo: PropTypes.func.isRequired,
+	onInfo: PropTypes.func,
 	onNotification: PropTypes.func,
 	title: PropTypes.string.isRequired,
 	isUserItem: PropTypes.bool,
-	id: PropTypes.object.isRequired
+	id: PropTypes.object.isRequired,
 };

@@ -1,4 +1,4 @@
-import {SYNC} from "../assets/actionTypes/actions";
+import {ASYNC, SYNC} from "../assets/actionTypes/actions";
 
 export function fetchUsers(fromStart = true, searchParams) {
 	return {
@@ -42,11 +42,11 @@ export function deleteArticle(userVerbose, articleVerbose, articleTitle, cause) 
 	}
 }
 
-export function deleteComment(userVerbose, commentId, articleTitle, cause) {
+export function deleteComment(userVerbose, commentId, userName, cause) {
 	return {
 		type: SYNC.DELETE_COMMENT,
 		userVerbose,
-		articleTitle,
+		userName,
 		commentId,
 		cause,
 	}
@@ -65,4 +65,11 @@ export function auth() {
 	return {
 		type: SYNC.AUTH,
 	}
+}
+
+export function deleteMessage(id) {
+	return {
+		type: ASYNC.DELETE_MESSAGE_ASYNC,
+		id,
+	};
 }

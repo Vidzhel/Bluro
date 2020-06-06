@@ -3,7 +3,7 @@ import { SYNC, ASYNC } from "../assets/actionTypes/actions";
 import { formatQueryString, makeRequest } from "./utilities";
 import { configs } from "../assets/configs";
 import {getArticlesOffset, getCommentsOffset, getUsersOffset} from "../assets/selectors/selectors";
-import { constants } from "../assets/constants";
+import { BLOCK_USER_NOTIFICATION, BLOCK_COMMENT_NOTIFICATION, BLOCK_ARTICLE_NOTIFICATION } from "../assets/constants";
 
 export function* rootSaga() {
 	yield takeLatest(SYNC.FETCH_USERS, fetchUsers);
@@ -40,7 +40,7 @@ function* fetchUsers({ start, searchParams }) {
 
 function* deleteUser({ userVerbose, cause }) {
 	yield call(createNotification, {
-		...constants.BLOCK_USER_NOTIFICATION(cause),
+		...BLOCK_USER_NOTIFICATION(cause),
 		userVerbose,
 	});
 
@@ -77,7 +77,7 @@ function* fetchArticles({ start, searchParams }) {
 
 function* deleteArticle({ userVerbose, articleVerbose, articleTitle, cause }) {
 	yield call(createNotification, {
-		...constants.BLOCK_ARTICLE_NOTIFICATION(articleTitle, cause),
+		...BLOCK_ARTICLE_NOTIFICATION(articleTitle, cause),
 		userVerbose,
 	});
 
@@ -112,9 +112,9 @@ function* fetchComments({ start, searchParams }) {
 	}
 }
 
-function* deleteComment({ userVerbose, commentId, articleTitle, cause }) {
+function* deleteComment({ userVerbose, commentId, userName, cause }) {
 	yield call(createNotification, {
-		...constants.BLOCK_COMMENT_NOTIFICATION(articleTitle, cause),
+		...BLOCK_COMMENT_NOTIFICATION(userName, cause),
 		userVerbose,
 	});
 
