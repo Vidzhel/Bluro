@@ -59,7 +59,7 @@ async function getArticle(req, res, data) {
 	article = article[0];
 
 	if (!article) {
-		res.error("Article with the given id doesn't exist");
+		res.error("Article with the given verbose doesn't exist");
 		res.code(res.CODES.NotFound);
 		res.setEntry(null);
 	} else {
@@ -103,6 +103,8 @@ async function createArticle(req, res, data) {
 		verbose: articleInstance.verbose,
 	});
 	res.code(res.CODES.Created);
+
+	res.success(`Article has been successfully created`);
 }
 
 async function updateArticle(req, res, data) {
@@ -152,6 +154,8 @@ async function updateArticle(req, res, data) {
 		previewImageName: data.files["previewImg"],
 		verbose: article.verbose || articleInstance.verbose,
 	});
+
+	res.success(`Article has been successfully updated`);
 }
 
 async function deleteArticle(req, res, data) {
@@ -177,6 +181,8 @@ async function deleteArticle(req, res, data) {
 		FILES_LOCATION.IMAGES + "/" + article.previewImageName,
 	);
 	await FilesManager.deleteFile(imagePath);
+
+	res.success("Article was successfully deleted");
 }
 
 async function changeAmbiguousVerbose(data) {
@@ -192,7 +198,7 @@ async function changeAmbiguousVerbose(data) {
 
 async function checkRights(res, article, data) {
 	if (!article) {
-		res.error("Article doesn't exist");
+		res.error("That article doesn't exist");
 		res.code(res.CODES.NotFound);
 		return false;
 	}

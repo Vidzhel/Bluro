@@ -144,7 +144,7 @@ async function updateProfileController(req, res, data) {
 	const img = data.files["img"];
 
 	if (pass && !repPass) {
-		res.error("To change password specify password and repeat password");
+		res.error("To change password specify 'password' and 'repeat password'");
 		res.code(res.CODES.BadReq);
 		return;
 	}
@@ -212,6 +212,8 @@ async function updateProfileController(req, res, data) {
 			img: updatedUser.img,
 		});
 	}
+
+	res.success("Profile has been successfully updated");
 }
 
 async function deleteProfileController(req, res, data) {
@@ -224,6 +226,8 @@ async function deleteProfileController(req, res, data) {
 	await User.del({
 		verbose,
 	});
+
+	res.success("Profile has been successfully deleted");
 }
 
 async function followUserController(req, res, data) {
@@ -260,6 +264,8 @@ async function followUserController(req, res, data) {
 	await follow.save();
 	userInstance.followers += 1;
 	await userInstance.save();
+
+	res.success(`Now you follow '${userInstance.userName}'`);
 }
 
 async function unfollowUserController(req, res, data) {
@@ -287,6 +293,8 @@ async function unfollowUserController(req, res, data) {
 	subscriptionsSet.get(0).del();
 	userInstance.followers -= 1;
 	await userInstance.save();
+
+	res.success(`You stop following '${userInstance.userName}'`);
 }
 
 async function getFollowersController(req, res, data) {
@@ -393,7 +401,7 @@ async function login(res, credentials) {
 		});
 
 		res.setCookie("token", jwt);
-		res.success("You've been successfully logged in");
+		res.success("You've successfully logged in");
 	} else {
 		res.error("Wrong login or password was specified");
 		res.code(res.CODES.Forbidden);

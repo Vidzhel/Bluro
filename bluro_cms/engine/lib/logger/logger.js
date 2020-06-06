@@ -152,6 +152,9 @@ class Logger {
 		if (useDefaultConfigs) {
 			this.addConfigs(DEFAULT_CONFIGS);
 		}
+
+		const path = ConfigsManager.getEntry("root") + "/logs";
+		FilesManager._createDir(path);
 	}
 
 	/**

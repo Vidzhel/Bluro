@@ -24,7 +24,9 @@ async function createNotification(req, res, data) {
 	const title = data.reqData.title;
 
 	if (!text || text > 600) {
-		res.error("Notification text has to be specified and be no more than 600 symbols");
+		res.error(
+			"Notification text has to be specified and be no more than 600 symbols in length",
+		);
 		res.code(res.CODES.BadReq);
 		return;
 	}
@@ -92,7 +94,7 @@ async function deleteNotification(req, res, data) {
 
 async function checkNotification(receiver_verbose, notificationId, data) {
 	if (data.session.verbose !== receiver_verbose) {
-		res.error("You are not allowed to read someones messages");
+		res.error("You are not allowed to read someone's messages");
 		res.code(res.CODES.Forbidden);
 		return;
 	}

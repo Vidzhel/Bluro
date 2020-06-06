@@ -31,6 +31,8 @@ async function createCommentController(req, res, data) {
 	const comment = new Comment(commentData, true);
 	await comment.save();
 	res.setIdentifiers({ id: comment.id });
+
+	res.success("You successfully created new comment");
 }
 
 async function updateComment(req, res, data) {
@@ -61,6 +63,7 @@ async function updateComment(req, res, data) {
 	}
 
 	await Comment.update(commentData, { id });
+	res.success("You successfully updated the comment");
 }
 
 async function deleteComment(req, res, data) {
@@ -79,6 +82,7 @@ async function deleteComment(req, res, data) {
 	}
 
 	await comment.del();
+	res.success("You successfully deleted the comment");
 }
 
 function checkRights(res, comment, data) {
