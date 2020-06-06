@@ -28,7 +28,7 @@ function* loginFlow(action) {
 	});
 
 	if (!failure) {
-		if (window.location.pathname.startsWith("/auth/login")) {
+		if (window.location.pathname.startsWith("/auth/login") && action.data !== null) {
 			HISTORY.push("/");
 		}
 	}

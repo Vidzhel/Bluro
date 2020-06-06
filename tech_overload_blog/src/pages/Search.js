@@ -40,6 +40,10 @@ class SearchPage extends React.Component {
 		super(props);
 
 		this.searchTimer = null;
+
+		this.state = {
+			searchVal: "",
+		};
 	}
 
 	componentDidMount() {
@@ -58,6 +62,9 @@ class SearchPage extends React.Component {
 		} catch (e) {}
 
 		this.searchParams = parameters;
+		this.setState({
+			searchVal: this.searchParams.description || "",
+		});
 		this.loadArticles(true, parameters);
 	}
 
@@ -69,10 +76,11 @@ class SearchPage extends React.Component {
 		const input = event.target;
 		const value = input.value;
 
-		if (value) {
-			clearTimeout(this.searchTimer);
-			this.searchTimer = setTimeout(() => this.handleSearch(value), SEARCH_DELAY);
-		}
+		this.setState({
+			searchVal: value,
+		});
+		clearTimeout(this.searchTimer);
+		this.searchTimer = setTimeout(() => this.handleSearch(value), SEARCH_DELAY);
 	};
 
 	handleSearch = (val) => {
@@ -90,18 +98,26 @@ class SearchPage extends React.Component {
 		this.props.showUpdateStoryModal(article);
 	};
 
+	loadMoreArticles = () => {
+		if (!this.loadedAllTheArticles) {
+			this.loadedAllTheArticles = true;
+			this.loadArticles(false, this.searchParams);
+		}
+	};
+
 	render() {
 		const articles = this.props.articles;
 
 		return (
 			<StyledContainer>
 				<Form.Control
+					value={this.state.searchVal}
 					type="text"
 					onChange={this.handleSearchFieldChanged}
 					placeholder="Search articles"
 				/>
 				{articles.length ? (
-					<VerticalList>
+					<VerticalList onBottomReached={this.loadMoreArticles}>
 						{articles.map((article) => {
 							return (
 								<BigImageArticlePreview

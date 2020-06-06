@@ -12,7 +12,7 @@ const StyledContainer = styled.div`
 		color: #007bff !important;
 
 		&:hover {
-			color: white;
+			color: white !important;
 		}
 	}
 `;

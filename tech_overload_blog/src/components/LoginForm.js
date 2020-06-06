@@ -63,17 +63,6 @@ export const LoginForm = (props) => {
 					/>
 					<Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
 				</Form.Group>
-
-				<Form.Group controlId="formBasicCheckbox">
-					<Form.Check
-						type="checkbox"
-						label="Remember me"
-						name="rememberMe"
-						onChange={handleChange}
-						value={values.rememberMe}
-					/>
-				</Form.Group>
-
 				<Button variant="primary" type="submit" block>
 					Login
 				</Button>
