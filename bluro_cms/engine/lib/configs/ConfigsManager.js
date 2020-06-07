@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const INT_REGEXP = /^\d+$/;
+const FLOAT_REGEXP = /^\d+.\d+$/;
 
 const CONFIG_NAME = "config.json";
 
@@ -56,6 +58,14 @@ class ConfigsManager {
 		const env = process.env[key];
 
 		if (env) {
+			if (INT_REGEXP.test(env)) {
+				return parseInt(env);
+			}
+
+			if (FLOAT_REGEXP.test(env)) {
+				return parseFloat(env);
+			}
+
 			return env;
 		}
 
