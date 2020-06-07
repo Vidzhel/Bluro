@@ -26,6 +26,6 @@
         "jsdoc-dynamic": "^1.0.3"
     },
     "scripts": {
-        "bluro": "node engine/lib/CLI/CLI.js"
+        "start": "node ./engine/index.js"
     }
 }

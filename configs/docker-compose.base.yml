@@ -1,0 +1,59 @@
+version: "3.7"
+
+services:
+    # nginx:
+    #     image: nginx:latest
+    #     depends_on:
+    #         - front_blog
+    #         - front_admin_panel
+    #     networks:
+    #         - bluro
+
+    # front_blog:
+    #     image: node:latest
+    #     depends_on:
+    #         - db
+    #         - bluro
+    #     expose:
+    #         - "8000"
+    #     env_file:
+    #         - front.env
+    #     networks:
+    #         - bluro
+
+    # front_admin_panel:
+    #     image: node:latest
+    #     depends_on:
+    #         - db
+    #         - bluro
+    #     expose:
+    #         - "8000"
+    #     env_file:
+    #         - front.env
+    #     networks:
+    #         - bluro
+
+    bluro:
+        image: node:latest
+        # depends_on:
+        #     - db
+        ports:
+            - "8000:8000"
+        env_file:
+            - api.env
+        networks:
+            - bluro
+
+    db:
+        image: "hypriot/rpi-mysql"
+        expose:
+            - "3306"
+        restart: always
+        env_file:
+            - db.env
+        networks:
+            - bluro
+
+networks:
+    bluro:
+        driver: bridge
