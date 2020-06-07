@@ -17,6 +17,8 @@ module.exports = async function initDialect(options, dialect = "mySql") {
 		user: ConfigsManager.getEntry("user"),
 		password: ConfigsManager.getEntry("password"),
 		connectTimeout: ConfigsManager.getEntry("connectTimeout"),
+		dbConnectionTries: ConfigsManager.getEntry("dbConnectionTries") || 3,
+		dbConnectionTryDelay: ConfigsManager.getEntry("dbConnectionTryDelay") || 3000,
 	};
 
 	const connectionManager = require(base + "/connectionManager");
