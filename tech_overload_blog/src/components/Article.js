@@ -7,7 +7,6 @@ import { CodeBlock } from "./MarkdownCodeBlock";
 
 const StyledContainer = styled.div`
 	font-size: 21px;
-	font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
 	word-break: break-word;
 `;
 

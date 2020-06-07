@@ -12,7 +12,7 @@ import { getFetchedArticles } from "../assets/selectors/articles";
 import { followUser, getProfileInfo, unfollowUser } from "../actions/profile";
 import { getArticles } from "../actions/articles";
 import { ChangeProfile } from "../containers/ChangerProfile";
-import { ARTICLE_STATE_PUBLISHED } from "../assets/constants";
+import { ARTICLE_STATE_DRAFT, ARTICLE_STATE_PUBLISHED } from "../assets/constants";
 import { showUpdateStoryModal } from "../actions/session";
 
 const StyledTabs = styled(Tabs)`
@@ -47,9 +47,23 @@ class ProfilePage extends React.Component {
 			publishedArticles: [],
 			unpublishedArticles: [],
 		};
+		this.loadedAllTheArticles = false;
+		this.maunted = true;
 	}
+
+	componentDidUpdate = (prevProps) => {
+		if (prevProps.articles.length !== this.props.articles.length) {
+			this.loadedAllTheArticles = false;
+		}
+	};
+
+	componentWillUnmount() {
+		this.maunted = false;
+	}
+
 	componentDidMount = () => {
 		const userVerbose = this.props.match.params.verbose;
+		this.props.getProfileInfo(userVerbose);
 		this.props.getProfileInfo(userVerbose);
 		this.props.getArticles(userVerbose, false);
 	};
@@ -64,6 +78,15 @@ class ProfilePage extends React.Component {
 
 	handleChangeArticle = (article) => {
 		this.props.showUpdateStoryModal(article);
+	};
+
+	loadMoreArticles = () => {
+		const userVerbose = this.props.match.params.verbose;
+
+		if (!this.loadedAllTheArticles && this.maunted) {
+			this.loadedAllTheArticles = true;
+			this.props.getArticles(userVerbose, false, false);
+		}
 	};
 
 	render() {
@@ -94,7 +117,7 @@ class ProfilePage extends React.Component {
 				<StyledTabs defaultActiveKey="profile" id="uncontrolled-tab-example">
 					<Tab transition={false} eventKey="profile" title="Profile">
 						{publishedArticles.length ? (
-							<VerticalList>
+							<VerticalList key="published" onBottomReached={this.loadMoreArticles}>
 								{publishedArticles.map((article) => {
 									return (
 										<BigImageArticlePreview
@@ -119,7 +142,7 @@ class ProfilePage extends React.Component {
 					{profile.isCurrentUser ? (
 						<Tab transition={false} eventKey="drafts" title="Drafts">
 							{unpublishedArticles.length ? (
-								<VerticalList>
+								<VerticalList key="drafts" onBottomReached={this.loadMoreArticles}>
 									{unpublishedArticles.map((article) => {
 										return (
 											<BigImageArticlePreview

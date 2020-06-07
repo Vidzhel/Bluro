@@ -35,7 +35,7 @@ const NEW_PUBLICATION_NOTIFICATION = (publisherName, articleTitle) => {
 
 const NEW_COMMENT_NOTIFICATION = (publisherName, articleTitle) => {
 	return {
-		title: "New publication!",
+		title: "New comment!",
 		message: `${publisherName} has just commented your article: ${articleTitle}`,
 	};
 };

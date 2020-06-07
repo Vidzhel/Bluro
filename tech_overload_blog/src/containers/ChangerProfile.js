@@ -7,7 +7,6 @@ import { VERBOSE_REGEXP, EMAIL_REGEXP, IMAGE_EXTENSION_REGEXP } from "../assets/
 import { showDeleteProfileModal } from "../actions/session";
 
 const StyledContainer = styled.div`
-	margin-top: 50px;
 	padding: 20px;
 `;
 

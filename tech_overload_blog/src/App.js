@@ -1,5 +1,5 @@
 import React from "react";
-import { Router, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch, Redirect } from "react-router-dom";
 
 import { HomePage } from "./pages/Home";
 import { LoggingPage } from "./pages/Logging";
@@ -18,6 +18,7 @@ import { MessagesController } from "./containers/MessagesController";
 const StyledContainer = styled.div`
 	margin-top: 100px;
 	margin-bottom: 50px;
+	overflow-wrap: break-word;
 
 	a {
 		text-decoration: none;
@@ -38,7 +39,10 @@ class App extends React.Component {
 					<MessagesController />
 					<Header />
 					<Switch>
-						<Route exact path="/" component={HomePage} />
+						<Route exact path="/">
+							<Redirect to="/home" />
+						</Route>
+						<Route exact path="/home" component={HomePage} />
 						<Route path="/auth" component={LoggingPage} />
 						<Route path="/profiles/:verbose" component={ProfilePage} />
 						<Route path={"/articles/:verbose"} component={BlogPostPage} />

@@ -7,6 +7,7 @@ const THRESHOLD = 200;
 class VerticalList extends React.Component {
 	componentDidMount() {
 		window.addEventListener("scroll", this.handleScroll);
+		this.handleScroll();
 	}
 
 	handleScroll = () => {

@@ -26,13 +26,16 @@ function requireAuthorization(req, res, data) {
 async function authRule(req, res, data) {
 	const token = await req.getCookie("token");
 	if (!token) {
+		if (req.url === "/login" && (!data.reqData.email || !data.reqData.pass)) {
+			return true;
+		}
 		return;
 	}
 	const valid = await checkToken(req, res, data, token);
 
 	if (req.url === "/login" && valid) {
 		return true;
-	} else if (req.url === "/login" && !valid && !data.reqData.email && !data.reqData.pass) {
+	} else if (req.url === "/login" && !valid && (!data.reqData.email || !data.reqData.pass)) {
 		return true;
 	}
 }
@@ -163,6 +166,15 @@ async function updateProfileController(req, res, data) {
 		}
 	}
 
+	if (email) {
+		set = await User.selector.filter({ email: email }).fetch();
+
+		if (set.length) {
+			res.error("User with the same email already exists");
+			res.code(res.CODES.Forbidden);
+			return;
+		}
+	}
 	const userData = {
 		userName,
 		verbose: newVerbose,
@@ -183,7 +195,9 @@ async function updateProfileController(req, res, data) {
 	await User.update(userData, {
 		verbose,
 	});
-	const updatedUserSet = await User.selector.filter({ email: data.session.email }).fetch();
+	const updatedUserSet = await User.selector
+		.filter({ email: email || data.session.email })
+		.fetch();
 	const updatedUser = updatedUserSet.get(0);
 
 	if (img) {
@@ -265,7 +279,14 @@ async function followUserController(req, res, data) {
 	userInstance.followers += 1;
 	await userInstance.save();
 
-	res.success(`Now you follow '${userInstance.userName}'`);
+	// Add following to this user
+	const thisUserSet = await User.selector.filter({ verbose: data.session.verbose }).fetch();
+	const thisUser = thisUserSet.get(0);
+
+	thisUser.following += 1;
+	await thisUser.save();
+
+	res.success(`Now you are following '${userInstance.userName}'`);
 }
 
 async function unfollowUserController(req, res, data) {
@@ -294,7 +315,14 @@ async function unfollowUserController(req, res, data) {
 	userInstance.followers -= 1;
 	await userInstance.save();
 
-	res.success(`You stop following '${userInstance.userName}'`);
+	// Add following to this user
+	const thisUserSet = await User.selector.filter({ verbose: data.session.verbose }).fetch();
+	const thisUser = thisUserSet.get(0);
+
+	thisUser.following -= 1;
+	await thisUser.save();
+
+	res.success(`You stopped following '${userInstance.userName}'`);
 }
 
 async function getFollowersController(req, res, data) {

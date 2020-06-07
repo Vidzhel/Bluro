@@ -66,7 +66,8 @@ async function notifyFollowers(req, res, data) {
 	const set = await Follower.selector.filter({ user: sender.verbose }).fetch();
 
 	for (const follow of set) {
-		await NotificationService.sendMessage(sender, follow.follower, text, title);
+		const set = await User.selector.filter({ verbose: follow.follower }).fetch();
+		await NotificationService.sendMessage(sender, set.get(0), text, title);
 	}
 }
 

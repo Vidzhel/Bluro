@@ -1,4 +1,4 @@
-import { call, put, takeLatest, select, fork } from "redux-saga/effects";
+import { call, put, takeLatest, select, fork, takeEvery } from "redux-saga/effects";
 import { ART_SYNC, ART_ASYNC } from "../assets/actionTypes/articles";
 import {
 	makeRequest,
@@ -15,6 +15,7 @@ import { getChosenProfile } from "../assets/selectors/profile";
 import {
 	getArticlesCommentsOffset,
 	getArticlesOffset,
+	getEditingArticle,
 	getFetchedArticle,
 	getOpenedArticle,
 } from "../assets/selectors/articles";
@@ -22,15 +23,13 @@ import { processUserData } from "./profile";
 import { getCurrentUserInfo } from "../assets/selectors/session";
 import {
 	ARTICLE_STATE_PUBLISHED,
-	FOLLOW_NOTIFICATION,
 	NEW_COMMENT_NOTIFICATION,
 	NEW_PUBLICATION_NOTIFICATION,
-	UNFOLLOW_NOTIFICATION,
 } from "../assets/constants";
 import { createNotification } from "../actions/session";
 
 export function* articlesWatcher() {
-	yield takeLatest(ART_SYNC.GET_USERS_ARTICLES, getUsersArticles);
+	yield takeEvery(ART_SYNC.GET_USERS_ARTICLES, getUsersArticles);
 
 	yield takeLatest(ART_SYNC.OPEN_ARTICLE, openArticle);
 	yield takeLatest(ART_SYNC.CREATE_ARTICLE, createArticle);
@@ -39,7 +38,7 @@ export function* articlesWatcher() {
 
 	yield takeLatest(ART_SYNC.FETCH_ARTICLES_CONTENT, fetchArticleContent);
 
-	yield takeLatest(ART_SYNC.GET_ARTICLE_COMMENTS, getArticleComments);
+	yield takeEvery(ART_SYNC.GET_ARTICLE_COMMENTS, getArticleComments);
 	yield takeLatest(ART_SYNC.FETCH_CHUNK_OF_ARTICLE_COMMENTS, fetchChunkOfArticlesComments);
 	yield takeLatest(ART_SYNC.CREATE_COMMENT, createComment);
 	yield takeLatest(ART_SYNC.UPDATE_COMMENT, updateComment);
@@ -118,16 +117,19 @@ function* createArticle({ data: articleData }) {
 		const chosenUser = yield call(getChosenProfile, state);
 		const isUserChosen = chosenUser ? yield call(isCurrentUser, chosenUser.verbose) : false;
 
-		yield fork(makeRequest, `${configs.endpoints.notifyFollowers(userData.verbose)}}`, {
-			method: "POST",
-			body: JSON.stringify(
-				NEW_PUBLICATION_NOTIFICATION(userData.userName, articleData.title),
-			),
-		});
+		if (articleData.state === ARTICLE_STATE_PUBLISHED) {
+			yield fork(makeRequest, `${configs.endpoints.notifyFollowers(userData.verbose)}}`, {
+				method: "POST",
+				body: JSON.stringify(
+					NEW_PUBLICATION_NOTIFICATION(userData.userName, articleData.title),
+				),
+			});
+		}
 
 		if (
 			isUserChosen ||
-			(chosenUser === null && articleData.state === ARTICLE_STATE_PUBLISHED)
+			(window.location.pathname.endsWith("/home") &&
+				articleData.state === ARTICLE_STATE_PUBLISHED)
 		) {
 			articleData.verbose = data.identifiers.verbose;
 			articleData.textSourceName = data.identifiers.textSourceName;
@@ -155,9 +157,32 @@ function* updateArticle({ verbose, data: articleData }) {
 	);
 
 	if (!failure) {
+		const state = yield select();
+		const editingArticle = yield call(getEditingArticle, state);
+
 		articleData.textSourceName = data.identifiers.textSourceName;
 		articleData.previewImageName = data.identifiers.previewImageName;
 		articleData.verbose = data.identifiers.verbose;
+		articleData.dateOfPublishingString = "Just now";
+		articleData.dateOfChangingString = "Just now";
+
+		if (
+			editingArticle.state !== ARTICLE_STATE_PUBLISHED &&
+			articleData.state === ARTICLE_STATE_PUBLISHED
+		) {
+			const state = yield select();
+			const userData = yield call(getCurrentUserInfo, state);
+
+			yield fork(makeRequest, `${configs.endpoints.notifyFollowers(userData.verbose)}}`, {
+				method: "POST",
+				body: JSON.stringify(
+					NEW_PUBLICATION_NOTIFICATION(
+						userData.userName,
+						articleData.title || editingArticle.title,
+					),
+				),
+			});
+		}
 
 		yield put({
 			type: ART_ASYNC.UPDATE_ARTICLE_ASYNC,
@@ -208,10 +233,14 @@ function* createComment({ verbose, text }) {
 		const userData = yield call(getCurrentUserInfo, state);
 		const article = yield call(getOpenedArticle, state);
 
-		createNotification(
-			article.user.verbose,
-			NEW_COMMENT_NOTIFICATION(userData.userName, article.title),
-		);
+		if (userData.verbose !== article.user.verbose) {
+			yield put(
+				createNotification(
+					article.user.verbose,
+					NEW_COMMENT_NOTIFICATION(userData.userName, article.title),
+				),
+			);
+		}
 
 		yield put({
 			type: ART_ASYNC.CREATE_COMMENT_ASYNC,

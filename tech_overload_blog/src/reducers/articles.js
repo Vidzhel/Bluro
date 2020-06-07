@@ -61,6 +61,14 @@ export function articles(state = defaultState, action) {
 				}
 			}
 
+			if (newState.openedArticle && newState.openedArticle.verbose === action.verbose) {
+				for (const [prop, val] of Object.entries(action.article)) {
+					if (val !== void 0) {
+						newState.openedArticle[prop] = val;
+					}
+				}
+			}
+
 			break;
 		}
 		case ART_ASYNC.OPEN_ARTICLE_ASYNC: {

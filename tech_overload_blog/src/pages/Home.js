@@ -11,16 +11,21 @@ class HomePage extends React.Component {
 	componentDidMount() {
 		this.props.getArticles(null);
 		this.loadedAllTheArticles = false;
+		this.maunted = true;
 	}
 
-	componentDidUpdate(prevProps, prevState, snapshot) {
+	componentDidUpdate(prevProps) {
 		if (prevProps.articles.length !== this.props.articles.length) {
 			this.loadedAllTheArticles = false;
 		}
 	}
 
+	componentWillUnmount() {
+		this.maunted = false;
+	}
+
 	loadMoreArticles = () => {
-		if (!this.loadedAllTheArticles) {
+		if (!this.loadedAllTheArticles && this.maunted) {
 			this.loadedAllTheArticles = true;
 			this.props.getArticles(null, true, false);
 		}
@@ -32,7 +37,7 @@ class HomePage extends React.Component {
 
 	render() {
 		return (
-			<VerticalList onBottomReached={this.loadMoreArticles}>
+			<VerticalList key="home" onBottomReached={this.loadMoreArticles}>
 				{this.props.articles.map((article) => (
 					<BigImageArticlePreview
 						article={article}

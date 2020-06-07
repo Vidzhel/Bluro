@@ -11,6 +11,7 @@ import { configs } from "../assets/configs";
 import PropTypes from "prop-types";
 import { NotificationsList } from "../containers/NotificationsList";
 import { NOTIFICATION_STATUS_SENT } from "../assets/constants";
+import { HISTORY } from "../assets/constants";
 
 const StyledNav = styled.div`
 	width: 100%;
@@ -154,6 +155,17 @@ export class Navbar extends React.Component {
 			}
 		}
 
+		function openProfile() {
+			const newLocation = `/profiles/${profile.verbose}`;
+			const matchesOldLocation = window.location.pathname.startsWith(newLocation);
+			const onProfilePage = window.location.pathname.startsWith("/profiles");
+
+			HISTORY.push(newLocation);
+			if (!matchesOldLocation && onProfilePage) {
+				HISTORY.go();
+			}
+		}
+
 		return (
 			<StyledBootNavbar
 				className="px-md-5"
@@ -167,9 +179,14 @@ export class Navbar extends React.Component {
 				</Brand>
 				<BootstrapNavbar.Collapse id="basic-navbar-nav">
 					<StyledNav className="d-flex pl-1 pl-md-5 justify-content-md-between justify-content-end  align-items-center">
-						<Links className="d-none d-sm-flex align-items-center">
-							<Link to="/">Home</Link>
+						<Links className="d-flex align-items-center">
+							<Link className="d-none d-sm-block" to="/">
+								Home
+							</Link>
 							{!profile && <Link to="/auth">Become a member</Link>}
+							{profile && profile.role === "ADMIN" && (
+								<Link to="/auth">Open admin panel</Link>
+							)}
 						</Links>
 
 						<Options className="d-flex align-items-center">
@@ -210,7 +227,7 @@ export class Navbar extends React.Component {
 
 										<Dropdown.Menu alignRight={true}>
 											<Dropdown.Item
-												to={`/profiles/${profile.verbose}`}
+												onClick={openProfile}
 												as={SmallProfile}
 												className="d-flex align-items-center">
 												<div className="left">

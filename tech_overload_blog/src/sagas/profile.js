@@ -8,6 +8,8 @@ import { createNotification } from "../actions/session";
 import { FOLLOW_NOTIFICATION, UNFOLLOW_NOTIFICATION } from "../assets/constants";
 import { HISTORY } from "../assets/constants";
 import { SES_SYNC } from "../assets/actionTypes/session";
+import { getOpenedArticle } from "../assets/selectors/articles";
+import { ART_ASYNC } from "../assets/actionTypes/articles";
 
 export function* profileWatcher() {
 	yield takeLatest(PROF_SYNC.GET_PROFILE_INFO, getProfileInfo);
@@ -71,7 +73,13 @@ function* updateProfile(action) {
 	);
 
 	if (!failure) {
-		action.data.img = data.identifiers.img;
+		if (action.data.img) {
+			action.data.img = data.identifiers.img;
+		}
+		if (action.data.verbose) {
+			HISTORY.push("/profiles/" + action.data.verbose);
+		}
+
 		yield put({ type: PROF_ASYNC.UPDATE_CHOSEN_PROFILE_ASYNC, profile: action.data });
 	}
 }
@@ -114,7 +122,16 @@ function* followUser(action) {
 	if (!failure) {
 		const store = yield select();
 		const currentUser = yield call(getCurrentUserInfo, store);
-		createNotification(action.verbose, FOLLOW_NOTIFICATION(currentUser.userName));
+		const openedArticle = yield call(getOpenedArticle, store);
+		yield put(createNotification(action.verbose, FOLLOW_NOTIFICATION(currentUser.userName)));
+
+		if (openedArticle && openedArticle.user.verbose === action.verbose) {
+			yield put({
+				type: ART_ASYNC.UPDATE_ARTICLE_ASYNC,
+				verbose: openedArticle.verbose,
+				article: { user: { ...openedArticle.user, isFollowing: true } },
+			});
+		}
 
 		const isChosen = yield call(isChosenUser, action.verbose);
 		if (isChosen) {
@@ -137,9 +154,19 @@ function* unfollowUser(action) {
 	if (!failure) {
 		const store = yield select();
 		const currentUser = yield call(getCurrentUserInfo, store);
-		createNotification(action.verbose, UNFOLLOW_NOTIFICATION(currentUser.userName));
+		const openedArticle = yield call(getOpenedArticle, store);
+		yield put(createNotification(action.verbose, UNFOLLOW_NOTIFICATION(currentUser.userName)));
 
 		const isChosen = yield call(isChosenUser, action.verbose);
+
+		if (openedArticle && openedArticle.user.verbose === action.verbose) {
+			yield put({
+				type: ART_ASYNC.UPDATE_ARTICLE_ASYNC,
+				verbose: openedArticle.verbose,
+				article: { user: { ...openedArticle.user, isFollowing: false } },
+			});
+		}
+
 		if (isChosen) {
 			yield put({
 				type: PROF_ASYNC.UNFOLLOW_USER_ASYNC,
@@ -151,7 +178,7 @@ function* unfollowUser(action) {
 function* isChosenUser(verbose) {
 	const store = yield select();
 	const currentUser = yield call(getChosenProfile, store);
-	return currentUser.verbose === verbose;
+	return currentUser ? currentUser.verbose === verbose : false;
 }
 
 export function* processUserData(user) {
