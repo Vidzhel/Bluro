@@ -59,14 +59,12 @@ async function addRootUser() {
 
 	const user = new User();
 
-	user.userName = "Vidzhel";
-	user.verbose = "vidzhel";
-	user.email = "olegtalaver@gmail.com";
+	user.userName = ConfigsManager.getEntry("rootUserName");
+	user.email = ConfigsManager.getEntry("rootEmail");
 	user.pass = ConfigsManager.getEntry("rootPassword");
+
 	user.role = User.ROLES.ADMIN;
 	user.img = "default.jpg";
-	user.about =
-		"Be who you are and say what you feel, because those who mind don't matter, and those who matter don't mind.";
 	user.followers = 0;
 	user.following = 0;
 

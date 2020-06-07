@@ -1,8 +1,8 @@
 # Bluro
 
 **Bluro** is a headless content management (CMS) system that was built with a clear goal to
-achieve - build something interesting and learn useful skills. As a part of the project a blog "Tech
-Overload" was build.
+achieve - build something interesting and learn useful skills and technologies. As a part of the
+project a blog "Tech Overload" was build.
 
 Backend uses **no express** and **no sequelize or other ORMs** only bare bones, only hardcore
 
@@ -19,6 +19,41 @@ development
 ## TechOverload
 
 ## API
+
+### Configs
+
+All configs can be added to `configs.json` file at the root of the project or introduced as
+environment variables to make them more secure.
+
+-   host - defines ip that the server will be listening
+-   port - defines port that the server will be listening
+-   dbhost - ip of an db server
+-   database - name of already created database
+-   user - db user name
+-   password - db user password
+-   connectionTimeout - max time that the server will be waiting for connection to the db
+-   rootUserName - user name of an admin that will be created in case it doesn't exist. That and the
+    following bunch of parameters with the same prefix are used by on of default modules: `Auth` and
+    may be completely ignored in case you don't use the module
+-   rootEmail - user name of the admin
+-   rootPassword - password of the admin
+-   mailService - a service that will be used to send notification e.g. `gmail`. That and the
+    following bunch of parameters with the same prefix are used by one of default modules:
+    `Notification` and may be completely ignored in case you don't use the module
+-   mailUser - a login of a service user
+-   mailPassword - a password of the service user
+-   mailSubject - subject that will be used to send emails
+-   modules - a list of connected modules (order is matter as db tables will be built the order)
+-   allowedMethods (optional) - CRUD allowed HTTP methods e.g. `POST`. The parameter is used in a
+    default global rule that is named crud.
+-   allowedOrigins (optional) - allowed hosts e.g `localhost`
+-   exposedHeaders (optional) - headers that are allowed to be send by client-side code e.g
+    `Cookies`
+-   exposedHeaders (optional) - headers that are allowed to be read by client-side code e.g
+    `X-Custom-Header`
+-   permissionAge (optional) - notes how long a CORS preflight request is valid (value in seconds)
+-   allowCredentials (options) - tells browsers whether to expose the response to frontend
+    JavaScript code when the request's credentials mode is `include` (boolean value)
 
 ### API endpoints
 

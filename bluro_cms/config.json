@@ -8,7 +8,9 @@
 	"password": "HardPass123",
 	"connectTimeout": 10000,
 
+	"rootUserName": "Vidzhel",
 	"rootPassword": "hardpass",
+	"rootEmail": "olegtalaver@gmail.com",
 
 	"mailService": "gmail",
 	"mailUser": "olegtalaver@gmail.com",
