@@ -1,6 +1,6 @@
 const colors = require("colors");
 const fs = require("fs");
-const PATH_REGEXP = /^[a-z]:((\\|\/)[a-z_0-9]+)+\.[a-z0-9]+$/i;
+const PATH_REGEXP = /^([a-z]:)?((\\|\/)[a-z_0-9]+)+\.[a-z0-9]+$/i;
 const ROOT = ConfigsManager.getEntry("root");
 
 const _loggingLevels = {
@@ -149,12 +149,12 @@ class Logger {
 	constructor(useDefaultConfigs = true) {
 		this._configs = [];
 
+		const path = ConfigsManager.getEntry("root") + "/logs";
+		FilesManager._createDir(path);
+
 		if (useDefaultConfigs) {
 			this.addConfigs(DEFAULT_CONFIGS);
 		}
-
-		const path = ConfigsManager.getEntry("root") + "/logs";
-		FilesManager._createDir(path);
 	}
 
 	/**
@@ -260,10 +260,12 @@ class Logger {
 			processedConfig.files = files;
 		} else if (files && typeof files === "object") {
 			if (!PATH_REGEXP.test(files.path)) {
-				throw new Error("Invalid path, " + path.path);
+				throw new Error("Invalid path, " + files.path);
 			}
 			if (typeof files.verbose !== "string") {
-				throw new Error("Expected file verbose to be a string, got " + typeof file.verbose);
+				throw new Error(
+					"Expected file verbose to be a string, got " + typeof files.verbose,
+				);
 			}
 
 			processedConfig.files = [files];
