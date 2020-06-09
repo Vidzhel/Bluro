@@ -391,8 +391,16 @@ class StatementBuilder extends baseStatementBuilder {
 
 	_escapeIdentifiers(ids) {
 		if (typeof ids[Symbol.iterator] === "function" && typeof ids !== "string") {
-			return ids.map(driver.escapeId);
+			return ids.map((id) => {
+				if (id === "*") {
+					return id;
+				}
+				return driver.escapeId(id);
+			});
 		} else {
+			if (ids === "*") {
+				return ids;
+			}
 			return driver.escapeId(ids);
 		}
 	}

@@ -51,7 +51,7 @@ module.exports = function initAuth(options) {
 };
 
 async function addRootUser() {
-	const set = await User.selector.filter({ email: "olegtalaver@gmail.com" }).fetch();
+	const set = await User.selector.filter({ email: ConfigsManager.getEntry("rootEmail") }).fetch();
 
 	if (set.length) {
 		return;
@@ -62,6 +62,8 @@ async function addRootUser() {
 	user.userName = ConfigsManager.getEntry("rootUserName");
 	user.email = ConfigsManager.getEntry("rootEmail");
 	user.pass = ConfigsManager.getEntry("rootPassword");
+	user.verbose = ConfigsManager.getEntry("rootVerbose");
+	user.about = "";
 
 	user.role = User.ROLES.ADMIN;
 	user.img = "default.jpg";

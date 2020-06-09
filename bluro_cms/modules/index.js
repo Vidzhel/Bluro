@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = function initModules(options) {
 	const modulesToInit = ConfigsManager.getEntry("modules");
 
@@ -19,8 +21,9 @@ module.exports = function initModules(options) {
 		const moduleRelativePath = "./" + moduleName;
 		const module = require(moduleRelativePath);
 		let modulePath = require.resolve(moduleRelativePath);
+
 		// Get folder name without index.js
-		modulePath = modulePath.substring(0, modulePath.lastIndexOf("\\"));
+		modulePath = path.dirname(modulePath);
 
 		options.modulesManager.startModuleInit(moduleName, modulePath);
 		module(options);
