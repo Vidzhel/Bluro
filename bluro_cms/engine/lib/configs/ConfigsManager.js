@@ -58,18 +58,26 @@ class ConfigsManager {
 		const env = process.env[key];
 
 		if (env) {
-			if (INT_REGEXP.test(env)) {
-				return parseInt(env);
-			}
-
-			if (FLOAT_REGEXP.test(env)) {
-				return parseFloat(env);
-			}
-
-			return env;
+			return this.parseEnvVal(env);
 		}
 
 		return this._data[key] || null;
+	}
+
+	parseEnvVal(val) {
+		if (val.includes(":")) {
+			return val.split(":").map((subVal) => this.parseEnvVal(subVal));
+		}
+
+		if (INT_REGEXP.test(val)) {
+			return parseInt(val);
+		}
+
+		if (FLOAT_REGEXP.test(val)) {
+			return parseFloat(val);
+		}
+
+		return val;
 	}
 
 	setEntry(key, value) {
