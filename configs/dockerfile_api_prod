@@ -1,0 +1,5 @@
+FROM nginx:latest
+
+COPY . /application
+
+ENTRYPOINT ["node", "/application/engine/index.js"]

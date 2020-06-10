@@ -8,36 +8,33 @@ services:
             - "443:443"
         depends_on:
             - front_blog
-            # - front_admin_panel
+            - front_admin_panel
         networks:
             - bluro
 
     front_blog:
-        image: node:latest
         depends_on:
             - db
             - bluro_api
-        env_file:
-            - front.env
         networks:
             - bluro
         expose:
             - "8000"
 
-    # front_admin_panel:
-    #     image: node:latest
-    #     depends_on:
-    #         - db
-    #         - bluro_api
-    #     expose:
-    #         - "3000"
-    #     env_file:
-    #         - front.env
-    #     networks:
-    #         - bluro
+    front_admin_panel:
+        depends_on:
+            - db
+            - bluro_api
+        expose:
+            - "3000"
+        networks:
+            - bluro
 
     bluro_api:
         image: node:latest
+        volumes:
+            - ./logs/api:/application/logs
+            - ./logs/static_files:/application/files
         depends_on:
             - db
         env_file:

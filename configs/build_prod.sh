@@ -4,15 +4,15 @@ cd $SCRIPTPATH
 
 cd ./bluro_cms
 npm install
-cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
 
 cd ../tech_overload_blog
 npm install
-cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
+npm run build
 
 cd ../admin_panel
 npm install
 cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
+npm run build
 
 cd ../configs
-docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up
+docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up
