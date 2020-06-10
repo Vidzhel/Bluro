@@ -1,4 +1,4 @@
-const BASE = process.env["api"] || "http://localhost:8080";
+const BASE = process.env["REACT_APP_API"] || "http://localhost:8080";
 const BASE_RESOURCES = `${BASE}/files`;
 
 const configs = {

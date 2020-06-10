@@ -1,4 +1,4 @@
-const BASE = process.env["host"] || "http://localhost:8080";
+const BASE = process.env["REACT_APP_API"] || "http://localhost:8080";
 
 const configs = {
 	endpoints: {
@@ -13,7 +13,7 @@ const configs = {
 		profiles: `/profiles`,
 		articles: `/articles`,
 		comments: `/comments`,
-	}
+	},
 };
 
 export { configs };
