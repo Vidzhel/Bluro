@@ -39,8 +39,12 @@ function cors(req, res, data) {
 	const allowCredentials = ConfigsManager.getEntry("allowCredentials");
 
 	// Always required headers
-	if (allowedOrigins.length) {
-		res.setHeader("Access-Control-Allow-Origin", allowedOrigins.join(", "));
+	if (allowedOrigins) {
+		if (typeof allowedOrigins[Symbol.iterator] === "function") {
+			res.setHeader("Access-Control-Allow-Origin", allowedOrigins.join(", "));
+		} else {
+			res.setHeader("Access-Control-Allow-Origin", allowedOrigins);
+		}
 	}
 
 	if (allowCredentials) {
