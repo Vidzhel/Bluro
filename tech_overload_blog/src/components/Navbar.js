@@ -185,7 +185,7 @@ export class Navbar extends React.Component {
 							</Link>
 							{!profile && <Link to="/auth">Become a member</Link>}
 							{profile && profile.role === "ADMIN" && (
-								<Link to="/auth">Open admin panel</Link>
+								<Link to="/admin">Open admin panel</Link>
 							)}
 						</Links>
 

@@ -20,7 +20,11 @@ class App {
 		this.dispatcher = new routeDispatcher();
 
 		this.options = options;
-		this.protocol = options.https ? require("https") : require("http");
+		this.https =
+			ConfigsManager.getEntry("https") === "true" ||
+			ConfigsManager.getEntry("https") === true;
+		this.protocol = this.https ? require("https") : require("http");
+
 		this._validateOptions();
 		this.server = this.initServer();
 	}
@@ -83,9 +87,11 @@ class App {
 
 	start() {
 		return new Promise((resolve) => {
-			const { host, https, port } = this.options;
+			const { host, port } = this.options;
 			this.server.listen(port, host, () => {
-				Logger.logInfo(`Server running at ${https ? "https" : "http"}://${host}:${port}/`);
+				Logger.logInfo(
+					`Server running at ${this.https ? "https" : "http"}://${host}:${port}/`,
+				);
 				resolve();
 			});
 		});

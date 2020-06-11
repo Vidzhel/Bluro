@@ -17,11 +17,11 @@ class FilesManager {
 	 * @param dirPath
 	 */
 	_createDir(dirPath) {
-		fs.access(dirPath, fs.constants.F_OK, (err) => {
-			if (err) {
-				fs.mkdirSync(dirPath);
-			}
-		});
+		try {
+			fs.accessSync(dirPath, fs.constants.F_OK);
+		} catch (e) {
+			fs.mkdirSync(dirPath);
+		}
 	}
 
 	createDir(name, isTemp) {

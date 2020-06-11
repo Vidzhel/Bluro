@@ -376,7 +376,7 @@ class Logger {
 	_logFile(filePath, msg) {
 		fs.writeFile(filePath, "\n" + msg, { flag: "a" }, (err) => {
 			if (err) {
-				Logger.logError(err);
+				console.error(e);
 			}
 		});
 	}

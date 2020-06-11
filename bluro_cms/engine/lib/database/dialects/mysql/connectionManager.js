@@ -56,19 +56,6 @@ class ConnectionManager extends BaseConnectionManager {
 		return { failure: false };
 	}
 
-
-		if (error) {
-			Logger.logError("Connection failed", {
-				config: "db",
-				error: error,
-				obj: { host: config.host, db: config.database },
-			});
-		} else {
-			let message = `Connected to a database, ${config.host}`;
-			Logger.logInfo(message, { config: "db" });
-		}
-	}
-
 	/**
 	 *
 	 * @param {string} query
