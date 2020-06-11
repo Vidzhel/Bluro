@@ -6,9 +6,13 @@ node_modules
 logs
 ./bluro_cms/files
 migrations
-files
+files/*
 /src
 *.env
+app_data
+!./bluro_cms/files/profiles/img/default.*
+/tech_overload_blog/build
+/admin_panel/build
 
 # Logs
 Backend/logs

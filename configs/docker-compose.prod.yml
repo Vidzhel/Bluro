@@ -6,20 +6,20 @@ services:
 
     front_blog:
         build:
-            - context: ../tech_overload_blog/build
-            - dockerfile: ./dockerfile_front_prod
+            context: ../tech_overload_blog/build
+            dockerfile: ./dockerfile_front_prod
         restart: unless-stopped
 
     front_admin_panel:
         build:
-            - context: ../admin_panel/build
-            - dockerfile: ./dockerfile_front_prod
+            context: ../admin_panel/build
+            dockerfile: ./dockerfile_front_prod
         restart: unless-stopped
 
     bluro_api:
         build:
-            - context: ../bluro_cms
-            - dockerfile: ./dockerfile_front_prod
+            context: ../bluro_cms
+            dockerfile: ./dockerfile_front_prod
         restart: unless-stopped
         environment:
             - NODE_ENV=production

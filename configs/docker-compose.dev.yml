@@ -5,27 +5,29 @@ services:
         volumes:
             - ./proxy_server.conf:/etc/nginx/conf.d/default.conf
             - ./proxy_server.conf:/etc/nginx/sites-available/default.conf
-            - ./logs/proxy_server:/usr/local/nginx/logs
-            - ./logs/proxy_server:/var/log/nginx
+            - ../app_data/proxy_server:/usr/local/nginx/logs
+            - ../app_data/proxy_server:/var/log/nginx
         restart: on-failure
 
     front_blog:
         image: node:latest
         volumes:
-            - ./tech_overload_blog:/application
+            - ../tech_overload_blog:/application
+            - ./dev_entrypoint.sh:/dev_entrypoint.sh
         environment:
             - NODE_ENV=development
         env_file:
             - front.env
-        entrypoint: ["/application/dev_entrypoint.sh"]
+        entrypoint: ["/dev_entrypoint.sh"]
         restart: on-failure
         stdin_open: true
 
     front_admin_panel:
         image: node:latest
         volumes:
-            - ./admin_panel:/application
-        entrypoint: ["/application/dev_entrypoint.sh"]
+            - ../admin_panel:/application
+            - ./dev_entrypoint.sh:/dev_entrypoint.sh
+        entrypoint: ["/dev_entrypoint.sh"]
         environment:
             - NODE_ENV=development
         env_file:
@@ -35,8 +37,9 @@ services:
 
     bluro_api:
         volumes:
-            - ./bluro_cms:/application
-        entrypoint: ["/application/dev_entrypoint.sh"]
+            - ../bluro_cms:/application
+            - ./dev_entrypoint.sh:/dev_entrypoint.sh
+        entrypoint: ["/dev_entrypoint.sh"]
         environment:
             - NODE_ENV=development
         restart: on-failure

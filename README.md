@@ -27,8 +27,12 @@ environment variables to make them more secure.
 
 -   host - defines ip that the server will be listening
 -   port - defines port that the server will be listening
+-   https - if "true", then https protocol will be used
+-   secret - secret string that is used to encode JWT tokens
 -   dbhost - ip of an db server
 -   database - name of already created database
+-   dbConnectionTries - tries before app fails to connect (default 3)
+-   dbConnectionTryDelay - delay between tries in milliseconds (default 3000)
 -   user - db user name
 -   password - db user password
 -   connectionTimeout - max time that the server will be waiting for connection to the db

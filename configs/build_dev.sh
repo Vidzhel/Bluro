@@ -2,17 +2,17 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
-cd ./bluro_cms
+cd ../bluro_cms
+echo Installing bluro_cms dependencies
 npm install
-cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
 
 cd ../tech_overload_blog
+echo Installing tech_overload_blog dependencies
 npm install
-cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
 
 cd ../admin_panel
+echo Installing admin_panel dependencies
 npm install
-cp ../configs/dev_entrypoint.sh ./dev_entrypoint.sh
 
 cd ../configs
 docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up
