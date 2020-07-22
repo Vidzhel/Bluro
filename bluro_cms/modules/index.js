@@ -40,10 +40,17 @@ function cors(req, res, data) {
 
 	// Always required headers
 	if (allowedOrigins) {
-		if (typeof allowedOrigins[Symbol.iterator] === "function") {
-			res.setHeader("Access-Control-Allow-Origin", allowedOrigins.join(", "));
+		if (
+			typeof allowedOrigins[Symbol.iterator] === "function" &&
+			typeof allowedOrigins !== "string"
+		) {
+			if (allowedOrigins.includes(req.headers["origin"])) {
+				res.setHeader("Access-Control-Allow-Origin", req.headers["origin"]);
+			}
 		} else {
-			res.setHeader("Access-Control-Allow-Origin", allowedOrigins);
+			if (allowedOrigins === req.headers["origin"]) {
+				res.setHeader("Access-Control-Allow-Origin", req.headers["origin"]);
+			}
 		}
 	}
 

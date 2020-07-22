@@ -2,17 +2,24 @@
 .vscode
 .idea
 .configs
+
 node_modules
 logs
-./bluro_cms/files
-migrations
-files/*
+
+bluro_cms/files/articles
+bluro_cms/files/temp
+bluro_cms/files/profiles/img/*
+!bluro_cms/files/profiles/img/default.jpg
+
+
 /src
 *.env
 app_data
-!./bluro_cms/files/profiles/img/default.*
+
+migrations
 /tech_overload_blog/build
 /admin_panel/build
+
 
 # Logs
 Backend/logs
