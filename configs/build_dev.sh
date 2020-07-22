@@ -2,6 +2,7 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
+#  Setup environmet
 cd ../bluro_cms
 echo Installing bluro_cms dependencies
 npm install
@@ -13,6 +14,10 @@ npm install
 cd ../admin_panel
 echo Installing admin_panel dependencies
 npm install
+
+# Creating .env file with db image for raspbery
+# TODO check whether the script is running on arm or x86/x64 and set proper db image
+echo "hypriot/rpi-mysql" > .env
 
 cd ../configs
 docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up

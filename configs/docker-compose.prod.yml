@@ -20,6 +20,9 @@ services:
         build:
             context: ../bluro_cms
             dockerfile: ./dockerfile_front_prod
+        volumes:
+            - ../app_data/api/logs:/application/logs
+            - ../app_data/api/static_files:/application/files
         restart: unless-stopped
         environment:
             - NODE_ENV=production

@@ -102,7 +102,7 @@ class LoggingPage extends React.Component {
 			},
 		});
 
-		if (!login || login.length > 50 || login.length < 5) {
+		if (!login || login.length > 50 || login.length < 0) {
 			this._setError("login", "Login has to be at least 0 and at most 50 symbol in length");
 			return;
 		} else {

@@ -9,6 +9,7 @@ services:
         depends_on:
             - front_blog
             - front_admin_panel
+            - bluro_api
         networks:
             - bluro
 
@@ -32,9 +33,6 @@ services:
 
     bluro_api:
         image: node:latest
-        volumes:
-            - ../app_data/api/logs:/application/logs
-            - ../app_data/api/static_files:/application/files
         depends_on:
             - db
         env_file:
@@ -45,7 +43,7 @@ services:
             - bluro
 
     db:
-        image: "hypriot/rpi-mysql"
+        image: "${DB_IMAGE}"
         expose:
             - "3306"
         restart: always
