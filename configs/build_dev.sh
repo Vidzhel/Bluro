@@ -2,7 +2,7 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
-#  Setup environmet
+# Setup environmet
 cd ../bluro_cms
 echo Installing bluro_cms dependencies
 npm install

@@ -1,4 +1,0 @@
-FROM nginx:latest
-
-COPY . /application
-COPY ../../configs/front.conf /etc/nginx/conf.d/default.conf
