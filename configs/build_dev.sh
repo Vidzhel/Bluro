@@ -15,9 +15,5 @@ cd ../admin_panel
 echo Installing admin_panel dependencies
 npm install
 
-# Creating .env file with db image for raspbery
-# TODO check whether the script is running on arm or x86/x64 and set proper db image
-echo "hypriot/rpi-mysql" > .env
-
 cd ../configs
 docker-compose -f docker-compose.base.yml -f docker-compose.dev.yml up
