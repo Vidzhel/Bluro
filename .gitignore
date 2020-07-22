@@ -14,6 +14,7 @@ bluro_cms/files/profiles/img/*
 
 /src
 *.env
+!.env
 app_data
 
 migrations
@@ -92,7 +93,6 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
