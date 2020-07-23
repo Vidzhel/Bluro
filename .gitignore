@@ -13,8 +13,6 @@ bluro_cms/files/profiles/img/*
 
 
 /src
-*.env
-!.env
 app_data
 
 migrations
