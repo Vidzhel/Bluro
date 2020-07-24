@@ -549,7 +549,7 @@ Notification are sent with a general response (see [General Response](#general-r
 
 ### General Response
 
-```json
+```jsonc
 {
 	"session": {
 		"verbose": "id that is used to get profile info",
