@@ -12,21 +12,33 @@ development
 
 ## Table of content
 
--   [Bluro](#bluro) - [Table of content](#table-of-content) - [Installation](#installation) -
-    [Running dev server with docker](#running-dev-server-with-docker) -
-    [Running components separately](#running-components-separately) -
-    [TechOverload](#techoverload) - [Walk through the UI](#walk-through-the-ui) - [API](#api) -
-    [Configs](#configs) - [API endpoints](#api-endpoints) - [Authentication](#authentication) -
-    [Registration](#registration) - [Profiles](#profiles) - [Articles](#articles) -
-    [Profiles](#profiles-1) - [General Response](#general-response) - [Codes](#codes) -
-    [Start](#start) - [Structure](#structure) - [Features](#features)
+- [Bluro](#bluro)  
+	- [Table of content](#table-of-content)  
+	- [Installation](#installation)  
+		- [Running dev server with docker](#running-dev-server-with-docker)  
+		- [Running components separately](#running-components-separately)  
+	- [TechOverload](#techoverload)  
+		- [Walk through the UI](#walk-through-the-ui)  
+	- [API](#api)  
+		- [Configs](#configs)  
+	- [API endpoints](#api-endpoints)  
+		- [Authentication](#authentication)  
+		- [Profiles](#profiles)  
+		- [Articles](#articles)  
+		- [Comments](#comments)  
+		- [Notifications](#notifications)  
+		- [General Response](#general-response)  
+		- [Collection Response](#collection-response)  
+		- [Entity Response](#entity-response)  
+		- [Codes](#codes)  
+	- [Architecture](#architecture)
 
-## Installation
+## Installation  
 
 Go to folder where you want a new folder with the source code to be downloaded, run:
 
 ```bash
-	git clone https://github.com/Vidzhel/Bluro.git
+git clone https://github.com/Vidzhel/Bluro.git
 ```
 
 ### Running dev server with docker
@@ -40,8 +52,8 @@ Running the server with docker requires creation of config files under `configs`
 -   `db.env` file stores root password and the name of the database
 
 ```env
-	MYSQL_ROOT_PASSWORD=n5}47}^FAU6VdY28
-	MYSQL_DATABASE=bluro
+MYSQL_ROOT_PASSWORD=n5}47}^FAU6VdY28
+MYSQL_DATABASE=bluro
 ```
 
 `Note:` database name and password in `db.env` and `api.env` must be the same
@@ -53,9 +65,9 @@ Running the server with docker requires creation of config files under `configs`
     -   PORT - sets port to listen
 
 ```env
-	REACT_APP_API=/api
-	HOST=0.0.0.0
-	PORT=3000
+REACT_APP_API=/api
+HOST=0.0.0.0
+PORT=3000
 ```
 
 Then you can build and start docker containers by running:
@@ -63,13 +75,13 @@ Then you can build and start docker containers by running:
 -   For Linux:
 
 ```bash
-	./configs/build_dev.sh
+./configs/build_dev.sh
 ```
 
 -   For Windows:
 
 ```ps1
-	.\configs\build_dev.ps1
+.\configs\build_dev.ps1
 ```
 
 `Note:` for Windows make sure that file `./configs/dev_entrypoint.sh` has `LF` as End Of Line
@@ -88,8 +100,6 @@ fill in `bluro_cms/config.json` (see [Configs](#Configs)) beforehand.
 Bluro API starts on the port `8000`, Tech Overload Blog on `3000`, Admin panel on `3001`. You can
 change the ports but note: if you change the port of the Bluro API, you'll need to change `BASE`
 constant in the `admin_panel\src\assets\configs.js` and `tech_overload_blog\src\assets\configs.js`
-
----
 
 ## TechOverload
 
@@ -220,16 +230,18 @@ as environment variables to make them more secure.
 
 ### Authentication
 
-#### Endpoints
+#### Logging in
 
-POST /login
+**Endpoints**
+
+-   /login - POST
 
 **Requests**
 
 ```json
 {
-    "email": string,
-    "pass": string
+    "email": "string",
+    "pass": "string"
 {
 ```
 
@@ -241,7 +253,9 @@ POST /login
 		"verbose": "id that is used to get profile info",
 		"userName": "userName",
 		"role": "user role: 'ADMIN', 'USER'",
-		"email": "email"
+		"email": "email",
+		"login": "login",
+		"img": "name of img resource"
 	},
 
 	"errors": "list of descriptions of errors",
@@ -256,11 +270,11 @@ Cookie `token` is sent in header, used to authorize following requests from a cl
 200 - Logged in  
 403 - Wrong username or password
 
-### Registration
+#### Registration
 
 **Endpoints**
 
-POST /signup
+-   /signup - POST
 
 **Request**
 
@@ -275,21 +289,18 @@ POST /signup
 
 **Response**
 
-```json
+```jsonc
 {
 	"session": {
 		"verbose": "id that is used to get profile info",
 		"userName": "userName",
 		"role": "user role: 'ADMIN', 'USER'",
-		"email": "email"
-	},
+		"email": "email",
+		"login": "login",
+		"img": "name of img resource"
+	}
 
-	// Response status
-	"errors": [],
-	"success": [],
-	"info": [],
-
-	"notifications": []
+	// Other common parameters
 }
 ```
 
@@ -312,6 +323,9 @@ Query parameters `count` and `offset` may be specified to get a part of collecti
 respectively
 
 -   /profiles/:verbose - PUT - update profile with parameters
+-   /profiles/:verbose - DELETE - delete profile (no other data is required)
+
+`NOTE:` only admins and owners of profiles can update or delete them
 
 Headers: `Content-Type: multipart/form-data` OR `json` (if you need to update profile image, request
 update with the use of multipart form data content type header)
@@ -325,13 +339,13 @@ Files:
 ```jsonc
 {
 	// all parameters are optional
-	"[verbose]": "new id that is used to get profile info",
-	"[userName]": "new use name",
-	"[role]": "new user role: 'ADMIN', 'USER'",
-	"[email]": "new email",
-	"[pass]": "new pass",
-	"[repPass]": "repeat new pass",
-	"[about]": "new about user"
+	"verbose": "new id that is used to get profile info",
+	"userName": "new use name",
+	"role": "new user role: 'ADMIN', 'USER'",
+	"email": "new email",
+	"pass": "new pass",
+	"repPass": "repeat new pass",
+	"about": "new about user"
 }
 ```
 
@@ -342,8 +356,6 @@ Only an user and an admin can change the user's profile info
 400 - Bad data  
 403 - User with the same verbose has already been registered 404 - User not found  
 200 - OK
-
--   /profiles/:verbose - DELETE - delete profile
 
 #### Get or modify followers
 
@@ -367,16 +379,19 @@ Only an user and an admin can change the user's profile info
 
 ### Articles
 
-#### Modify article (create or update)
+#### Modify article (create, delete or update)
 
 **Endpoints**
 
 -   /articles/:verbose - PUT - modify
+-   /articles/:verbose - DELETE - delete article (no other data is required)
 -   /articles - POST - create
+
+`Note`: Only admins and owners of articles can update or delete them
 
 **Request**
 
-Headers: `Content-Type: multipart/form-data`
+Headers: `Content-Type: multipart/form-data` if you send with files or `json` with just data
 
 Files:
 
@@ -386,8 +401,7 @@ Files:
 ```jsonc
 {
 	"verbose": "human readable name, if not specified, auto generated will be used",
-	"publDate": "date and time of publication or null if an article in drafts (in milliseconds)",
-	"changeDate": "date and time of changing (in milliseconds)",
+	"state": "PUBLISHED or PENDING_PUBLISHING",
 	"title": "string",
 	"description": "string"
 }
@@ -402,12 +416,12 @@ least one has to be specified
 403 - Forbidden updating someone else's article  
 401 - Unauthorized user
 
-#### Get article
+#### Get articles
 
 **Endpoints**
 
 -   /articles/:verbose - GET - returns en entry with an article's specific data (see
-    [Entry response](#entity-response))
+    [Collection response](#collection-response))
 -   /articles - GET - returns collection of articles (see
     [Collection response](#collection-response))
 
@@ -448,6 +462,91 @@ respectively
     [Entry response](#entity-response))
 -   /profiles/:verbose/articles - GET - returns collection of articles of the specified user
 
+### Comments
+
+#### Modify comment (create, update, delete)
+
+**Endpoints**
+
+-   /articles/:verbose/comments - POST - create comment
+-   /comments/:verbose - PUT - update comment (no other data is required)
+-   /comments/:verbose - DELETE - delete comment
+
+`Note` only admins and owners of a comment can update or delete it
+
+**Request**
+
+```jsonc
+{
+	"content": "content of a comment"
+}
+```
+
+**Codes**  
+201 - Created  
+200 - Updated  
+403 - Forbidden updating someone else's comment  
+404 - Article or comment wasn't found
+
+#### Get comments
+
+**Endpoints**
+
+-   /comments - GET - get all comments (see [Collection response](#collection-response))
+-   /articles/:verbose/comments - GET - get all comments for an article
+-   /comments/:verbose - GET - get a comment (see [Entry response](#entity-response))
+-   /articles/:verbose/comments/:verbose - GET - get a comment
+
+Query parameters `count` and `offset` may be specified to get a part of collection, default 10 and 0
+respectively
+
+**Response**
+
+```jsonc
+{
+	"entity": {
+		"user": {
+			// creator data
+		},
+		"content": "content of a comment",
+		"creationDate": "date of creation",
+		"lastUpdateDate": "date of update"
+	}
+}
+```
+
+**Codes**  
+200 - Ok  
+404 - Articles or comments weren't found
+
+### Notifications
+
+#### Modify a notification (create, update, delete)
+
+**Endpoints**
+
+-   /profiles/:verbose/notification - POST - create notification
+-   /profiles/:verbose/notification/:verbose - PUT - read notification
+-   /profiles/:verbose/notification/:verbose - DELETE - delete notification
+
+**Request**
+
+```jsonc
+{
+	"message": "notification message"
+}
+```
+
+**Codes**  
+201 - Created  
+200 - Updated  
+403 - Forbidden updating someone else's notification  
+404 - Notification or profile wasn't found
+
+#### Get notifications
+
+Notification are sent with a general response (see [General Response](#general-response))
+
 ### General Response
 
 ```json
@@ -461,31 +560,39 @@ respectively
 
 	"errors": "error's descriptions list",
 	"success": "success's descriptions list",
-	"info": "info's descriptions list"
+	"info": "info's descriptions list",
+
+	"notifications": [
+		// collection of notifications
+	]
 }
 ```
 
 ### Collection Response
 
 ```jsonc
+{
 	"collection": {
-        "data": [],
-        "offset": "offset in the list of all entries in database",
-        "count": "requested count of entries",
-        "actualCount": "count of entries in `data` field"
-    }
+		"data": [],
+		"offset": "offset in the list of all entries in database",
+		"count": "requested count of entries",
+		"actualCount": "count of entries in `data` field"
+	}
 
 	// Other usual parameters
+}
 ```
 
 ### Entity Response
 
 ```jsonc
+{
 	"entity": {
 		// Entry parameters
 	}
 
 	// Other usual parameters
+}
 ```
 
 ### Codes
