@@ -12,28 +12,28 @@ development
 
 ## Table of content
 
-- [Bluro](#bluro)  
-	- [Table of content](#table-of-content)  
-	- [Installation](#installation)  
-		- [Running dev server with docker](#running-dev-server-with-docker)  
-		- [Running components separately](#running-components-separately)  
-	- [TechOverload](#techoverload)  
-		- [Walk through the UI](#walk-through-the-ui)  
-	- [API](#api)  
-		- [Configs](#configs)  
-	- [API endpoints](#api-endpoints)  
-		- [Authentication](#authentication)  
-		- [Profiles](#profiles)  
-		- [Articles](#articles)  
-		- [Comments](#comments)  
-		- [Notifications](#notifications)  
-		- [General Response](#general-response)  
-		- [Collection Response](#collection-response)  
-		- [Entity Response](#entity-response)  
-		- [Codes](#codes)  
-	- [Architecture](#architecture)
+-   [Bluro](#bluro)
+    -   [Table of content](#table-of-content)
+    -   [Installation](#installation)
+    -   [Running dev server with docker](#running-dev-server-with-docker)
+    -   [Running components separately](#running-components-separately)
+    -   [TechOverload](#techoverload)
+    -   [Walk through the UI](#walk-through-the-ui)
+    -   [API](#api)
+    -   [Configs](#configs)
+    -   [API endpoints](#api-endpoints)
+    -   [Authentication](#authentication)
+    -   [Profiles](#profiles)
+    -   [Articles](#articles)
+    -   [Comments](#comments)
+    -   [Notifications](#notifications)
+    -   [General Response](#general-response)
+    -   [Collection Response](#collection-response)
+    -   [Entity Response](#entity-response)
+    -   [Codes](#codes)
+    -   [Architecture](#architecture)
 
-## Installation  
+## Installation
 
 Go to folder where you want a new folder with the source code to be downloaded, run:
 
@@ -123,12 +123,16 @@ the left a call to action to register. It should be noted that to read articles 
 you do not need to create an account. It is needed if you want to publish articles, subscribe, write
 comments.
 
-![Home page](https://i.imgur.com/Zg3jgcg.png)
+<p align="center">
+	<img src="https://i.imgur.com/Zg3jgcg.png" alt="Home page"/>
+</p>
 
 After clicking the "Become a member" button, it sends you to the page with the registration form. If
 you have an account, you can click "Have an account?" then it will take you to the login page.
 
-![Login](https://i.imgur.com/0uOl2cs.png)
+<p align="center">
+	<img src="https://i.imgur.com/0uOl2cs.png" alt="Login"/>
+</p>
 
 After logging in to your account, it redirects you back to the main page. A message appears in the
 upper right corner, now it says that the login was successful. You need to notice some changes in
@@ -138,18 +142,24 @@ will appear, where when you click on the first item, with advanced user informat
 redirected to the profile page. There are also two more items, the first of which is needed to
 create a new article, and the second to log out.
 
-![Home page after logging in](https://i.imgur.com/V4GjyMD.png)
+<p align="center">
+	<img src="https://i.imgur.com/V4GjyMD.png" alt="Home page after logging in"/>
+</p>
 
 The user page consists of a header and content. The header contains the name, description, enlarged
 image, and number of subscribers and subscriptions. The content part has sections.
 
-![User page](https://i.imgur.com/2skYMHy.png)
+<p align="center">
+	<img src="https://i.imgur.com/2skYMHy.png" alt="User page"/>
+</p>
 
 If you are on your account page, then you will have access to two additional sections: "Settings" (a
 place where you can change personal information or delete an account), "Drafts" (a list of all
 articles that are saved as drafts).
 
-![Profile Settings](https://i.imgur.com/HZELJoc.png)
+<p align="center">
+	<img src="https://i.imgur.com/HZELJoc.png" alt="Profile Settings"/>
+</p>
 
 When you click on "Create new story", a modal window appears with fields to fill. You must add a
 title, a description, a preview image, and a file with the extension “md” or “markdown” which
@@ -158,13 +168,17 @@ name) that will be used in the link, if it is not specified, a random hash will 
 filling in the form you will have the opportunity to publish the article, or save in drafts in order
 to do so later.
 
-![Create article modal window](https://i.imgur.com/WDY3VLE.png)
+<p align="center">
+	<img src="https://i.imgur.com/WDY3VLE.png" alt="Create article modal window"/>
+</p>
 
 All articles (including drafts) created by you will have a pen mark in the upper right part, when
 you click on it, a familiar modal window will open, in which you can change the information. If you
 click on the article itself, you will be redirected to a page with its content.
 
-![Article's content](https://i.imgur.com/tJVy3Sy.png)
+<p align="center">
+	<img src="https://i.imgur.com/tJVy3Sy.png" alt="Article's content"/>
+</p>
 
 At the bottom of the article are the comments. If someone other than you writes and publishes a
 comment under your article, then you receive a message (upper right corner red indicator with the
@@ -173,7 +187,9 @@ author to whom you subscribe , published a new article or the administrator bloc
 comment (all messages are duplicated to the e-mail specified during registration). The administrator
 also has the ability to send you messages. You can also edit your comments.
 
-![Article's comments](https://i.imgur.com/DCupOkf.png)
+<p align="center">
+	<img src="https://i.imgur.com/DCupOkf.png" alt="Article's comments"/>
+</p>
 
 #### Admin Panel
 
@@ -181,13 +197,17 @@ The admin panel is divided into three tabs: Users, Articles, Comments, each of w
 for a specific resource that can be moderated. The right part is divided into search and resource
 list. You can click on each entity, and additional information about this resource will expand.
 
-![Admin panel Users tab content](https://i.imgur.com/w4OoeMg.png)
+<p align="center">
+	<img src="https://i.imgur.com/w4OoeMg.png" alt="Admin panel Users tab content"/>
+</p>
 
 In the right part of each entity there are two buttons "Info" and "Block". The first sends you to
 the page of this resource, the second blocks the resource (the "Enter block cause" field have to be
 filled in beforehand). Moderators have additional fields to create a message.
 
-![Amin panel search](https://i.imgur.com/VrqHgiM.png)
+<p align="center">
+	<img src="https://i.imgur.com/VrqHgiM.png" alt="Amin panel search"/>
+</p>
 
 ## API
 
@@ -622,15 +642,21 @@ requested file or resource.
 The web application consists of blocks that doesn't affect each other, and therefore are able to be
 developed separately and scaled without unnecessary problems.
 
-![System components](https://i.imgur.com/BxGEEQm.png)
+<p align="center">
+	<img src="https://i.imgur.com/iAB3F1T.png" alt="System components"/>
+</p>
 
 JavaScript is used to write the server part, namely the NodeJS runtime. The core of the server part
 will consist of 7 main components, which together form a system, implementing the MVC pattern:
 
-![CMS structure](https://i.imgur.com/QJgeQ2u.png)
+<p align="center">
+	<img src="https://i.imgur.com/qYXiqDx.png" alt="CMS structure"/>
+</p>
 
 The part of the web application that accesses the API and which users work with. The admin panel and
 blog page use an API to retrieve and modify data. To write these blocks I used ReactJS together with
 several additional libraries:
 
-![Front end structure](https://i.imgur.com/wI80Kza.png)
+<p align="center">
+	<img src="https://i.imgur.com/cqNozhj.png" alt="Front end structure"/>
+</p>
