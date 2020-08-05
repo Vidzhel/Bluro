@@ -10,6 +10,9 @@ hardcore
 Frontend on the other hand makes use of **React and bunch of other dependencies** to simplify
 development
 
+[Read article](https://medium.com/@vidzhel/building-custom-headless-cms-that-powers-blogging-platform-d6d33515f109) :eyes:  
+[Read article(in Russian)](https://habr.com/ru/post/513366/)
+
 ## Table of content
 
 -   [Bluro](#bluro)
