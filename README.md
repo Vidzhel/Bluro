@@ -13,6 +13,11 @@ development
 [Read article](https://medium.com/@vidzhel/building-custom-headless-cms-that-powers-blogging-platform-d6d33515f109) :eyes:  
 [Read article(in Russian)](https://habr.com/ru/post/513366/)
 
+- Node.JS is used for backend to write a small library that would be used in development of the CMS
+- The library consists of a routing module that I build being inspired by Express, also it contains implementation of DI container (for dependency injection) and custom ORM that even can create migrations from your model and migrate them to mysql database
+- The frontend for the blog was written in React and used Redux and redux saga for state management
+- Docker is used to containerize NGINX reverse proxy, admin panel, blog, backend and database
+
 ## Table of content
 
 -   [Bluro](#bluro)
